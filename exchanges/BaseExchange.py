@@ -1,4 +1,6 @@
+import asyncio
 import typing
+
 import ccxt
 import ccxt.async_support as ccxt_async
 
@@ -63,21 +65,12 @@ class BaseExchange:
             'enableRateLimit': True
         })
 
-    # ---
-    def get_candlesticks(self, symbol, timeframe, since):
-        return self.client_async.fetch_ohlcv(symbol, timeframe, since=None)
-
     # ----
-    def get_pairs(self):
-        return self.client.fetchMarkets()
-
-    # ----
-    def place_order(self, symbol, type, side, amount, price):
-        return self.client.create_order(symbol, type, side, amount, self.client.priceToPrecision(price))
-
-    # ----
-    def get_depth(self, symbol):
-        return self.client.fetch_order_book(symbol)
+    async def main(self):
+        async for (symbol, candles) in self.initialize_candle_history(list(self.pairs.keys())):
+            print(symbol, candles)
+            self.pairs[symbol]['candlesticks'] = candles
+        return self.pairs
 
     # ----
     def start(self):
@@ -89,7 +82,51 @@ class BaseExchange:
         # stop fetching data, close sockets if applicable
         raise NotImplementedError
 
+    # ----
+    def get_candlesticks(self, symbol, timeframe, since):
+        return self.client_async.fetch_ohlcv(symbol, timeframe, since=None)
+
+    # ----
+    def get_pairs(self,quote_asset):
+        active_in_market = list(filter(lambda x: x['active'] and x['quote'] == quote_asset.upper(), self.client.fetchMarkets()))
+        return {x['symbol']: x for x in active_in_market}
+
+    # ----
+    def place_order(self, symbol, order_type, side, amount, price):
+        return self.client.create_order(symbol, order_type, side, amount, self.client.priceToPrecision(price))
+
+    # ----
+    def get_depth(self, symbol):
+        return self.client.fetch_order_book(symbol)
+
+    # ----
+    async def initialize_candle_history(self, tickers):
+        i = 0
+
+        while True:
+            symbol = tickers[i % len(tickers)]
+
+            yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe='1d', limit=3))
+            i += 1
+
+            # await asyncio.sleep(self.client_async.rateLimit / 1000)
+
+
+# =========================================
+# set default options for binance
+ccxt.binance.options['newOrderRespType'] = 'FULL'
+ccxt.binance.options['defaultTimeInForce'] = 'IOC'
+ccxt.binance.options['parseOrderToPrecision'] = True
+ccxt.binance.options['recvWindow'] = 10000
+
+
+class keys:
+    public_exchange_key = 'HPTpbOKj0konuPW72JozWGFDJbo0nK2rymbyObeX1vDSDSMZZd6vVosrA9dPFa1L'
+    private_exchange_key = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
+
 
 if __name__ == '__main__':
     ex = BaseExchange('binance', {'public': keys.public_exchange_key, 'secret': keys.private_exchange_key})
-    ex.pairs = ex.get_pairs()
+    ex.pairs = ex.get_pairs('ETH')
+    print(ex.pairs)
+    asyncio.get_event_loop().run_until_complete(ex.main())

@@ -1,19 +1,13 @@
 import typing
 import ccxt
 import ccxt.async_support as ccxt_async
-# will remove just for convenience right now
 
+
+# will remove just for convenience right now
 class keys:
     public_exchange_key = 'HPTpbOKj0konuPW72JozWGFDJbo0nK2rymbyObeX1vDSDSMZZd6vVosrA9dPFa1L'
     private_exchange_key = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
-client = ccxt.binance
-client_async = ccxt_async.binance
 
-# set default options for binance
-ccxt.binance.options['newOrderRespType'] = 'FULL'
-ccxt.binance.options['defaultTimeInForce'] = 'IOC'
-ccxt.binance.options['parseOrderToPrecision'] = True
-ccxt.binance.options['recvWindow'] = 10000
 
 class BaseExchange:
     """
@@ -33,49 +27,57 @@ class BaseExchange:
         Which exchange to use
 
 
-
     Returns
         Candlestick data
         Pair data
     """
 
     # ----
-    def __init__(self, exchange_id, access_keys: typing.DefaultDict[str, str]):
+    def __init__(self, exchange_id, access_keys: typing.Dict[str, str]):
         self.access_keys = access_keys
-        # initialize standard client
         self.pairs = {}
-        exchange_class = getattr(ccxt, exchange_id)
-        self.client = exchange_class({
-            'apiKey': access_keys['public'],
-            'secret': access_keys['secret'],
+
+        # initialize standard and sync client
+        self.exchange_class = getattr(ccxt, exchange_id)
+        self.exchange_class_async = getattr(ccxt_async, exchange_id)
+
+        self.client = None
+        self.client_async = None
+
+    # ----
+    def init_client_connection(self):
+        # initialize synchronous client
+        self.client = self.exchange_class({
+            'apiKey': self.access_keys['public'],
+            'secret': self.access_keys['secret'],
             'timeout': 30000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
+
         # initialize async client
-        exchange_class_async = getattr(ccxt, exchange_id)
-        self.client_async = exchange_class_async({
-            'apiKey': access_keys['public'],
-            'secret': access_keys['secret'],
+        self.client_async = self.exchange_class_async({
+            'apiKey': self.access_keys['public'],
+            'secret': self.access_keys['secret'],
             'timeout': 30000,
-            'enableRateLimit': True,
+            'enableRateLimit': True
         })
-        
-    # ----
+
+    # ---
     def get_candlesticks(self, symbol, timeframe, since):
-        return client.fetch_ohlcv(symbol, timeframe, since = None)
+        return self.client_async.fetch_ohlcv(symbol, timeframe, since=None)
 
     # ----
     def get_pairs(self):
-        return client.fetchMarkets()
+        return self.client.fetchMarkets()
 
     # ----
     def place_order(self, symbol, type, side, amount, price):
         return self.client.create_order(symbol, type, side, amount, self.client.priceToPrecision(price))
 
-
+    # ----
     def get_depth(self, symbol):
-        return client.fetch_order_book(symbol)
+        return self.client.fetch_order_book(symbol)
 
     # ----
     def start(self):

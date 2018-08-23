@@ -1,12 +1,6 @@
 from .BaseExchange import *
 
 
-# set default options for binance
-ccxt.binance.options['newOrderRespType'] = 'FULL'
-ccxt.binance.options['defaultTimeInForce'] = 'IOC'
-ccxt.binance.options['parseOrderToPrecision'] = True
-ccxt.binance.options['recvWindow'] = 10000
-
 
 class BinanceExchange(BaseExchange):
 

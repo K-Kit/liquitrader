@@ -5,12 +5,6 @@ import ccxt
 import ccxt.async_support as ccxt_async
 
 
-# will remove just for convenience right now
-class keys:
-    public_exchange_key = 'HPTpbOKj0konuPW72JozWGFDJbo0nK2rymbyObeX1vDSDSMZZd6vVosrA9dPFa1L'
-    private_exchange_key = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
-
-
 class BaseExchange:
     """
     Interface

@@ -4,7 +4,6 @@ import typing
 import ccxt
 import ccxt.async_support as ccxt_async
 
-
 class BaseExchange:
     """
     Interface
@@ -55,16 +54,11 @@ class BaseExchange:
         self.client_async = self.exchange_class_async({
             'apiKey': self.access_keys['public'],
             'secret': self.access_keys['secret'],
-            'timeout': 30000,
-            'enableRateLimit': True
+            'timeout': 10000,
+            'enableRateLimit': False
         })
 
-    # ----
-    async def main(self):
-        async for (symbol, candles) in self.initialize_candle_history(list(self.pairs.keys())):
-            print(symbol, candles)
-            self.pairs[symbol]['candlesticks'] = candles
-        return self.pairs
+
 
     # ----
     def start(self):
@@ -78,7 +72,7 @@ class BaseExchange:
 
     # ----
     def get_candlesticks(self, symbol, timeframe, since):
-        return self.client_async.fetch_ohlcv(symbol, timeframe, since=None)
+        return self.client_async.fetch_ohlcv(symbol, timeframe)
 
     # ----
     def get_pairs(self,quote_asset):
@@ -94,33 +88,65 @@ class BaseExchange:
         return self.client.fetch_order_book(symbol)
 
     # ----
-    async def initialize_candle_history(self, tickers):
+    async def load_all_candle_histories(self):
+        async for (symbol, candles, period) in self.initialize_candle_history(list(self.pairs.keys())):
+            print(symbol, candles)
+            self.pairs[symbol]['candlesticks_{}'.format(period)] = candles
+        return self.pairs
+
+    # ----
+    # will remove default timeframes later, just for ease of test
+    async def initialize_candle_history(self, tickers, timeframes = ['5m', '1h', '1d'], num_candles = 100):
+        i = 0
+        while i < len(tickers):
+            symbol = tickers[i % len(tickers)]
+            for t in timeframes:
+                yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe=t, limit=num_candles), t)
+            i += 1
+        await self.client_async.close()
+
+    async def candle_upkeep(self, tickers, timeframes = ['5m', '1h', '1d'], num_candles = 100):
         i = 0
 
         while True:
             symbol = tickers[i % len(tickers)]
-
-            yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe='1d', limit=3))
+            for t in timeframes:
+                yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe=t, limit=1))
             i += 1
+            await asyncio.sleep(self.client_async.rateLimit / 1000)
 
-            # await asyncio.sleep(self.client_async.rateLimit / 1000)
+    async def ticker_upkeep(self, tickers):
+        i = 0
+
+        while True:
+            symbol = tickers[i % len(tickers)]
+            print('--------------------------------------------------------------')
+            print(self.client_async.iso8601(self.client_async.milliseconds()), 'fetching', symbol, 'ticker from', self.client_async.name)
+            # this can be any call instead of fetch_ticker, really
+            try:
+                ticker = await self.client_async.fetch_ticker(symbol)
+                print(self.client_async.iso8601(self.client_async.milliseconds()), 'fetched', symbol, 'ticker from', self.client_async.name)
+                print(ticker)
+            except ccxt.RequestTimeout as e:
+                print('[' + type(e).__name__ + ']')
+                print(str(e)[0:200])
+                # will retry
+            except ccxt.DDoSProtection as e:
+                print('[' + type(e).__name__ + ']')
+                print(str(e.args)[0:200])
+                # will retry
+            except ccxt.ExchangeNotAvailable as e:
+                print('[' + type(e).__name__ + ']')
+                print(str(e.args)[0:200])
+                # will retry
+            except ccxt.ExchangeError as e:
+                print('[' + type(e).__name__ + ']')
+                print(str(e)[0:200])
+                break  # won't retry
+            i+=1
 
 
-# =========================================
-# set default options for binance
-ccxt.binance.options['newOrderRespType'] = 'FULL'
-ccxt.binance.options['defaultTimeInForce'] = 'IOC'
-ccxt.binance.options['parseOrderToPrecision'] = True
-ccxt.binance.options['recvWindow'] = 10000
 
 
-class keys:
-    public_exchange_key = 'HPTpbOKj0konuPW72JozWGFDJbo0nK2rymbyObeX1vDSDSMZZd6vVosrA9dPFa1L'
-    private_exchange_key = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
 
 
-if __name__ == '__main__':
-    ex = BaseExchange('binance', {'public': keys.public_exchange_key, 'secret': keys.private_exchange_key})
-    ex.pairs = ex.get_pairs('ETH')
-    print(ex.pairs)
-    asyncio.get_event_loop().run_until_complete(ex.main())

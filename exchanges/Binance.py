@@ -36,6 +36,3 @@ if __name__ == '__main__':
     asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
     end = timer()
     print(end - start)
-    # asyncio.get_event_loop().run_until_complete(ex.ticker_upkeep(list(ex.pairs.keys())))
-    #
-    # asyncio.get_event_loop().run_until_complete(ex.candle_upkeep(list(ex.pairs.keys())))

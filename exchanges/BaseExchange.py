@@ -42,6 +42,7 @@ class BaseExchange:
     # ----
     def init_client_connection(self):
         # initialize synchronous client
+
         self.client = self.exchange_class({
             'apiKey': self.access_keys['public'],
             'secret': self.access_keys['secret'],
@@ -146,7 +147,17 @@ class BaseExchange:
             i+=1
 
 
+if __name__ == '__main__':
+    ex = BaseExchange('bittrex', {})
+    ex.init_client_connection()
 
+    ex.pairs = ex.get_pairs('ETH')
+    print(ex.pairs)
+    from timeit import default_timer as timer
 
+    start = timer()
+    # ...
 
-
+    asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
+    end = timer()
+    print(end - start)

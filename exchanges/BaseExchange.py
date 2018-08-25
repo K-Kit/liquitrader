@@ -1,8 +1,11 @@
 import asyncio
 import typing
+import itertools
+from pprint import pprint
 
 import ccxt
 import ccxt.async_support as ccxt_async
+
 
 class BaseExchange:
     """
@@ -39,6 +42,8 @@ class BaseExchange:
         self.client = None
         self.client_async = None
 
+        self.tickers = []
+
     # ----
     def init_client_connection(self):
         # initialize synchronous client
@@ -55,11 +60,9 @@ class BaseExchange:
         self.client_async = self.exchange_class_async({
             'apiKey': self.access_keys['public'],
             'secret': self.access_keys['secret'],
-            'timeout': 10000,
+            'timeout': 30000,
             'enableRateLimit': False
         })
-
-
 
     # ----
     def start(self):
@@ -77,8 +80,12 @@ class BaseExchange:
 
     # ----
     def get_pairs(self,quote_asset):
-        active_in_market = list(filter(lambda x: x['active'] and x['quote'] == quote_asset.upper(), self.client.fetchMarkets()))
-        return {x['symbol']: x for x in active_in_market}
+        return {x['symbol']: x for x in (
+                    filter(
+                        lambda x: (x['active'] and x['quote'] == quote_asset.upper()),
+                        self.client.fetchMarkets())
+                    )
+                }
 
     # ----
     def place_order(self, symbol, order_type, side, amount, price):
@@ -89,62 +96,85 @@ class BaseExchange:
         return self.client.fetch_order_book(symbol)
 
     # ----
-    async def load_all_candle_histories(self):
-        async for (symbol, candles, period) in self.initialize_candle_history(list(self.pairs.keys())):
-            print(symbol, candles)
-            self.pairs[symbol]['candlesticks_{}'.format(period)] = candles
-        return self.pairs
+    async def load_all_candle_histories(self, timeframes=None, num_candles=100):
 
-    # ----
-    # will remove default timeframes later, just for ease of test
-    async def initialize_candle_history(self, tickers, timeframes = ['5m', '1h', '1d'], num_candles = 100):
-        i = 0
-        while i < len(tickers):
-            symbol = tickers[i % len(tickers)]
-            for t in timeframes:
-                yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe=t, limit=num_candles), t)
-            i += 1
+        # Don't use lists as default arguments -- things can get real weird, real fast.
+        timeframes = ['5m', '1h', '1d'] if timeframes is None else timeframes
+
+        # Create a list of symbol/timeframe tuples from self.pairs
+        # These will each be passed into a separate call to self.client_async.fetchOHLV below
+        args = [(symbol, t) for t in timeframes for symbol in self.pairs.keys()]
+
+        # Map the arguments to the fetchOHLCV using a lambda function to make
+        # providing keyword args easier
+        tasks = itertools.starmap(lambda s, t: self.client_async.fetchOHLCV(s, timeframe=t, limit=num_candles), args)
+
+        # Wraps futures into a single coroutine
+        task_group = asyncio.gather(*tasks)
+
+        # Wait for all tasks to finish (executed asynchronously)
+        await task_group
+
+        # Appease the ccxt gods
         await self.client_async.close()
 
-    async def candle_upkeep(self, tickers, timeframes = ['5m', '1h', '1d'], num_candles = 100):
-        i = 0
+        # Build our results from the results returned by the task_group coroutine we awaited before
+        for (symbol, period), candlesticks in zip(args, task_group.result()):
+            self.pairs[symbol]['candlesticks_{}'.format(period)] = candlesticks
 
-        while True:
-            symbol = tickers[i % len(tickers)]
+        return self.pairs
+
+    # --
+    async def candle_upkeep(self, tickers, timeframes=None):
+        """
+
+        :param tickers:
+        :param timeframes:
+        :param num_candles:
+        :return:
+        """
+
+        if timeframes is None:
+            timeframes = ['5m', '1h', '1d']
+
+        tickers_len = len(tickers)
+
+        i = 0
+        while 1:
+            symbol = tickers[i % tickers_len]
+
             for t in timeframes:
                 yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe=t, limit=1))
-            i += 1
+
             await asyncio.sleep(self.client_async.rateLimit / 1000)
 
-    async def ticker_upkeep(self, tickers):
-        i = 0
+            i += 1
 
-        while True:
-            symbol = tickers[i % len(tickers)]
+    # ----
+    async def ticker_upkeep(self, tickers):
+        tickers_len = len(tickers)
+
+        i = 0
+        while 1:
+            #
+            symbol = tickers[i % tickers_len]
+
             print('--------------------------------------------------------------')
             print(self.client_async.iso8601(self.client_async.milliseconds()), 'fetching', symbol, 'ticker from', self.client_async.name)
+
             # this can be any call instead of fetch_ticker, really
             try:
                 ticker = await self.client_async.fetch_ticker(symbol)
                 print(self.client_async.iso8601(self.client_async.milliseconds()), 'fetched', symbol, 'ticker from', self.client_async.name)
                 print(ticker)
-            except ccxt.RequestTimeout as e:
-                print('[' + type(e).__name__ + ']')
-                print(str(e)[0:200])
-                # will retry
-            except ccxt.DDoSProtection as e:
-                print('[' + type(e).__name__ + ']')
-                print(str(e.args)[0:200])
-                # will retry
-            except ccxt.ExchangeNotAvailable as e:
-                print('[' + type(e).__name__ + ']')
-                print(str(e.args)[0:200])
-                # will retry
+
+                i += 1
+
+            except (ccxt.RequestTimeout, ccxt.DDoSProtection,ccxt.ExchangeNotAvailable) as e:
+                pass  # will retry
+
             except ccxt.ExchangeError as e:
-                print('[' + type(e).__name__ + ']')
-                print(str(e)[0:200])
                 break  # won't retry
-            i+=1
 
 
 if __name__ == '__main__':
@@ -152,12 +182,14 @@ if __name__ == '__main__':
     ex.init_client_connection()
 
     ex.pairs = ex.get_pairs('ETH')
-    print(ex.pairs)
     from timeit import default_timer as timer
 
     start = timer()
     # ...
 
     asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
+
+    print(len(ex.pairs))
+
     end = timer()
     print(end - start)

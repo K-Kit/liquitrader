@@ -1,5 +1,5 @@
+import asyncio
 from BaseExchange import *
-
 
 
 class BinanceExchange(BaseExchange):
@@ -9,6 +9,7 @@ class BinanceExchange(BaseExchange):
 
     def init_client_connection(self):
         super().init_client_connection()
+
         # =========================================
         # set default options for binance
         self.client.options['newOrderRespType'] = 'FULL'
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     ex.init_client_connection()
 
     ex.pairs = ex.get_pairs('ETH')
-    print(ex.pairs)
+    #print(ex.pairs)
     from timeit import default_timer as timer
 
     start = timer()
@@ -35,4 +36,6 @@ if __name__ == '__main__':
 
     asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
     end = timer()
+
+    print(len(ex.pairs))
     print(end - start)

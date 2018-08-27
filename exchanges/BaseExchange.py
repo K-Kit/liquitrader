@@ -178,7 +178,8 @@ class BaseExchange:
 
 
 if __name__ == '__main__':
-    ex = BaseExchange('bittrex', {})
+    ex = BaseExchange('bittrex', {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
+                       'secret': '5942a5567e014fdfa05f0d202c5bec24'})
     ex.init_client_connection()
 
     ex.pairs = ex.get_pairs('ETH')

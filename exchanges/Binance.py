@@ -34,7 +34,7 @@ if __name__ == '__main__':
     start = timer()
     # ...
 
-    asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
+    asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories(timeframes= ['5m', '15m'], num_candles=100))
     end = timer()
 
     print(len(ex.pairs))

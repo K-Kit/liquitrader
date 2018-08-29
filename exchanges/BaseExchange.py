@@ -82,12 +82,16 @@ class BaseExchange:
 
     # ----
     def get_pairs(self,quote_asset):
-        return {x['symbol']: x for x in (
+        pairs = {x['symbol']: x for x in (
                     filter(
                         lambda x: (x['active'] and x['quote'] == quote_asset.upper()),
                         self.client.fetchMarkets())
                     )
                 }
+        for pair in pairs:
+            pairs[pair]['candlesticks'] = {}
+        self.pairs = pairs
+        return pairs
 
     # ----
     def place_order(self, symbol, order_type, side, amount, price):
@@ -115,6 +119,7 @@ class BaseExchange:
         task_group = asyncio.gather(*tasks)
 
         # Wait for all tasks to finish (executed asynchronously)
+
         await task_group
 
         # Appease the ccxt gods
@@ -122,7 +127,7 @@ class BaseExchange:
 
         # Build our results from the results returned by the task_group coroutine we awaited before
         for (symbol, period), candlesticks in zip(args, task_group.result()):
-            self.pairs[symbol]['candlesticks_{}'.format(period)] = candles_to_df(candlesticks)
+            self.pairs[symbol]['candlesticks'][period] = candles_to_df(candlesticks)
         time.sleep(1)
         return self.pairs
 

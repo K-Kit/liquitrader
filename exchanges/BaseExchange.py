@@ -2,10 +2,12 @@ import asyncio
 import typing
 import itertools
 from pprint import pprint
+import time
 
 import ccxt
 import ccxt.async_support as ccxt_async
 
+from Utils.CandleTools import candles_to_df
 
 class BaseExchange:
     """
@@ -120,8 +122,8 @@ class BaseExchange:
 
         # Build our results from the results returned by the task_group coroutine we awaited before
         for (symbol, period), candlesticks in zip(args, task_group.result()):
-            self.pairs[symbol]['candlesticks_{}'.format(period)] = candlesticks
-
+            self.pairs[symbol]['candlesticks_{}'.format(period)] = candles_to_df(candlesticks)
+        time.sleep(1)
         return self.pairs
 
     # --

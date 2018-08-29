@@ -19,7 +19,7 @@ class BinanceExchange(BaseExchange):
         self.res = []
         self.rest = []
         self.resc = []
-        self.last_update_time = 'notix'
+        self.last_update_time = None
 
     def init_client_connection(self):
         super().init_client_connection()
@@ -74,10 +74,10 @@ class BinanceExchange(BaseExchange):
         if 'e' in msg and msg['e'] == 'error':
             print('implement socket error handleing', msg)
             return
-
-        self.pairs[symbol]['close'] = msg['c']
-        self.pairs[symbol]['quoteVolume'] = msg['q']
-        self.pairs[symbol]['percentage'] = msg['P']
+        elif symbol in self.pairs:
+            self.pairs[symbol]['close'] = msg['c']
+            self.pairs[symbol]['quoteVolume'] = msg['q']
+            self.pairs[symbol]['percentage'] = msg['P']
 
     def handle_depth_socket(self, msg, symbol):
         if 'e' in msg and msg['e'] == 'error':
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     ex = BinanceExchange('binance', {'public': keys.public, 'secret': keys.secret})
     ex.init_client_connection()
     ex.init_socket_manager(keys.public, keys.secret)
-    ex.pairs = ex.get_pairs('USDT')
+    ex.pairs = ex.get_pairs('ETH')
     print(ex.pairs.keys())
     print(len(ex.pairs))
     timeframes = ['5m', '15m', '1h']

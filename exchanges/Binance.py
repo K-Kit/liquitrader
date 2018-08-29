@@ -1,4 +1,5 @@
 import asyncio
+import json
 from BaseExchange import *
 from binance.client import Client
 from binance.websockets import BinanceSocketManager
@@ -42,7 +43,7 @@ class BinanceExchange(BaseExchange):
             return
 
         if 'kline' in msg['stream']:
-            self.handle_candle_socket(msg['data'], self.parse_stream_name(msg['stream']), self.parse_stream_type(msg['stream']))
+            self.handle_candle_socket(msg['data'], self.parse_stream_name(msg['stream']), self.parse_candle_period(msg['stream']))
             self.last_candle_update_time = time.time()
             self.resc.append(msg['data'])
 
@@ -67,7 +68,7 @@ class BinanceExchange(BaseExchange):
             print('implement socket error handleing', msg)
             return
         candle = candle_tic_to_df(msg)
-        self.pairs[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
+        if symbol in self.pairs: self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
 
 
     def handle_ticker_socket(self, msg, symbol):
@@ -85,6 +86,11 @@ class BinanceExchange(BaseExchange):
             return
         if symbol in self.pairs: self.pairs[symbol]['orderbook'] = msg
 
+
+    def save(self):
+        with open('../pairs_data.json', 'w') as f:
+            json.dump(self.pairs, f)
+
     @staticmethod
     def parse_stream_name(stream_name):
         stream = stream_name.split('@')[0]
@@ -92,11 +98,13 @@ class BinanceExchange(BaseExchange):
         symbol = stream[:-len(market)]
         if symbol == 'bcc':
             symbol = 'BCH'
+        elif symbol == 'yoyo':
+            symbol = 'YOYOW'
         return '{}/{}'.format(symbol.upper(), market.upper())
 
     @staticmethod
-    def parse_stream_type(stream_name):
-        return stream_name.split('@')[1].replace('kline', 'candlesticks')
+    def parse_candle_period(stream_name):
+        return stream_name.split('_')[1]
 
 
 
@@ -109,22 +117,22 @@ if __name__ == '__main__':
     ex = BinanceExchange('binance', {'public': keys.public, 'secret': keys.secret})
     ex.init_client_connection()
     ex.init_socket_manager(keys.public, keys.secret)
-    ex.pairs = ex.get_pairs('ETH')
+    ex.pairs = ex.get_pairs('USDT')
     print(ex.pairs.keys())
     print(len(ex.pairs))
-    timeframes = ['5m', '15m', '1h']
-    asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories(timeframes=timeframes, num_candles=1))
-    time.sleep(3)
+    timeframes = ['5m', '15m']
+    asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories(timeframes=timeframes, num_candles=200))
+    time.sleep(1)
     candle_sockets, depth_sockets, ticker_sockets = gen_socket_list(ex.pairs, timeframes)
 
     ex.socket_manager.start()
 
     ex.socket_manager.start_multiplex_socket(candle_sockets, ex.process_multiplex_socket)
-    time.sleep(3)
+    time.sleep(1)
 
     ex.socket_manager.start_multiplex_socket(depth_sockets, ex.process_multiplex_socket)
 
-    time.sleep(3)
+    time.sleep(1)
     ex.socket_manager.start_multiplex_socket(ticker_sockets, ex.process_multiplex_socket)
     # from timeit import default_timer as timer
     #

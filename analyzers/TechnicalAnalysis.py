@@ -125,7 +125,7 @@ def get_indicators(df, indicator_name, lookback=None, candle_period=0):
         for i in range(len(outputs)):
             outputs[i].array = res[i]
             try:
-                outputs[i].__setattr__('{}'.format(outputs[i].name), int(res[i][-1])  if precision == 0 else round(res[i][-1], precision))
+                outputs[i].__setattr__('{}'.format(outputs[i].name), res[i][-1])
             except Exception as ex:
                 outputs[i].__setattr__('{}'.format(outputs[i].name),
                                        np.nan)
@@ -135,7 +135,7 @@ def get_indicators(df, indicator_name, lookback=None, candle_period=0):
     else:
         outputs[0].array = res
         try:
-            outputs[0].__setattr__('{}'.format(outputs[0].name), int(res[-1])  if precision == 0 else round(res[-1], precision))
+            outputs[0].__setattr__('{}'.format(outputs[0].name), res[-1])
         except Exception as ex:
             # logger.debug('TA: P{}'.format(ex))
             outputs[0].__setattr__('{}'.format(outputs[0].name),

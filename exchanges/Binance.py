@@ -1,17 +1,20 @@
 import asyncio
 import json
-from BaseExchange import *
+
+from exchanges.BaseExchange import *
 from binance.client import Client
 from binance.websockets import BinanceSocketManager
 
 from Utils.CandleTools import candles_to_df, candle_tic_to_df
 
-def gen_socket_list(pairs, timeframes):
+def gen_socket_list(pairs: dict, timeframes: list):
     # creates list of socket streams to subscribe to
     candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
     depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]
     tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
     return candles, depth, tickers
+
+
 
 class BinanceExchange(BaseExchange):
 
@@ -58,9 +61,6 @@ class BinanceExchange(BaseExchange):
         else:
             print('unknown socket res: {}'.format(msg))
 
-
-
-
     def handle_candle_socket(self, msg, symbol, candle_period):
 
         # update candlestick data for appropriate candle_period
@@ -69,7 +69,6 @@ class BinanceExchange(BaseExchange):
             return
         candle = candle_tic_to_df(msg)
         if symbol in self.pairs: self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
-
 
     def handle_ticker_socket(self, msg, symbol):
         # renamed what used to be pair.price to pair['close'] to follow CCXT conventions
@@ -82,19 +81,23 @@ class BinanceExchange(BaseExchange):
             self.pairs[symbol]['percentage'] = msg['P']
 
     def handle_depth_socket(self, msg, symbol):
-        # update bids/asks: TODO needs to be parsed to floats instead of strings
+        # update bids/asks: parse bids/asks to float
         if 'e' in msg and msg['e'] == 'error':
             print('implement socket error handleing', msg)
             return
-        if symbol in self.pairs: self.pairs[symbol]['orderbook'] = msg
+        if symbol in self.pairs:
+            pair = self.pairs[symbol]
+            pair['asks'] = [[float(ask[0]), float(ask[1])] for ask in msg['asks']]
+            pair['bids'] = [[float(bid[0]), float(bid[1])] for bid in msg['bids']]
 
 
-    def start(self, market= 'USDT'):
+    def start(self, market='USDT', timeframes=None):
         self.init_client_connection()
         self.init_socket_manager(keys.public, keys.secret)
         self.pairs = self.get_pairs(market)
         # timeframes hardcoded for now will be changed once we have a config
-        timeframes = ['5m', '15m']
+        if timeframes is None:
+            timeframes = ['5m', '15m']
         asyncio.get_event_loop().run_until_complete(
             self.load_all_candle_histories(timeframes=timeframes, num_candles=200))
         time.sleep(1)
@@ -112,6 +115,9 @@ class BinanceExchange(BaseExchange):
         self.ticker_socket = self.socket_manager.start_multiplex_socket(ticker_sockets, self.process_multiplex_socket)
 
         self.balances = self.update_balances()
+
+    def stop(self):
+        self.socket_manager.close()
 
     @staticmethod
     def parse_stream_name(stream_name):

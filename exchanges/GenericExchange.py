@@ -70,6 +70,10 @@ class GenericExchange:
         })
 
     # ----
+    def initialize_market(self):
+        pass
+
+    # ----
     def start(self):
         # this will be different for websocket /
         raise NotImplementedError

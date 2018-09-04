@@ -8,7 +8,8 @@ import ccxt
 import ccxt.async_support as ccxt_async
 
 from Utils.CandleTools import candles_to_df
-
+# TODO filter pairs for min volume and blacklist
+# TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
 class BaseExchange:
     """
     Interface

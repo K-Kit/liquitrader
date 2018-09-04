@@ -93,6 +93,7 @@ class BinanceExchange(GenericExchange):
 
 
     def start(self, market='USDT', timeframes=None):
+        # this may want to be split up
         self.init_client_connection()
         self.init_socket_manager(keys.public, keys.secret)
         self.pairs = self.get_pairs(market)

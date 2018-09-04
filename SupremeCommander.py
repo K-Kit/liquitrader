@@ -1,4 +1,5 @@
 """
-Exchange populates pairs
-Analyzer takes in dict
+start exchange
+every tic run technical analysis on pairs
+after technical analysis check conditions
 """

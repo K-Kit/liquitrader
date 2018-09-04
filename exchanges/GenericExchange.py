@@ -159,6 +159,8 @@ class GenericExchange:
     async def ticker_upkeep(self, tickers):
         # update ticker info during runtime - see binance ticker socket handler
         # update pair['close'], pair['quoteVolume'], pair['percentage']
+        # may want to use either client.fetchTickers or client.fetchTicker(symbol)
+        # fetchTickers gets all so this should save api calls but there will be irrelevant data
         raise NotImplementedError
 
     # ----

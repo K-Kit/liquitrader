@@ -11,7 +11,8 @@ from Utils.CandleTools import candles_to_df
 # TODO filter pairs for min volume and blacklist
 # TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
 # TODO on update balance check if balances not none, then if balances[id][total] != new balance, fetch trades for pair
-class BaseExchange:
+#
+class GenericExchange:
     """
     Interface
         get_candlesticks()
@@ -169,7 +170,7 @@ class BaseExchange:
 
 
 if __name__ == '__main__':
-    ex = BaseExchange('bittrex', {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
+    ex = GenericExchange('bittrex', {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
                        'secret': '5942a5567e014fdfa05f0d202c5bec24'})
     ex.init_client_connection()
 

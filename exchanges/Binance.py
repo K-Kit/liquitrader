@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from exchanges.BaseExchange import *
+from exchanges.GenericExchange import *
 from binance.client import Client
 from binance.websockets import BinanceSocketManager
 
@@ -17,7 +17,7 @@ def gen_socket_list(pairs: dict, timeframes: list):
 
 # TODO check last socket update time and restart if needed
 
-class BinanceExchange(BaseExchange):
+class BinanceExchange(GenericExchange):
 
     def __init__(self, exchange_id, access_keys):
         super().__init__(exchange_id=exchange_id, access_keys=access_keys)

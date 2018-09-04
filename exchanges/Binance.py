@@ -89,10 +89,10 @@ class BinanceExchange(BaseExchange):
         if symbol in self.pairs: self.pairs[symbol]['orderbook'] = msg
 
 
-    def start(self):
+    def start(self, market= 'USDT'):
         self.init_client_connection()
         self.init_socket_manager(keys.public, keys.secret)
-        self.pairs = self.get_pairs('USDT')
+        self.pairs = self.get_pairs(market)
         # timeframes hardcoded for now will be changed once we have a config
         timeframes = ['5m', '15m']
         asyncio.get_event_loop().run_until_complete(
@@ -109,6 +109,8 @@ class BinanceExchange(BaseExchange):
 
         time.sleep(1)
         self.ticker_socket = self.socket_manager.start_multiplex_socket(ticker_sockets, self.process_multiplex_socket)
+
+        self.balances = self.update_balances()
 
     @staticmethod
     def parse_stream_name(stream_name):

@@ -44,7 +44,7 @@ class BaseExchange:
 
         self.client = None
         self.client_async = None
-
+        self.balances = {}
         self.tickers = []
 
     # ----
@@ -80,6 +80,15 @@ class BaseExchange:
     # ----
     def get_candlesticks(self, symbol, timeframe, since):
         return self.client_async.fetch_ohlcv(symbol, timeframe)
+
+    # ----
+    def update_balances(self):
+        # sets and returns dict of balances as such:
+        # 'BTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
+        # 'LTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
+        # these will be accessible as balances[pairs[pair_name]['base']]
+        self.balances = self.client.fetchBalance()
+        return self.balances
 
     # ----
     def get_pairs(self,quote_asset):
@@ -134,55 +143,20 @@ class BaseExchange:
 
     # --
     async def candle_upkeep(self, tickers, timeframes=None):
-        """
-
-        :param tickers:
-        :param timeframes:
-        :param num_candles:
-        :return:
-        """
-
-        if timeframes is None:
-            timeframes = ['5m', '1h', '1d']
-
-        tickers_len = len(tickers)
-
-        i = 0
-        while 1:
-            symbol = tickers[i % tickers_len]
-
-            for t in timeframes:
-                yield (symbol, await self.client_async.fetchOHLCV(symbol, timeframe=t, limit=1))
-
-            await asyncio.sleep(self.client_async.rateLimit / 1000)
-
-            i += 1
+        # update candle history during runtime - see binance klines socket handler
+        raise NotImplementedError
 
     # ----
     async def ticker_upkeep(self, tickers):
-        tickers_len = len(tickers)
+        # update ticker info during runtime - see binance ticker socket handler
+        raise NotImplementedError
 
-        i = 0
-        while 1:
-            #
-            symbol = tickers[i % tickers_len]
+    # ----
+    async def depth_upkeep(self, tickers):
+        # update depth info during runtime - see binance depth socket handler
+        raise NotImplementedError
 
-            print('--------------------------------------------------------------')
-            print(self.client_async.iso8601(self.client_async.milliseconds()), 'fetching', symbol, 'ticker from', self.client_async.name)
 
-            # this can be any call instead of fetch_ticker, really
-            try:
-                ticker = await self.client_async.fetch_ticker(symbol)
-                print(self.client_async.iso8601(self.client_async.milliseconds()), 'fetched', symbol, 'ticker from', self.client_async.name)
-                print(ticker)
-
-                i += 1
-
-            except (ccxt.RequestTimeout, ccxt.DDoSProtection,ccxt.ExchangeNotAvailable) as e:
-                pass  # will retry
-
-            except ccxt.ExchangeError as e:
-                break  # won't retry
 
 
 if __name__ == '__main__':

@@ -145,11 +145,15 @@ class BaseExchange:
     # --
     async def candle_upkeep(self, tickers, timeframes=None):
         # update candle history during runtime - see binance klines socket handler
+        # candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
+        # use Utils.candletools.candle_tic_to_df()
+        # self.client.fetchOHLCV(symbol, timeframe = timeframe, limit = 1)
         raise NotImplementedError
 
     # ----
     async def ticker_upkeep(self, tickers):
         # update ticker info during runtime - see binance ticker socket handler
+        # update pair['close'], pair['quoteVolume'], pair['percentage']
         raise NotImplementedError
 
     # ----
@@ -157,6 +161,8 @@ class BaseExchange:
         # update depth info during runtime - see binance depth socket handler
         # this only needs to actually be preformed on pairs we are trailing / trying to buy
         # can do on all if api allows / is significantly easier
+        # update pair['bids] and pair['asks'] in form [ [price, amount] ] (it should already be like this in ccxt
+        # self.client.fetchOrderBook(pair)
         raise NotImplementedError
 
 

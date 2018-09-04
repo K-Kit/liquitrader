@@ -91,7 +91,6 @@ class BinanceExchange(GenericExchange):
             pair['asks'] = [[float(ask[0]), float(ask[1])] for ask in msg['asks']]
             pair['bids'] = [[float(bid[0]), float(bid[1])] for bid in msg['bids']]
 
-
     def start(self, market='USDT', timeframes=None):
         # this may want to be split up
         self.init_client_connection()

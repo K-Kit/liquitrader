@@ -154,6 +154,8 @@ class BaseExchange:
     # ----
     async def depth_upkeep(self, tickers):
         # update depth info during runtime - see binance depth socket handler
+        # this only needs to actually be preformed on pairs we are trailing / trying to buy
+        # can do on all if api allows / is significantly easier
         raise NotImplementedError
 
 

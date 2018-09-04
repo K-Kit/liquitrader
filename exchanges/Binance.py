@@ -102,6 +102,7 @@ class BinanceExchange(BaseExchange):
         candle_sockets, depth_sockets, ticker_sockets = gen_socket_list(self.pairs, timeframes)
 
         # store connection keys self.candle_sock
+        # time.sleep due to issues opening all at same time
         self.candle_socket = self.socket_manager.start_multiplex_socket(candle_sockets, self.process_multiplex_socket)
         time.sleep(1)
 

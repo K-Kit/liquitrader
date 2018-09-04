@@ -15,6 +15,7 @@ def gen_socket_list(pairs: dict, timeframes: list):
     return candles, depth, tickers
 
 
+# TODO check last socket update time and restart if needed
 
 class BinanceExchange(BaseExchange):
 

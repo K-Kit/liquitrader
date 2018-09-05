@@ -5,7 +5,7 @@ from exchanges.GenericExchange import *
 from binance.client import Client
 from binance.websockets import BinanceSocketManager
 
-from Utils.CandleTools import candles_to_df, candle_tic_to_df
+from utils.CandleTools import candles_to_df, candle_tic_to_df
 
 def gen_socket_list(pairs: dict, timeframes: list):
     # creates list of socket streams to subscribe to

@@ -34,17 +34,17 @@
         "buy_strategies":[
             {
                "conditions": [
-                   "asdf > xyz"
+                   "MFI_5m > 20, MA_5m > 0"
                ],
-               "buy_value": 3, // option to be % or float
+               "buy_value": 3, 
                "minimum_volume": 2,
                "trailing %": 3
            },
            {
               "conditions": [
-                  "asdf > xyz"
+                  "MFI_5m < 20, MA_5m < 0"
               ],
-              "buy_value": 3, // option to be % or float
+              "buy_value": 3,
               "minimum_volume": 2,
               "trailing %": 3
           }
@@ -54,14 +54,14 @@
                "conditions": [
                    "asdf > xyz"
                ],
-               "sell_value": 3, // option to be % or float
+               "sell_value": 3,
                "trailing %": 3
            },
            {
               "conditions": [
                   "asdf > xyz"
               ],
-              "sell_value": 3, // option to be % or float
+              "sell_value": 3,
               "minimum_volume": 2,
               "trailing %": 3
           }
@@ -71,7 +71,7 @@
                "conditions": [
                    "asdf > xyz"
                ],
-               "buy_value": 3, // option to be % or float
+               "buy_value": 3,
                "minimum_volume": 2,
                "trailing %": 3,
                "dca_percentage": 50,
@@ -81,7 +81,7 @@
               "conditions": [
                   "asdf > xyz"
               ],
-              "buy_value": 3, // option to be % or float
+              "buy_value": 3,
               "minimum_volume": 2,
               "trailing %": 3,
               "dca_percentage": 50,
@@ -94,14 +94,14 @@
                "conditions": [
                    "asdf > xyz"
                ],
-               "sell_value": 3, // option to be % or float
+               "sell_value": 3,
                "trailing %": 3
            },
            {
               "conditions": [
                   "asdf > xyz"
               ],
-              "sell_value": 3, // option to be % or float
+              "sell_value": 3,
               "trailing %": 3
           }
         ]

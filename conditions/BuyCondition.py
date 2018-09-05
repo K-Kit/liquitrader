@@ -1,9 +1,6 @@
 from Condition import *
 
 class BuyCondition(Condition):
-    # "buy_value": 3,
-    # "minimum_volume": 2,
-    # "trailing %": 3
     def __init__(self, condition_config: dict):
         super().__init__(condition_config)
         self.buy_value = condition_config['buy_value']

@@ -7,7 +7,7 @@ import time
 import ccxt
 import ccxt.async_support as ccxt_async
 
-from Utils.CandleTools import candles_to_df
+from Utils.CandleTools import candles_to_df, candle_tic_to_df
 
 
 # TODO filter pairs for min volume and blacklist
@@ -82,6 +82,8 @@ class GenericExchange:
 
     # ----
     def stop(self):
+        asyncio.get_event_loop().run_until_complete(self.client_async.close)
+
         # stop fetching data, close sockets if applicable
         raise NotImplementedError
 
@@ -121,7 +123,6 @@ class GenericExchange:
 
     # ----
     async def load_all_candle_histories(self, timeframes=None, num_candles=100):
-
         # Don't use lists as default arguments -- things can get real weird, real fast.
         timeframes = ['5m', '1h', '1d'] if timeframes is None else timeframes
 
@@ -139,23 +140,49 @@ class GenericExchange:
         # Wait for all tasks to finish (executed asynchronously)
         await task_group
 
-        # Appease the ccxt gods
-        await self.client_async.close()
+        time.sleep(1)
 
         # Build our results from the results returned by the task_group coroutine we awaited before
         for (symbol, period), candlesticks in zip(args, task_group.result()):
             self.pairs[symbol]['candlesticks'][period] = candles_to_df(candlesticks)
+
         time.sleep(1)
+
         return self.pairs
 
     # ----
-    async def candle_upkeep(self, tickers, timeframes=None):
+    async def candle_upkeep(self):
         # update candle history during runtime - see binance klines socket handler
         # candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
         # use Utils.candletools.candle_tic_to_df()
         # self.client.fetchOHLCV(symbol, timeframe=timeframe, limit=1)
 
-        raise NotImplementedError
+        timeframe = '5m'
+
+        # Create a list of symbol/timeframe tuples from self.pairs
+        # These will each be passed into a separate call to self.client_async.fetchOHLV below
+        args = [(symbol, timeframe) for symbol in self.pairs.keys()]
+
+        # Map the arguments to the fetchOHLCV using a lambda function to make
+        # providing keyword args easier
+        tasks = itertools.starmap(lambda s, t: self.client_async.fetchOHLCV(s, timeframe=t, limit=1), args)
+
+        # Wraps futures into a single coroutine
+        task_group = asyncio.gather(*tasks)
+
+        # Wait for all tasks to finish (executed asynchronously)
+        await task_group
+
+        time.sleep(1)
+
+        # Build our results from the results returned by the task_group coroutine we awaited before
+        for (symbol, period), candle_data in zip(args, task_group.result()):
+            candle = candle_tic_to_df(candle_data)
+            self.pairs[symbol]['candlesticks'][period].loc[candle.index[0]] = candle.iloc[0]
+
+        time.sleep(1)
+
+        return self.pairs
 
     # ----
     async def ticker_upkeep(self, tickers):
@@ -180,17 +207,11 @@ class GenericExchange:
 if __name__ == '__main__':
     ex = GenericExchange('bittrex', {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
                                      'secret': '5942a5567e014fdfa05f0d202c5bec24'})
+
     ex.init_client_connection()
-
     ex.pairs = ex.get_pairs('ETH')
-    from timeit import default_timer as timer
-
-    start = timer()
-    # ...
 
     asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
-
-    print(len(ex.pairs))
-
-    end = timer()
-    print(end - start)
+    ex.pairs
+    asyncio.get_event_loop().run_until_complete(ex.candle_upkeep())
+    ex.pairs

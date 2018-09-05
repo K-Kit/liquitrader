@@ -22,6 +22,8 @@ class BinanceExchange(GenericExchange):
     def __init__(self, exchange_id, access_keys):
         super().__init__(exchange_id=exchange_id, access_keys=access_keys)
 
+        self.last_candle_update_time = None
+
     def init_client_connection(self):
         super().init_client_connection()
 
@@ -63,19 +65,21 @@ class BinanceExchange(GenericExchange):
             print('unknown socket res: {}'.format(msg))
 
     def handle_candle_socket(self, msg, symbol, candle_period):
-
         # update candlestick data for appropriate candle_period
         if 'e' in msg and msg['e'] == 'error':
-            print('implement socket error handleing', msg)
+            print('implement socket error handling', msg)
             return
+
         candle = candle_tic_to_df(msg)
-        if symbol in self.pairs: self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
+        if symbol in self.pairs:
+            self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
 
     def handle_ticker_socket(self, msg, symbol):
         # renamed what used to be pair.price to pair['close'] to follow CCXT conventions
         if 'e' in msg and msg['e'] == 'error':
-            print('implement socket error handleing', msg)
+            print('implement socket error handling', msg)
             return
+
         elif symbol in self.pairs:
             self.pairs[symbol]['close'] = msg['c']
             self.pairs[symbol]['quoteVolume'] = msg['q']
@@ -84,8 +88,9 @@ class BinanceExchange(GenericExchange):
     def handle_depth_socket(self, msg, symbol):
         # update bids/asks: parse bids/asks to float
         if 'e' in msg and msg['e'] == 'error':
-            print('implement socket error handleing', msg)
+            print('implement socket error handling', msg)
             return
+
         if symbol in self.pairs:
             pair = self.pairs[symbol]
             pair['asks'] = [[float(ask[0]), float(ask[1])] for ask in msg['asks']]
@@ -139,12 +144,7 @@ class BinanceExchange(GenericExchange):
         return stream_name.split('_')[1]
 
 
-
-class keys:
-    public = 'HPTpbOKj0konuPW72JozWGFDJbo0nK2rymbyObeX1vDSDSMZZd6vVosrA9dPFa1L'
-    secret = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
-
-
 if __name__ == '__main__':
+    from dev_keys_binance import keys
     ex = BinanceExchange('binance', {'public': keys.public, 'secret': keys.secret})
     ex.start()

@@ -20,14 +20,27 @@ class BuyCondition(Condition):
         """
         symbol = pair['symbol']
         price = pair['close']
-        if True and symbol in self.pairs:
+        trail_to = None
+        if pair['quoteVolume'] < self.min_volume:
+            return None
+        analysis = evaluate_conditions(self.conditions_list,pair['indicators'], pair['close'])
+        res = False not in analysis.values()
+        if res and symbol in self.pairs:
             current_marker = self.pairs_trailing[symbol]['trail_from']
             marker = price if price < current_marker else current_marker
-            self.pairs_trailing[symbol] = {'trail_from':marker, 'trail_to': marker * (1 + (self.trailing_value/100))}
-        elif True:
-            self.pairs_trailing[symbol] = {'trail_from': price, 'trail_to': price * (1 + (self.trailing_value / 100))}
-        elif False:
+            trail_to = marker * (1 + (self.trailing_value/100))
+            self.pairs_trailing[symbol] = {'trail_from':marker, 'trail_to':trail_to }
+        elif res:
+            trail_to = price * (1 + (self.trailing_value / 100))
+            self.pairs_trailing[symbol] = {'trail_from': price, 'trail_to':trail_to}
+        elif res:
             self.pairs_trailing.pop(symbol)
+            return None
+        if price >= trail_to and not trail_to is None:
+            return {'pair': symbol, 'buy_value': self.buy_value}
+        else:
+            return None
+
 
 
 

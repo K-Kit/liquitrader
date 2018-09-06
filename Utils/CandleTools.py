@@ -2,15 +2,15 @@ import pandas as pd
 
 
 def candles_to_df(candle_list):
-    candles =  pd.DataFrame(candle_list, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    candles = pd.DataFrame(candle_list, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
     return candles.set_index(pd.to_datetime(candles.timestamp.values, unit='ms').values)
 
 
-def candle_tic_to_df(data):
+def candle_tic_to_df(candle):
     # take in candlestick WebSocket tic data, return dataframe in form of candlestick dataframe to merge into main candle dframe
-    k = data['k']
-    candle = [k['t'], k['o'], k['h'], k['l'], k['c'], k['v']]
-    df = pd.DataFrame([candle], columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    #k = data['k']
+    #candle = [k['t'], k['o'], k['h'], k['l'], k['c'], k['v']]
+    df = pd.DataFrame(candle, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
     return df.set_index(pd.to_datetime(df.timestamp.values, unit='ms').values)
 
 

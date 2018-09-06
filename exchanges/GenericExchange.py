@@ -58,7 +58,7 @@ class GenericExchange:
         self.client = self.exchange_class({
             'apiKey': self.access_keys['public'],
             'secret': self.access_keys['secret'],
-            'timeout': 30000,
+            'timeout': 50000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
@@ -67,13 +67,18 @@ class GenericExchange:
         self.client_async = self.exchange_class_async({
             'apiKey': self.access_keys['public'],
             'secret': self.access_keys['secret'],
-            'timeout': 30000,
+            'timeout': 50000,
             'enableRateLimit': False
         })
 
+        # Mandatory to call this before any other calls are made to Bittrex
+        asyncio.get_event_loop().run_until_complete(self.initialize_market())
+
     # ----
-    def initialize_market(self):
-        pass
+    async def initialize_market(self):
+        print('Getting markets')
+        await self.client_async.load_markets()
+        print('Markets got')
 
     # ----
     def start(self):
@@ -81,11 +86,8 @@ class GenericExchange:
         raise NotImplementedError
 
     # ----
-    def stop(self):
-        asyncio.get_event_loop().run_until_complete(self.client_async.close)
-
-        # stop fetching data, close sockets if applicable
-        raise NotImplementedError
+    async def stop(self):
+        await self.client_async.close()
 
     # ----
     def get_candlesticks(self, symbol, timeframe, since):
@@ -101,7 +103,7 @@ class GenericExchange:
         return self.balances
 
     # ----
-    def get_pairs(self,quote_asset):
+    def get_pairs(self, quote_asset):
         pairs = {x['symbol']: x for x in (
                     filter(
                         lambda x: (x['active'] and x['quote'] == quote_asset.upper()),
@@ -140,13 +142,9 @@ class GenericExchange:
         # Wait for all tasks to finish (executed asynchronously)
         await task_group
 
-        time.sleep(1)
-
         # Build our results from the results returned by the task_group coroutine we awaited before
         for (symbol, period), candlesticks in zip(args, task_group.result()):
             self.pairs[symbol]['candlesticks'][period] = candles_to_df(candlesticks)
-
-        time.sleep(1)
 
         return self.pairs
 
@@ -170,17 +168,12 @@ class GenericExchange:
         # Wraps futures into a single coroutine
         task_group = asyncio.gather(*tasks)
 
-        # Wait for all tasks to finish (executed asynchronously)
+        # Get results from task_group coroutine, then update candles
         await task_group
 
-        time.sleep(1)
-
-        # Build our results from the results returned by the task_group coroutine we awaited before
-        for (symbol, period), candle_data in zip(args, task_group.result()):
+        for (symbol, _), candle_data in zip(args, task_group.result()):
             candle = candle_tic_to_df(candle_data)
-            self.pairs[symbol]['candlesticks'][period].loc[candle.index[0]] = candle.iloc[0]
-
-        time.sleep(1)
+            self.pairs[symbol]['candlesticks'][timeframe].loc[candle.index[0]] = candle.iloc[0]
 
         return self.pairs
 
@@ -211,7 +204,15 @@ if __name__ == '__main__':
     ex.init_client_connection()
     ex.pairs = ex.get_pairs('ETH')
 
-    asyncio.get_event_loop().run_until_complete(ex.load_all_candle_histories())
+    loop = asyncio.get_event_loop()
+
+    print('Loading candle histories')
+    loop.run_until_complete(ex.load_all_candle_histories())
     ex.pairs
-    asyncio.get_event_loop().run_until_complete(ex.candle_upkeep())
+
+    print('Running candle upkeep')
+    loop.run_until_complete(ex.candle_upkeep())
     ex.pairs
+
+    loop.run_until_complete(ex.stop())
+

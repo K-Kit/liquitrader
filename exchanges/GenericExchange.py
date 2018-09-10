@@ -124,7 +124,7 @@ class GenericExchange:
         return self.client.fetch_order_book(symbol)
 
     # ----
-    async def load_all_candle_histories(self, timeframes=None, num_candles=100):
+    async def load_all_candle_histories(self, timeframes=None, num_candles=300):
         # Don't use lists as default arguments -- things can get real weird, real fast.
         timeframes = ['5m', '1h', '1d'] if timeframes is None else timeframes
 
@@ -188,7 +188,6 @@ class GenericExchange:
         for ticker in tickers:
             if ticker in self.pairs:
                 self.pairs[ticker].update(tickers[ticker])
-                print(ticker)
 
 
 

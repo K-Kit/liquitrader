@@ -1,111 +1,111 @@
 {
-    "general": {
-        "market": "ETH",
-        "gui_port": 5000,
-        "start_delay": 0,
-        "max_pairs": 0,
-        "blacklist": [],
-        "whitelist": [],
-        "market_change": {
-            "max_24h_alt_change" : 15,
-            "min_24h_alt_change" : -35,
-            "max_1h_base_change" : 10,
-            "max_24h_base_change" : 10,
-            "min_24h_market_change" : -2.5
-            },
-        "buy_defaults": {
-            "min_volume": 0,
-            "min_price": 0,
-            "min_buy_balance": 0,
-            "max_spread": 0,
-            "trailing": 0,
-            "min_available_volume": 0,
-            "buy_value": 0
+    "exchange": "binance",
+    "market": "ETH",
+    "gui_port": 5000,
+    "start_delay": 0,
+    "max_pairs": 0,
+    "blacklist": [],
+    "whitelist": [],
+    "market_change": {
+        "max_24h_alt_change" : 15,
+        "min_24h_alt_change" : -35,
+        "max_1h_base_change" : 10,
+        "max_24h_base_change" : 10,
+        "min_24h_market_change" : -2.5
         },
-        "sell_defaults": {
-            "trailing": 0,
-            "sell_value": 0
-        },
-        "dca_buy_defaults":{
-            "dca_trigger": 0,
-            "max_cost": 0,
-            "dca_percentage": 0
-        },
-        "buy_strategies":[
-            {
-               "conditions": [
-                   "MFI_5m > 20, MA_5m > 0"
-               ],
-               "buy_value": 3, 
-               "minimum_volume": 2,
-               "trailing %": 3
-           },
-           {
-              "conditions": [
-                  "MFI_5m < 20, MA_5m < 0"
-              ],
-              "buy_value": 3,
-              "minimum_volume": 2,
-              "trailing %": 3
-          }
-        ],
-        "sell_strategies":[
-            {
-               "conditions": [
-                   "asdf > xyz"
-               ],
-               "sell_value": 3,
-               "trailing %": 3
-           },
-           {
-              "conditions": [
-                  "asdf > xyz"
-              ],
-              "sell_value": 3,
-              "minimum_volume": 2,
-              "trailing %": 3
-          }
-        ],
-        "dca_buy_strategies":[
-            {
-               "conditions": [
-                   "asdf > xyz"
-               ],
-               "buy_value": 3,
-               "minimum_volume": 2,
-               "trailing %": 3,
-               "dca_percentage": 50,
-               "dca_trigger": -3
-           },
-           {
-              "conditions": [
-                  "asdf > xyz"
-              ],
-              "buy_value": 3,
-              "minimum_volume": 2,
-              "trailing %": 3,
-              "dca_percentage": 50,
-              "max_cost": 0,
-              "dca_trigger": -3
-          }
-        ],
-        "dca_sell_strategies":[
-            {
-               "conditions": [
-                   "asdf > xyz"
-               ],
-               "sell_value": 3,
-               "trailing %": 3
-           },
-           {
-              "conditions": [
-                  "asdf > xyz"
-              ],
-              "sell_value": 3,
-              "trailing %": 3
-          }
-        ]
+    "buy_defaults": {
+        "min_volume": 0,
+        "min_price": 0,
+        "min_buy_balance": 0,
+        "max_spread": 0,
+        "trailing": 0,
+        "min_available_volume": 0,
+        "buy_value": 0
     },
+    "sell_defaults": {
+        "trailing": 0,
+        "sell_value": 0
+    },
+    "dca_buy_defaults":{
+        "dca_trigger": 0,
+        "max_cost": 0,
+        "dca_percentage": 0
+    },
+    "buy_strategies":[
+        {
+           "conditions": [
+               "MFI_5m > 20, MA_5m > 0"
+           ],
+           "buy_value": 3,
+           "minimum_volume": 2,
+           "trailing %": 3
+       },
+       {
+          "conditions": [
+              "MFI_5m < 20, MA_5m < 0"
+          ],
+          "buy_value": 3,
+          "minimum_volume": 2,
+          "trailing %": 3
+      }
+    ],
+    "sell_strategies":[
+        {
+           "conditions": [
+               "asdf > xyz"
+           ],
+           "sell_value": 3,
+           "trailing %": 3
+       },
+       {
+          "conditions": [
+              "asdf > xyz"
+          ],
+          "sell_value": 3,
+          "minimum_volume": 2,
+          "trailing %": 3
+      }
+    ],
+    "dca_buy_strategies":[
+        {
+           "conditions": [
+               "asdf > xyz"
+           ],
+           "buy_value": 3,
+           "minimum_volume": 2,
+           "trailing %": 3,
+           "dca_percentage": 50,
+           "dca_trigger": -3
+       },
+       {
+          "conditions": [
+              "asdf > xyz"
+          ],
+          "buy_value": 3,
+          "minimum_volume": 2,
+          "trailing %": 3,
+          "dca_percentage": 50,
+          "max_cost": 0,
+          "dca_trigger": -3
+      }
+    ],
+    "dca_sell_strategies":[
+        {
+           "conditions": [
+               "asdf > xyz"
+           ],
+           "sell_value": 3,
+           "trailing %": 3
+       },
+       {
+          "conditions": [
+              "asdf > xyz"
+          ],
+          "sell_value": 3,
+          "trailing %": 3
+      }
+    ],
+
     "bear_override": {},
     "bull_override": {}
 }

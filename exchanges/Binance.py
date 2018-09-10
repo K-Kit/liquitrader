@@ -5,7 +5,7 @@ from exchanges.GenericExchange import *
 from binance.client import Client
 from binance.websockets import BinanceSocketManager
 
-from Utils.CandleTools import candles_to_df, candle_tic_to_df
+from utils.CandleTools import candles_to_df, candle_tic_to_df
 
 def gen_socket_list(pairs: dict, timeframes: list):
     # creates list of socket streams to subscribe to
@@ -100,6 +100,7 @@ class BinanceExchange(GenericExchange):
         # this may want to be split up
         self.init_client_connection()
         self.init_socket_manager(keys.public, keys.secret)
+        self.client.load_markets()
         self.pairs = self.get_pairs(market)
         # timeframes hardcoded for now will be changed once we have a config
         if timeframes is None:
@@ -125,18 +126,11 @@ class BinanceExchange(GenericExchange):
     def stop(self):
         self.socket_manager.close()
 
-    @staticmethod
-    def parse_stream_name(stream_name):
+    def parse_stream_name(self, stream_name):
         # split the stream name to get and format symbol for dict access
         # need to find better way to fix removed / changed names for main net swaps
         stream = stream_name.split('@')[0]
-        market = stream[-3:] if stream[-1] != 't' else stream[-4:]
-        symbol = stream[:-len(market)]
-        if symbol == 'bcc':
-            symbol = 'BCH'
-        elif symbol == 'yoyo':
-            symbol = 'YOYOW'
-        return '{}/{}'.format(symbol.upper(), market.upper())
+        return self.client.markets_by_id[stream.upper()]['symbol']
 
     @staticmethod
     def parse_candle_period(stream_name):

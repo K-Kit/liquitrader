@@ -19,7 +19,7 @@ with open(filename, 'r') as f:
 # timeframes is a placeholder, this will need to be parsed from buy/sell conditions
 timeframes=['5m', '15m', '30m']
 
-#also a placeholder same idea ^
+# also a placeholder same idea ^
 indicators = {
         'MFI': {'name': 'MFI', 'candle_period': 0, 'lookback': None},
         'BBANDS': {'name': 'BBANDS', 'candle_period': 0, 'lookback': None},

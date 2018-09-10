@@ -5,7 +5,7 @@ from exchanges.GenericExchange import *
 from binance.client import Client
 from binance.websockets import BinanceSocketManager
 
-from Utils.CandleTools import candles_to_df, candle_tic_to_df
+from utils.CandleTools import candles_to_df, candle_tic_to_df
 
 def gen_socket_list(pairs: dict, timeframes: list):
     # creates list of socket streams to subscribe to
@@ -38,8 +38,8 @@ class BinanceExchange(GenericExchange):
         self.last_ticker_update_time = None
 
     # ----
-    def init_client_connection(self):
-        super().init_client_connection()
+    def _init_client_connection(self):
+        super()._init_client_connection()
 
         # =========================================
         # set default options for binance
@@ -118,11 +118,13 @@ class BinanceExchange(GenericExchange):
             pair['bids'] = [[float(bid[0]), float(bid[1])] for bid in msg['bids']]
 
     # ----
-    def initialize(self, quote_asset='USDT', timeframes=None):
+    def initialize(self):
         # this may want to be split up
-        self.init_client_connection()
+        self._init_client_connection()
+
         self.init_socket_manager(keys.public, keys.secret)
-        self.pairs = self.initialize_pairs(quote_asset)
+
+        super().initialize()
 
         asyncio.get_event_loop().run_until_complete(
             self.load_all_candle_histories(num_candles=200))
@@ -130,7 +132,7 @@ class BinanceExchange(GenericExchange):
         time.sleep(1)
 
         # generate list of stream names to start in multiplex socket
-        candle_sockets, depth_sockets, ticker_sockets = gen_socket_list(self.pairs, timeframes)
+        candle_sockets, depth_sockets, ticker_sockets = gen_socket_list(self.pairs, self._candle_timeframes)
 
         # store connection keys self.candle_sock
         # time.sleep due to issues opening all at same time
@@ -161,18 +163,11 @@ class BinanceExchange(GenericExchange):
         self.socket_manager.close()
 
     # ----
-    @staticmethod
-    def parse_stream_name(stream_name):
+    def parse_stream_name(self, stream_name):
         # split the stream name to get and format symbol for dict access
         # need to find better way to fix removed / changed names for main net swaps
         stream = stream_name.split('@')[0]
-        market = stream[-3:] if stream[-1] != 't' else stream[-4:]
-        symbol = stream[:-len(market)]
-        if symbol == 'bcc':
-            symbol = 'BCH'
-        elif symbol == 'yoyo':
-            symbol = 'YOYOW'
-        return '{}/{}'.format(symbol.upper(), market.upper())
+        return self.client.markets_by_id[stream.upper()]['symbol']
 
     # ----
     @staticmethod

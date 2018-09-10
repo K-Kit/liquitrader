@@ -7,7 +7,7 @@ import time
 import ccxt
 import ccxt.async_support as ccxt_async
 
-from Utils.CandleTools import candles_to_df, candle_tic_to_df
+from utils.CandleTools import candles_to_df, candle_tic_to_df
 
 
 # TODO filter pairs for min volume and blacklist
@@ -173,28 +173,24 @@ class GenericExchange:
 
         for (symbol, _), candle_data in zip(args, task_group.result()):
             candle = candle_tic_to_df(candle_data)
+            print(candle)
             self.pairs[symbol]['candlesticks'][timeframe].loc[candle.index[0]] = candle.iloc[0]
 
         return self.pairs
 
     # ----
-    async def ticker_upkeep(self, tickers):
+    def ticker_upkeep(self):
         # update ticker info during runtime - see binance ticker socket handler
         # update pair['close'], pair['quoteVolume'], pair['percentage']
         # may want to use either client.fetchTickers or client.fetchTicker(symbol)
         # fetchTickers gets all so this should save api calls but there will be irrelevant data
+        tickers = self.client.fetchTickers()
+        for ticker in tickers:
+            if ticker in self.pairs:
+                self.pairs[ticker].update(tickers[ticker])
+                print(ticker)
 
-        raise NotImplementedError
 
-    # ----
-    async def depth_upkeep(self, tickers):
-        # update depth info during runtime - see binance depth socket handler
-        # this only needs to actually be preformed on pairs we are trailing / trying to buy
-        # can do on all if api allows / is significantly easier
-        # update pair['bids] and pair['asks'] in form [ [price, amount] ] (it should already be like this in ccxt
-        # self.client.fetchOrderBook(pair)
-
-        raise NotImplementedError
 
 
 if __name__ == '__main__':
@@ -202,16 +198,24 @@ if __name__ == '__main__':
                                      'secret': '5942a5567e014fdfa05f0d202c5bec24'})
 
     ex.init_client_connection()
-    ex.pairs = ex.get_pairs('ETH')
-
+    ex.pairs = ex.get_pairs('BTC')
+    client = ex.client
+    ex.ticker_upkeep()
     loop = asyncio.get_event_loop()
 
     print('Loading candle histories')
+
     loop.run_until_complete(ex.load_all_candle_histories())
     ex.pairs
 
     print('Running candle upkeep')
-    loop.run_until_complete(ex.candle_upkeep())
+    for i in range(1, 1000):
+        loop.run_until_complete(ex.candle_upkeep())
+
+        loop.run_until_complete(ex.candle_upkeep())
+
+        loop.run_until_complete(ex.candle_upkeep())
+        time.sleep(2)
     ex.pairs
 
     loop.run_until_complete(ex.stop())

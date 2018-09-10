@@ -11,7 +11,7 @@ from utils.CandleTools import candles_to_df
 # TODO filter pairs for min volume and blacklist
 # TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
 # TODO on update balance check if balances not none, then if balances[id][total] != new balance, fetch trades for pair
-#
+
 class GenericExchange:
     """
     Interface
@@ -135,7 +135,6 @@ class GenericExchange:
         task_group = asyncio.gather(*tasks)
 
         # Wait for all tasks to finish (executed asynchronously)
-
         await task_group
 
         # Appease the ccxt gods
@@ -147,12 +146,13 @@ class GenericExchange:
         time.sleep(1)
         return self.pairs
 
-    # --
+    # ----
     async def candle_upkeep(self, tickers, timeframes=None):
         # update candle history during runtime - see binance klines socket handler
         # candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
         # use Utils.candletools.candle_tic_to_df()
-        # self.client.fetchOHLCV(symbol, timeframe = timeframe, limit = 1)
+        # self.client.fetchOHLCV(symbol, timeframe=timeframe, limit=1)
+
         raise NotImplementedError
 
     # ----
@@ -161,6 +161,7 @@ class GenericExchange:
         # update pair['close'], pair['quoteVolume'], pair['percentage']
         # may want to use either client.fetchTickers or client.fetchTicker(symbol)
         # fetchTickers gets all so this should save api calls but there will be irrelevant data
+
         raise NotImplementedError
 
     # ----
@@ -170,14 +171,13 @@ class GenericExchange:
         # can do on all if api allows / is significantly easier
         # update pair['bids] and pair['asks'] in form [ [price, amount] ] (it should already be like this in ccxt
         # self.client.fetchOrderBook(pair)
+
         raise NotImplementedError
-
-
 
 
 if __name__ == '__main__':
     ex = GenericExchange('bittrex', {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
-                       'secret': '5942a5567e014fdfa05f0d202c5bec24'})
+                                     'secret': '5942a5567e014fdfa05f0d202c5bec24'})
     ex.init_client_connection()
 
     ex.pairs = ex.get_pairs('ETH')

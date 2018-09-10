@@ -9,7 +9,6 @@ import ccxt.async_support as ccxt_async
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
-
 # TODO filter pairs for min volume and blacklist
 # TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
 # TODO on update balance check if balances not none, then if balances[id][total] != new balance, fetch trades for pair

@@ -11,12 +11,10 @@ class keys:
     public = 'HPTpbOKj0konuPW72JozWGFDJbo0nK2rymbyObeX1vDSDSMZZd6vVosrA9dPFa1L'
     secret = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
 
-
-ex = Binance.BinanceExchange('binance', {'public': keys.public, 'secret': keys.secret})
-# use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
 timeframes=['5m', '15m', '30m']
-ex.start(market='USDT', timeframes=timeframes)
-
+ex = Binance.BinanceExchange('binance','USDT' , {'public': keys.public, 'secret': keys.secret},timeframes)
+# use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
+ex.initialize()
 
 def test_market():
     assert 'ADA/USDT' in ex.pairs

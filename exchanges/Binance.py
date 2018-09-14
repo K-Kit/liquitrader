@@ -68,7 +68,7 @@ class BinanceExchange(GenericExchange):
             return
 
         if 'kline' in msg['stream']:
-            self.handle_candle_socket(msg['data'], self.parse_stream_name(msg['stream']), self.parse_candle_period(msg['stream']))
+            self.handle_candle_socket(msg['data']['k'], self.parse_stream_name(msg['stream']), self.parse_candle_period(msg['stream']))
             self.last_candle_update_time = time.time()
 
         elif 'depth' in msg['stream']:
@@ -89,7 +89,7 @@ class BinanceExchange(GenericExchange):
             print('implement socket error handling', msg)
             return
 
-        candle = candle_tic_to_df(msg)
+        candle = candle_tic_to_df([msg['t'], msg['o'], msg['h'], msg['l'], msg['c'], msg['v']])
         if symbol in self.pairs:
             self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
 
@@ -121,13 +121,13 @@ class BinanceExchange(GenericExchange):
     def initialize(self):
         # this may want to be split up
         self._init_client_connection()
-
-        self.init_socket_manager(keys.public, keys.secret)
+        self._client.load_markets()
+        self.init_socket_manager(self._access_keys['public'],self._access_keys['secret'])
 
         super().initialize()
 
         asyncio.get_event_loop().run_until_complete(
-            self.load_all_candle_histories(num_candles=200))
+            self.load_all_candle_histories(num_candles=500))
 
         time.sleep(1)
 
@@ -167,7 +167,7 @@ class BinanceExchange(GenericExchange):
         # split the stream name to get and format symbol for dict access
         # need to find better way to fix removed / changed names for main net swaps
         stream = stream_name.split('@')[0]
-        return self.client.markets_by_id[stream.upper()]['symbol']
+        return self._client.markets_by_id[stream.upper()]['symbol']
 
     # ----
     @staticmethod
@@ -179,5 +179,5 @@ class BinanceExchange(GenericExchange):
 # ----
 if __name__ == '__main__':
     from dev_keys_binance import keys
-    ex = BinanceExchange('binance', 'USDT', {'public': keys.public, 'secret': keys.secret}, ['5m', '10m'])
-    ex.start()
+    ex = BinanceExchange('binance', 'USDT', {'public': keys.public, 'secret': keys.secret}, ['5m', '15m'])
+    ex.initialize()

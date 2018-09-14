@@ -98,8 +98,8 @@ class GenericExchange:
 
     # ----
     def start(self):
-        self._loop.call_later(self._ticker_upkeep_call_schedule, self._ticker_upkeep)
-        self._loop.call_later(self._candle_upkeep_call_schedule, self._candle_upkeep)
+        self._loop.create_task(self._candle_upkeep())
+        self._loop.create_task(self._ticker_upkeep())
         self._loop.run_forever()
 
     # ----
@@ -197,13 +197,14 @@ class GenericExchange:
         candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
         """
 
-        args, results = await self._get_candles(1)
+        while 1:
+            args, results = await self._get_candles(1)
 
-        for (symbol, timeframe), candle_data in zip(args, results):
-            candle = candle_tic_to_df(candle_data)
-            self.pairs[symbol]['candlesticks'][timeframe].loc[candle.index[0]] = candle.iloc[0]
+            for (symbol, timeframe), candle_data in zip(args, results):
+                candle = candle_tic_to_df(candle_data)
+                self.pairs[symbol]['candlesticks'][timeframe].loc[candle.index[0]] = candle.iloc[0]
 
-        self._loop.call_later(self._candle_upkeep_call_schedule, self._candle_upkeep)
+            await asyncio.sleep(self._candle_upkeep_call_schedule)
 
     # ----
     async def _ticker_upkeep(self):
@@ -214,11 +215,16 @@ class GenericExchange:
         fetchTickers gets all so this should save api calls but there will be irrelevant data
         """
 
-        async for symbol, ticker_info in await self._client_async.fetchTickers():
-            if symbol in self.pairs:
-                self.pairs[symbol].update(ticker_info)
+        while 1:
+            tickers = await self._client_async.fetchTickers()
 
-        self._loop.call_later(self._ticker_upkeep_call_schedule, self._ticker_upkeep)
+            for ticker_info in tickers.values():
+                symbol = ticker_info['symbol']
+
+                if symbol in self.pairs:
+                    self.pairs[symbol].update(ticker_info)
+
+            await asyncio.sleep(self._ticker_upkeep_call_schedule)
 
 
 if __name__ == '__main__':
@@ -232,9 +238,8 @@ if __name__ == '__main__':
     print('Starting exchange')
     ex.start()
 
+    """
     loop = asyncio.get_event_loop()
-
-
 
     loop.run_until_complete(ex.load_all_candle_histories())
     ex.pairs
@@ -251,4 +256,4 @@ if __name__ == '__main__':
     ex.pairs
 
     loop.run_until_complete(ex.stop())
-
+    """

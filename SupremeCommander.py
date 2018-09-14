@@ -26,6 +26,12 @@ indicators = {
 
     }
 
+# statistics is a dict with key: symbol, values: indicators
+statistics = {}
+
+# dict to store strategy evaluations from
+strategy_analysiso = {}
+
 if config['exchange'].lower() == 'binance':
     exchange = Binance.BinanceExchange('binance', {'public': keys.public, 'secret': keys.secret})
 else:
@@ -38,4 +44,4 @@ exchange.start(market=config['market'].upper(), timeframes=timeframes)
 # run TA on exchange.pairs dict, assign indicator values to pair['indicators']
 pairs = exchange.pairs
 for pair in pairs:
-    pairs[pair]['indicators'] = run_ta(pairs[pair]['candlesticks'], indicators)
+    statistics[pair] = run_ta(pairs[pair]['candlesticks'], indicators)

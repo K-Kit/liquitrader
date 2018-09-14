@@ -71,7 +71,7 @@ def evaluate_conditions(conditions: list, indicators: dict, price: float, bought
             results[condition] = op_translate[op](a, b)
 
         elif len(parts) == 3 and 'cross' in parts[1].lower():
-
+            # assign indicator_array_timeframe to a and b to calculate cross condition
             a = indicators['{}_ARRAY_{}'.format(*parts[0].rsplit('_', 1))] if parts[0] in indicators \
                 else float_or_price(parts[0], price)
 

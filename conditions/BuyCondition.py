@@ -1,6 +1,7 @@
 from Condition import *
 
 class BuyCondition(Condition):
+
     def __init__(self, condition_config: dict):
         super().__init__(condition_config)
         self.buy_value = condition_config['buy_value']
@@ -30,13 +31,12 @@ class BuyCondition(Condition):
         elif res:
             trail_to = price * (1 + (self.trailing_value / 100))
             self.pairs_trailing[symbol] = {'trail_from': price, 'trail_to':trail_to}
-        elif res:
+        elif not res:
             self.pairs_trailing.pop(symbol)
             return None
         if price >= trail_to and not trail_to is None:
             return {'pair': symbol, 'buy_value': self.buy_value}
-        else:
-            return None
+
 
 
 

@@ -11,10 +11,10 @@ from analyzers.TechnicalAnalysis import run_ta
 from dev_keys_binance import keys
 
 
-ex = Binance.BinanceExchange('binance', {'public': keys.public, 'secret': keys.secret})
+timeframes=['5m', '15m', '30m']
+ex = Binance.BinanceExchange('binance','USDT' , {'public': keys.public, 'secret': keys.secret},timeframes)
 # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
-timeframes=['5m']
-ex.start(market='USDT', timeframes=timeframes)
+ex.initialize()
 
 indicators = {
         'MFI': {'name': 'MFI', 'candle_period': 0, 'lookback': [1,2,3,4]},
@@ -23,12 +23,15 @@ indicators = {
     }
 
 pairs = ex.pairs
+
+statistics = {}
+
 for pair in pairs:
-    pairs[pair]['indicators'] = run_ta(pairs[pair]['candlesticks'], indicators)
+    statistics[pair] = run_ta(pairs[pair]['candlesticks'], indicators)
 
 from pprint import pprint
 
-indicators = pairs['ADA/USDT']['indicators']
+indicators = statistics['ADA/USDT']
 
 def test_current_is_last_in_array():
     # test to make sure upperband_5m is most current value in upperband_5m array

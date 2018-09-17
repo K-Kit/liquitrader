@@ -174,7 +174,11 @@ class GenericExchange:
                     # calculate average data
                     average_data = calc_average_price_from_hist(trades, amount)
                     if average_data is None:
+                        # if we cant calculate teh avg, print out some datas to help with debugging
                         print('could not calculate average for: {}'.format(symbol))
+                        print(self.pairs[symbol]['limits'])
+                        print(self.pairs[symbol]['precision'])
+                        print(amount)
                         continue
                     self.wallet[symbol] = average_data
                     self.wallet[symbol].update(balances[key])

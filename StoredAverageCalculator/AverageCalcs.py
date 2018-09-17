@@ -51,8 +51,8 @@ def calc_average_price_from_hist(trades, amount_owned):
 
 def calculate_from_previous_average(trades, starting_cost, starting_amount, last_buy_id, amount_owned):
     """
-    In order to maintain the same average price after a partial sell order
-
+    In order to maintain the same average price after a partial sell order:
+    update cost for current amount
     :param trades:
     :param starting_cost:
     :param starting_amount:

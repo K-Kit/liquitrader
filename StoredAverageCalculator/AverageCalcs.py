@@ -68,11 +68,14 @@ def calculate_from_previous_average(trades, starting_cost, starting_amount, last
     else:
         total_cost = starting_cost
         total_amount = starting_amount
+        new_trades = list(filter(lambda trade: int(trade['id']) > last_buy_id, trades))
 
-        return calc_average(trades,starting_cost,starting_amount,amount_owned,last_buy_id)
+        return calc_average(new_trades,starting_cost,starting_amount,amount_owned,last_buy_id)
 
 
-    pass
+def calculate_from_existing(trades, amount, previous_average_data):
+    # just an easier way of calling calculate_from_previous_average
+    return calculate_from_previous_average(trades, previous_average_data['total_cost'], previous_average_data['amount'], previous_average_data['last_id'], amount)
 
 if __name__ == '__main__':
     import json

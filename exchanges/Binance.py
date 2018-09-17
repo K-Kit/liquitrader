@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 from exchanges.GenericExchange import *
 from binance.client import Client

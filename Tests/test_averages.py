@@ -3,7 +3,7 @@ import sys
 sys.path.append('.')
 
 sys.path.append('..')
-from StoredAverageCalculator.AverageCalcs import *
+from utils.AverageCalcs import *
 
 # this can be moved to tests later, however the other tests make a
 # ton of api calls, which i didnt want to deal with right now

@@ -53,6 +53,7 @@ def calculate_from_previous_average(trades, starting_cost, starting_amount, last
     """
     In order to maintain the same average price after a partial sell order:
     update cost for current amount
+    update cost for current amount
     :param trades:
     :param starting_cost:
     :param starting_amount:

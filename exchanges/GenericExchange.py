@@ -1,14 +1,12 @@
 import asyncio
 import typing
 import itertools
-import time
-from collections import defaultdict
 
 import ccxt
 import ccxt.async_support as ccxt_async
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
-from StoredAverageCalculator.AverageCalcs import calc_average_price_from_hist, calculate_from_existing
+from utils.AverageCalcs import calc_average_price_from_hist, calculate_from_existing
 
 # TODO filter pairs for min volume and blacklist
 # TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned

@@ -8,7 +8,7 @@ import ccxt
 import ccxt.async_support as ccxt_async
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
-from StoredAverageCalculator.AverageCalcs import calc_average_price_from_hist
+from StoredAverageCalculator.AverageCalcs import calc_average_price_from_hist, calculate_from_existing
 
 # TODO filter pairs for min volume and blacklist
 # TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
@@ -136,28 +136,48 @@ class GenericExchange:
         'LTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
 
         these will be accessible as balances[pairs[pair_name]['base']]
+
+        average calc dict format: {'total_cost': total_cost, 'amount': end_amount, 'avg_price': avg_price, 'last_id': last_buy_id}
         """
 
         balances = self._client.fetchBalance()
         for key in balances:
             symbol = key + '/' + self._quote_currency
+
             if symbol in self.pairs:
-                self.pairs[symbol]['amount'] = balances[key]['total']
-                if balances[key]['total'] == 0:
+                amount = balances[key]['total']
+                self.pairs[symbol]['amount'] = amount
+                if amount == 0:
                     continue
+
+                # if we already have average data, calculate from existing
                 if symbol in self.wallet:
-                    # do something
-                    pass
+                    if amount != self.wallet[symbol]['amount']:
+                        trades = self._client.fetchMyTrades(symbol)
+                        # update free, used, total
+                        self.wallet[symbol].update(balances[key])
+                        # update with new average data
+                        new_average_data = calculate_from_existing(trades,amount, self.wallet[symbol])
+                        if new_average_data is None:
+                            self.wallet.pop(symbol)
+                        else:
+                            self.wallet[symbol].update(new_average_data)
+
+                # if we don't have average data / trade history, add new
                 else:
+                    # skip wicked small values
+                    if amount < self.pairs[symbol]['limits']['amount']['min']:
+                        continue
+
+                    # fetch trades for symbol from API
                     trades = self._client.fetchMyTrades(symbol)
-                    average_data = calc_average_price_from_hist(trades, balances[key]['total'])
+                    # calculate average data
+                    average_data = calc_average_price_from_hist(trades, amount)
                     if average_data is None:
                         print('could not calculate average for: {}'.format(symbol))
                         continue
                     self.wallet[symbol] = average_data
-                    self.wallet[symbol]['free'] = balances[key]['free']
-                    self.wallet[symbol]['used'] = balances[key]['used']
-                    self.wallet[symbol]['total'] = balances[key]['total']
+                    self.wallet[symbol].update(balances[key])
 
         return self.wallet
 

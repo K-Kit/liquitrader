@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 from exchanges.GenericExchange import *
 from binance.client import Client
@@ -179,5 +180,6 @@ class BinanceExchange(GenericExchange):
 # ----
 if __name__ == '__main__':
     from dev_keys_binance import keys
-    ex = BinanceExchange('binance', 'USDT', {'public': keys.public, 'secret': keys.secret}, ['5m', '15m'])
+    ex = BinanceExchange('binance', 'ETH', {'public': keys.public, 'secret': keys.secret}, ['5m'])
     ex.initialize()
+    ex.update_balances()

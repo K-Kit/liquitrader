@@ -1,16 +1,19 @@
 import asyncio
 import typing
 import itertools
-import time
 
 import ccxt
 import ccxt.async_support as ccxt_async
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
+from utils.AverageCalcs import calc_average_price_from_hist, calculate_from_existing
 
 # TODO filter pairs for min volume and blacklist
 # TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
 # TODO on update balance check if balances not none, then if balances[id][total] != new balance, fetch trades for pair
+
+
+# DEFAULT_WALLET_VALUES = [('free',0),( 'used',0),('total',0),('current_value',0),( 'trades',None),( 'last_id',0), ('current_average', None) ]
 
 class GenericExchange:
     """
@@ -43,7 +46,14 @@ class GenericExchange:
                  candle_timeframes: typing.List[str]):
 
         self.pairs = {}
-        self._balances = None
+
+        # this is the amount of quote currency we hold
+        self.balance = None
+
+        # create default dict to store balances, averages, trade history, last_order_id
+        # makes sense to calculate averages in the exchange since we'll need to be able to
+        # fetch trade history during average calculation, couldnt think of a clean way to do this from a separate class
+        self.wallet = {}
 
         self._access_keys = access_keys
 
@@ -65,10 +75,6 @@ class GenericExchange:
         # Connect to exchange
         self._init_client_connection()
 
-    # ----
-    @property
-    def balances(self):
-        return self._balances
 
     # ----
     def _init_client_connection(self):
@@ -126,10 +132,58 @@ class GenericExchange:
         'LTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
 
         these will be accessible as balances[pairs[pair_name]['base']]
+
+        average calc dict format: {'total_cost': total_cost, 'amount': end_amount, 'avg_price': avg_price, 'last_id': last_buy_id}
         """
 
-        self._balances = self._client.fetchBalance()
-        return self.balances
+        balances = self._client.fetchBalance()
+        for key in balances:
+            if key == self._quote_currency:
+                self.balance = balances[key]['total']
+
+            symbol = key + '/' + self._quote_currency
+
+            if symbol in self.pairs:
+                amount = balances[key]['total']
+                self.pairs[symbol]['amount'] = amount
+                if amount == 0:
+                    continue
+
+                # if we already have average data, calculate from existing
+                if symbol in self.wallet:
+                    if amount != self.wallet[symbol]['amount']:
+                        trades = self._client.fetchMyTrades(symbol)
+                        # update free, used, total
+                        self.wallet[symbol].update(balances[key])
+                        # update with new average data
+                        new_average_data = calculate_from_existing(trades,amount, self.wallet[symbol])
+                        if new_average_data is None:
+                            self.wallet.pop(symbol)
+                        else:
+                            self.wallet[symbol].update(new_average_data)
+
+                # if we don't have average data / trade history, add new
+                else:
+                    # skip wicked small values
+                    if amount < self.pairs[symbol]['limits']['amount']['min']:
+                        continue
+
+                    # fetch trades for symbol from API
+                    trades = self._client.fetchMyTrades(symbol)
+                    # calculate average data
+                    average_data = calc_average_price_from_hist(trades, amount)
+                    if average_data is None:
+                        # if we cant calculate teh avg, print out some datas to help with debugging
+                        print('could not calculate average for: {}'.format(symbol))
+                        print(self.pairs[symbol]['limits'])
+                        print(self.pairs[symbol]['precision'])
+                        print(amount)
+                        continue
+                    self.wallet[symbol] = average_data
+                    self.wallet[symbol].update(balances[key])
+
+        return self.wallet
+
 
     # ----
     def _initialize_pairs(self):
@@ -149,7 +203,7 @@ class GenericExchange:
 
     # ----
     def place_order(self, symbol, order_type, side, amount, price):
-        return self._client.create_order(symbol, order_type, side, amount, self._client.priceToPrecision(price))
+        return self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
 
     # ----
     def get_depth(self, symbol):

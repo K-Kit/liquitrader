@@ -34,7 +34,7 @@
     "buy_strategies":[
         {
            "conditions": [
-               "MFI_5m > 20, MA_5m > 0"
+               "MFI_5m > 20, MA_5m > 0, MFI_20_CHANGE_OVER_20_5m CROSS_UP_OVER_10 RSI_14_CHANGE_OVER_10_15M "
            ],
            "buy_value": 3,
            "minimum_volume": 2,

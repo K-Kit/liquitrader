@@ -1,0 +1,1922 @@
+[
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333333,
+            "orderId": 7975478,
+            "price": "0.00127450",
+            "qty": "104.00000000",
+            "commission": "0.00333210",
+            "commissionAsset": "BNB",
+            "time": 1526910151215,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526910151215,
+        "datetime": "2018-05-21T13:42:31.215Z",
+        "symbol": "STORJ/ETH",
+        "id": "333333",
+        "order": "7975478",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0012745,
+        "cost": 0.132548,
+        "amount": 104.0,
+        "fee": {
+            "cost": 0.0033321,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333334,
+            "orderId": 7975479,
+            "price": "0.00127520",
+            "qty": "110.00000000",
+            "commission": "0.00352668",
+            "commissionAsset": "BNB",
+            "time": 1526910165540,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526910165540,
+        "datetime": "2018-05-21T13:42:45.540Z",
+        "symbol": "STORJ/ETH",
+        "id": "333334",
+        "order": "7975479",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0012752,
+        "cost": 0.140272,
+        "amount": 110.0,
+        "fee": {
+            "cost": 0.00352668,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333763,
+            "orderId": 7981449,
+            "price": "0.00130150",
+            "qty": "112.00000000",
+            "commission": "0.00349763",
+            "commissionAsset": "BNB",
+            "time": 1526948124407,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948124407,
+        "datetime": "2018-05-22T00:15:24.407Z",
+        "symbol": "STORJ/ETH",
+        "id": "333763",
+        "order": "7981449",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0013015,
+        "cost": 0.14576799999999998,
+        "amount": 112.0,
+        "fee": {
+            "cost": 0.00349763,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333764,
+            "orderId": 7981449,
+            "price": "0.00130110",
+            "qty": "102.00000000",
+            "commission": "0.00318424",
+            "commissionAsset": "BNB",
+            "time": 1526948124407,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948124407,
+        "datetime": "2018-05-22T00:15:24.407Z",
+        "symbol": "STORJ/ETH",
+        "id": "333764",
+        "order": "7981449",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0013011,
+        "cost": 0.1327122,
+        "amount": 102.0,
+        "fee": {
+            "cost": 0.00318424,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333843,
+            "orderId": 7982180,
+            "price": "0.00132200",
+            "qty": "33.00000000",
+            "commission": "0.00104450",
+            "commissionAsset": "BNB",
+            "time": 1526948477877,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948477877,
+        "datetime": "2018-05-22T00:21:17.877Z",
+        "symbol": "STORJ/ETH",
+        "id": "333843",
+        "order": "7982180",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.001322,
+        "cost": 0.043626,
+        "amount": 33.0,
+        "fee": {
+            "cost": 0.0010445,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333844,
+            "orderId": 7982180,
+            "price": "0.00132200",
+            "qty": "70.00000000",
+            "commission": "0.00221561",
+            "commissionAsset": "BNB",
+            "time": 1526948477877,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948477877,
+        "datetime": "2018-05-22T00:21:17.877Z",
+        "symbol": "STORJ/ETH",
+        "id": "333844",
+        "order": "7982180",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.001322,
+        "cost": 0.09254,
+        "amount": 70.0,
+        "fee": {
+            "cost": 0.00221561,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333845,
+            "orderId": 7982180,
+            "price": "0.00132600",
+            "qty": "143.00000000",
+            "commission": "0.00452619",
+            "commissionAsset": "BNB",
+            "time": 1526948477898,
+            "isBuyer": true,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948477898,
+        "datetime": "2018-05-22T00:21:17.898Z",
+        "symbol": "STORJ/ETH",
+        "id": "333845",
+        "order": "7982180",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "buy",
+        "price": 0.001326,
+        "cost": 0.18961799999999998,
+        "amount": 143.0,
+        "fee": {
+            "cost": 0.00452619,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333864,
+            "orderId": 7982333,
+            "price": "0.00130140",
+            "qty": "15.00000000",
+            "commission": "0.00047029",
+            "commissionAsset": "BNB",
+            "time": 1526948598285,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948598285,
+        "datetime": "2018-05-22T00:23:18.285Z",
+        "symbol": "STORJ/ETH",
+        "id": "333864",
+        "order": "7982333",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0013014,
+        "cost": 0.019521,
+        "amount": 15.0,
+        "fee": {
+            "cost": 0.00047029,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333866,
+            "orderId": 7982344,
+            "price": "0.00130130",
+            "qty": "8.00000000",
+            "commission": "0.00025063",
+            "commissionAsset": "BNB",
+            "time": 1526948616349,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948616349,
+        "datetime": "2018-05-22T00:23:36.349Z",
+        "symbol": "STORJ/ETH",
+        "id": "333866",
+        "order": "7982344",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0013013,
+        "cost": 0.0104104,
+        "amount": 8.0,
+        "fee": {
+            "cost": 0.00025063,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333867,
+            "orderId": 7982350,
+            "price": "0.00131650",
+            "qty": "122.00000000",
+            "commission": "0.00382137",
+            "commissionAsset": "BNB",
+            "time": 1526948627296,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948627296,
+        "datetime": "2018-05-22T00:23:47.296Z",
+        "symbol": "STORJ/ETH",
+        "id": "333867",
+        "order": "7982350",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0013165,
+        "cost": 0.160613,
+        "amount": 122.0,
+        "fee": {
+            "cost": 0.00382137,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333868,
+            "orderId": 7982350,
+            "price": "0.00131660",
+            "qty": "127.00000000",
+            "commission": "0.00397798",
+            "commissionAsset": "BNB",
+            "time": 1526948627308,
+            "isBuyer": true,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948627308,
+        "datetime": "2018-05-22T00:23:47.308Z",
+        "symbol": "STORJ/ETH",
+        "id": "333868",
+        "order": "7982350",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "buy",
+        "price": 0.0013166,
+        "cost": 0.1672082,
+        "amount": 127.0,
+        "fee": {
+            "cost": 0.00397798,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333869,
+            "orderId": 7982378,
+            "price": "0.00131590",
+            "qty": "12.00000000",
+            "commission": "0.00037711",
+            "commissionAsset": "BNB",
+            "time": 1526948685693,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948685693,
+        "datetime": "2018-05-22T00:24:45.693Z",
+        "symbol": "STORJ/ETH",
+        "id": "333869",
+        "order": "7982378",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0013159,
+        "cost": 0.0157908,
+        "amount": 12.0,
+        "fee": {
+            "cost": 0.00037711,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 333870,
+            "orderId": 7982378,
+            "price": "0.00131590",
+            "qty": "24.00000000",
+            "commission": "0.00075423",
+            "commissionAsset": "BNB",
+            "time": 1526948685693,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526948685693,
+        "datetime": "2018-05-22T00:24:45.693Z",
+        "symbol": "STORJ/ETH",
+        "id": "333870",
+        "order": "7982378",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0013159,
+        "cost": 0.0315816,
+        "amount": 24.0,
+        "fee": {
+            "cost": 0.00075423,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334091,
+            "orderId": 7985734,
+            "price": "0.00129480",
+            "qty": "104.00000000",
+            "commission": "0.00322725",
+            "commissionAsset": "BNB",
+            "time": 1526961008059,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1526961008059,
+        "datetime": "2018-05-22T03:50:08.059Z",
+        "symbol": "STORJ/ETH",
+        "id": "334091",
+        "order": "7985734",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0012948,
+        "cost": 0.1346592,
+        "amount": 104.0,
+        "fee": {
+            "cost": 0.00322725,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334092,
+            "orderId": 7985734,
+            "price": "0.00129400",
+            "qty": "127.00000000",
+            "commission": "0.00393856",
+            "commissionAsset": "BNB",
+            "time": 1526961008081,
+            "isBuyer": false,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1526961008081,
+        "datetime": "2018-05-22T03:50:08.081Z",
+        "symbol": "STORJ/ETH",
+        "id": "334092",
+        "order": "7985734",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "sell",
+        "price": 0.001294,
+        "cost": 0.164338,
+        "amount": 127.0,
+        "fee": {
+            "cost": 0.00393856,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334093,
+            "orderId": 7985734,
+            "price": "0.00129400",
+            "qty": "127.00000000",
+            "commission": "0.00393856",
+            "commissionAsset": "BNB",
+            "time": 1526961008086,
+            "isBuyer": false,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1526961008086,
+        "datetime": "2018-05-22T03:50:08.086Z",
+        "symbol": "STORJ/ETH",
+        "id": "334093",
+        "order": "7985734",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "sell",
+        "price": 0.001294,
+        "cost": 0.164338,
+        "amount": 127.0,
+        "fee": {
+            "cost": 0.00393856,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334094,
+            "orderId": 7985734,
+            "price": "0.00129400",
+            "qty": "127.00000000",
+            "commission": "0.00393856",
+            "commissionAsset": "BNB",
+            "time": 1526961008094,
+            "isBuyer": false,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1526961008094,
+        "datetime": "2018-05-22T03:50:08.094Z",
+        "symbol": "STORJ/ETH",
+        "id": "334094",
+        "order": "7985734",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "sell",
+        "price": 0.001294,
+        "cost": 0.164338,
+        "amount": 127.0,
+        "fee": {
+            "cost": 0.00393856,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334095,
+            "orderId": 7985734,
+            "price": "0.00129400",
+            "qty": "69.00000000",
+            "commission": "0.00213967",
+            "commissionAsset": "BNB",
+            "time": 1526961008094,
+            "isBuyer": false,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1526961008094,
+        "datetime": "2018-05-22T03:50:08.094Z",
+        "symbol": "STORJ/ETH",
+        "id": "334095",
+        "order": "7985734",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "sell",
+        "price": 0.001294,
+        "cost": 0.089286,
+        "amount": 69.0,
+        "fee": {
+            "cost": 0.00213967,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334829,
+            "orderId": 7997399,
+            "price": "0.00127030",
+            "qty": "45.00000000",
+            "commission": "0.00133230",
+            "commissionAsset": "BNB",
+            "time": 1527011659281,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1527011659281,
+        "datetime": "2018-05-22T17:54:19.281Z",
+        "symbol": "STORJ/ETH",
+        "id": "334829",
+        "order": "7997399",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0012703,
+        "cost": 0.0571635,
+        "amount": 45.0,
+        "fee": {
+            "cost": 0.0013323,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334830,
+            "orderId": 7997399,
+            "price": "0.00127030",
+            "qty": "1.00000000",
+            "commission": "0.00002963",
+            "commissionAsset": "BNB",
+            "time": 1527011694672,
+            "isBuyer": true,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1527011694672,
+        "datetime": "2018-05-22T17:54:54.672Z",
+        "symbol": "STORJ/ETH",
+        "id": "334830",
+        "order": "7997399",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "buy",
+        "price": 0.0012703,
+        "cost": 0.0012703,
+        "amount": 1.0,
+        "fee": {
+            "cost": 2.963e-05,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 334943,
+            "orderId": 7998779,
+            "price": "0.00128750",
+            "qty": "46.00000000",
+            "commission": "0.00137856",
+            "commissionAsset": "BNB",
+            "time": 1527017821713,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1527017821713,
+        "datetime": "2018-05-22T19:37:01.713Z",
+        "symbol": "STORJ/ETH",
+        "id": "334943",
+        "order": "7998779",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0012875,
+        "cost": 0.059225,
+        "amount": 46.0,
+        "fee": {
+            "cost": 0.00137856,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 341815,
+            "orderId": 8143145,
+            "price": "0.00128640",
+            "qty": "105.00000000",
+            "commission": "0.00299689",
+            "commissionAsset": "BNB",
+            "time": 1527712474931,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1527712474931,
+        "datetime": "2018-05-30T20:34:34.931Z",
+        "symbol": "STORJ/ETH",
+        "id": "341815",
+        "order": "8143145",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0012864,
+        "cost": 0.135072,
+        "amount": 105.0,
+        "fee": {
+            "cost": 0.00299689,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 341817,
+            "orderId": 8143145,
+            "price": "0.00128640",
+            "qty": "50.00000000",
+            "commission": "0.00142996",
+            "commissionAsset": "BNB",
+            "time": 1527712523617,
+            "isBuyer": true,
+            "isMaker": true,
+            "isBestMatch": true
+        },
+        "timestamp": 1527712523617,
+        "datetime": "2018-05-30T20:35:23.617Z",
+        "symbol": "STORJ/ETH",
+        "id": "341817",
+        "order": "8143145",
+        "type": null,
+        "takerOrMaker": "maker",
+        "side": "buy",
+        "price": 0.0012864,
+        "cost": 0.06432,
+        "amount": 50.0,
+        "fee": {
+            "cost": 0.00142996,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 342065,
+            "orderId": 8148144,
+            "price": "0.00131220",
+            "qty": "121.00000000",
+            "commission": "0.00355315",
+            "commissionAsset": "BNB",
+            "time": 1527732259247,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1527732259247,
+        "datetime": "2018-05-31T02:04:19.247Z",
+        "symbol": "STORJ/ETH",
+        "id": "342065",
+        "order": "8148144",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0013122,
+        "cost": 0.15877619999999998,
+        "amount": 121.0,
+        "fee": {
+            "cost": 0.00355315,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 342066,
+            "orderId": 8148144,
+            "price": "0.00131210",
+            "qty": "18.00000000",
+            "commission": "0.00052856",
+            "commissionAsset": "BNB",
+            "time": 1527732259247,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1527732259247,
+        "datetime": "2018-05-31T02:04:19.247Z",
+        "symbol": "STORJ/ETH",
+        "id": "342066",
+        "order": "8148144",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0013121,
+        "cost": 0.0236178,
+        "amount": 18.0,
+        "fee": {
+            "cost": 0.00052856,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 342067,
+            "orderId": 8148144,
+            "price": "0.00130530",
+            "qty": "16.00000000",
+            "commission": "0.00046724",
+            "commissionAsset": "BNB",
+            "time": 1527732259247,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1527732259247,
+        "datetime": "2018-05-31T02:04:19.247Z",
+        "symbol": "STORJ/ETH",
+        "id": "342067",
+        "order": "8148144",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0013053,
+        "cost": 0.0208848,
+        "amount": 16.0,
+        "fee": {
+            "cost": 0.00046724,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 357931,
+            "orderId": 8504512,
+            "price": "0.00116090",
+            "qty": "25.00000000",
+            "commission": "0.00049931",
+            "commissionAsset": "BNB",
+            "time": 1529034645397,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1529034645397,
+        "datetime": "2018-06-15T03:50:45.397Z",
+        "symbol": "STORJ/ETH",
+        "id": "357931",
+        "order": "8504512",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011609,
+        "cost": 0.029022500000000003,
+        "amount": 25.0,
+        "fee": {
+            "cost": 0.00049931,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 358019,
+            "orderId": 8505462,
+            "price": "0.00115790",
+            "qty": "26.00000000",
+            "commission": "0.00051597",
+            "commissionAsset": "BNB",
+            "time": 1529037560298,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1529037560298,
+        "datetime": "2018-06-15T04:39:20.298Z",
+        "symbol": "STORJ/ETH",
+        "id": "358019",
+        "order": "8505462",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011579,
+        "cost": 0.030105399999999997,
+        "amount": 26.0,
+        "fee": {
+            "cost": 0.00051597,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 358140,
+            "orderId": 8510576,
+            "price": "0.00117560",
+            "qty": "51.00000000",
+            "commission": "0.00100207",
+            "commissionAsset": "BNB",
+            "time": 1529054162605,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1529054162605,
+        "datetime": "2018-06-15T09:16:02.605Z",
+        "symbol": "STORJ/ETH",
+        "id": "358140",
+        "order": "8510576",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0011756,
+        "cost": 0.0599556,
+        "amount": 51.0,
+        "fee": {
+            "cost": 0.00100207,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 366283,
+            "orderId": 8790864,
+            "price": "0.00100390",
+            "qty": "29.00000000",
+            "commission": "0.00042587",
+            "commissionAsset": "BNB",
+            "time": 1530282684931,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1530282684931,
+        "datetime": "2018-06-29T14:31:24.931Z",
+        "symbol": "STORJ/ETH",
+        "id": "366283",
+        "order": "8790864",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010039,
+        "cost": 0.029113100000000003,
+        "amount": 29.0,
+        "fee": {
+            "cost": 0.00042587,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 366328,
+            "orderId": 8792516,
+            "price": "0.00101820",
+            "qty": "29.00000000",
+            "commission": "0.00043664",
+            "commissionAsset": "BNB",
+            "time": 1530289048741,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1530289048741,
+        "datetime": "2018-06-29T16:17:28.741Z",
+        "symbol": "STORJ/ETH",
+        "id": "366328",
+        "order": "8792516",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0010182,
+        "cost": 0.029527799999999996,
+        "amount": 29.0,
+        "fee": {
+            "cost": 0.00043664,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 371676,
+            "orderId": 8998380,
+            "price": "0.00101710",
+            "qty": "56.00000000",
+            "commission": "0.00096452",
+            "commissionAsset": "BNB",
+            "time": 1531250098498,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531250098498,
+        "datetime": "2018-07-10T19:14:58.498Z",
+        "symbol": "STORJ/ETH",
+        "id": "371676",
+        "order": "8998380",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010171,
+        "cost": 0.0569576,
+        "amount": 56.0,
+        "fee": {
+            "cost": 0.00096452,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372002,
+            "orderId": 9009745,
+            "price": "0.00099530",
+            "qty": "11.00000000",
+            "commission": "0.00019112",
+            "commissionAsset": "BNB",
+            "time": 1531322980888,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531322980888,
+        "datetime": "2018-07-11T15:29:40.888Z",
+        "symbol": "STORJ/ETH",
+        "id": "372002",
+        "order": "9009745",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0009953,
+        "cost": 0.0109483,
+        "amount": 11.0,
+        "fee": {
+            "cost": 0.00019112,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372003,
+            "orderId": 9009748,
+            "price": "0.00099570",
+            "qty": "20.00000000",
+            "commission": "0.00034767",
+            "commissionAsset": "BNB",
+            "time": 1531323003224,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531323003224,
+        "datetime": "2018-07-11T15:30:03.224Z",
+        "symbol": "STORJ/ETH",
+        "id": "372003",
+        "order": "9009748",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0009957,
+        "cost": 0.019914,
+        "amount": 20.0,
+        "fee": {
+            "cost": 0.00034767,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372004,
+            "orderId": 9009748,
+            "price": "0.00099880",
+            "qty": "32.00000000",
+            "commission": "0.00055628",
+            "commissionAsset": "BNB",
+            "time": 1531323003224,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531323003224,
+        "datetime": "2018-07-11T15:30:03.224Z",
+        "symbol": "STORJ/ETH",
+        "id": "372004",
+        "order": "9009748",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0009988,
+        "cost": 0.0319616,
+        "amount": 32.0,
+        "fee": {
+            "cost": 0.00055628,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372337,
+            "orderId": 9019756,
+            "price": "0.00094600",
+            "qty": "11.00000000",
+            "commission": "0.00018363",
+            "commissionAsset": "BNB",
+            "time": 1531378497599,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531378497599,
+        "datetime": "2018-07-12T06:54:57.599Z",
+        "symbol": "STORJ/ETH",
+        "id": "372337",
+        "order": "9019756",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.000946,
+        "cost": 0.010406,
+        "amount": 11.0,
+        "fee": {
+            "cost": 0.00018363,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372473,
+            "orderId": 9026091,
+            "price": "0.00094250",
+            "qty": "11.00000000",
+            "commission": "0.00018562",
+            "commissionAsset": "BNB",
+            "time": 1531414616215,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531414616215,
+        "datetime": "2018-07-12T16:56:56.215Z",
+        "symbol": "STORJ/ETH",
+        "id": "372473",
+        "order": "9026091",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0009425,
+        "cost": 0.0103675,
+        "amount": 11.0,
+        "fee": {
+            "cost": 0.00018562,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372474,
+            "orderId": 9026091,
+            "price": "0.00094250",
+            "qty": "24.00000000",
+            "commission": "0.00040491",
+            "commissionAsset": "BNB",
+            "time": 1531414616215,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531414616215,
+        "datetime": "2018-07-12T16:56:56.215Z",
+        "symbol": "STORJ/ETH",
+        "id": "372474",
+        "order": "9026091",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0009425,
+        "cost": 0.02262,
+        "amount": 24.0,
+        "fee": {
+            "cost": 0.00040491,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 372475,
+            "orderId": 9026092,
+            "price": "0.00094160",
+            "qty": "73.00000000",
+            "commission": "0.00123049",
+            "commissionAsset": "BNB",
+            "time": 1531414617216,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1531414617216,
+        "datetime": "2018-07-12T16:56:57.216Z",
+        "symbol": "STORJ/ETH",
+        "id": "372475",
+        "order": "9026092",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0009416,
+        "cost": 0.0687368,
+        "amount": 73.0,
+        "fee": {
+            "cost": 0.00123049,
+            "currency": "BNB"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 381474,
+            "orderId": 9355544,
+            "price": "0.00106930",
+            "qty": "23.00000000",
+            "commission": "0.02300000",
+            "commissionAsset": "STORJ",
+            "time": 1532731836236,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1532731836236,
+        "datetime": "2018-07-27T22:50:36.236Z",
+        "symbol": "STORJ/ETH",
+        "id": "381474",
+        "order": "9355544",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010693,
+        "cost": 0.024593900000000002,
+        "amount": 23.0,
+        "fee": {
+            "cost": 0.023,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 381475,
+            "orderId": 9355553,
+            "price": "0.00107120",
+            "qty": "210.00000000",
+            "commission": "0.21000000",
+            "commissionAsset": "STORJ",
+            "time": 1532731853972,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1532731853972,
+        "datetime": "2018-07-27T22:50:53.972Z",
+        "symbol": "STORJ/ETH",
+        "id": "381475",
+        "order": "9355553",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010712,
+        "cost": 0.224952,
+        "amount": 210.0,
+        "fee": {
+            "cost": 0.21,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 381556,
+            "orderId": 9356854,
+            "price": "0.00109400",
+            "qty": "232.00000000",
+            "commission": "0.00025381",
+            "commissionAsset": "ETH",
+            "time": 1532736227531,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1532736227531,
+        "datetime": "2018-07-28T00:03:47.531Z",
+        "symbol": "STORJ/ETH",
+        "id": "381556",
+        "order": "9356854",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.001094,
+        "cost": 0.253808,
+        "amount": 232.0,
+        "fee": {
+            "cost": 0.00025381,
+            "currency": "ETH"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 396412,
+            "orderId": 9940687,
+            "price": "0.00105160",
+            "qty": "10.00000000",
+            "commission": "0.01000000",
+            "commissionAsset": "STORJ",
+            "time": 1535293988655,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535293988655,
+        "datetime": "2018-08-26T14:33:08.655Z",
+        "symbol": "STORJ/ETH",
+        "id": "396412",
+        "order": "9940687",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010516,
+        "cost": 0.010516,
+        "amount": 10.0,
+        "fee": {
+            "cost": 0.01,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 396413,
+            "orderId": 9940687,
+            "price": "0.00105260",
+            "qty": "26.00000000",
+            "commission": "0.02600000",
+            "commissionAsset": "STORJ",
+            "time": 1535293988655,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535293988655,
+        "datetime": "2018-08-26T14:33:08.655Z",
+        "symbol": "STORJ/ETH",
+        "id": "396413",
+        "order": "9940687",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010526,
+        "cost": 0.027367600000000002,
+        "amount": 26.0,
+        "fee": {
+            "cost": 0.026,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 396414,
+            "orderId": 9940687,
+            "price": "0.00105270",
+            "qty": "10.00000000",
+            "commission": "0.01000000",
+            "commissionAsset": "STORJ",
+            "time": 1535293988655,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535293988655,
+        "datetime": "2018-08-26T14:33:08.655Z",
+        "symbol": "STORJ/ETH",
+        "id": "396414",
+        "order": "9940687",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010527,
+        "cost": 0.010527,
+        "amount": 10.0,
+        "fee": {
+            "cost": 0.01,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 396415,
+            "orderId": 9940687,
+            "price": "0.00105360",
+            "qty": "30.00000000",
+            "commission": "0.03000000",
+            "commissionAsset": "STORJ",
+            "time": 1535293988655,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535293988655,
+        "datetime": "2018-08-26T14:33:08.655Z",
+        "symbol": "STORJ/ETH",
+        "id": "396415",
+        "order": "9940687",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0010536,
+        "cost": 0.031608,
+        "amount": 30.0,
+        "fee": {
+            "cost": 0.03,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 397033,
+            "orderId": 9955938,
+            "price": "0.00106600",
+            "qty": "76.00000000",
+            "commission": "0.00008102",
+            "commissionAsset": "ETH",
+            "time": 1535415092864,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535415092864,
+        "datetime": "2018-08-28T00:11:32.864Z",
+        "symbol": "STORJ/ETH",
+        "id": "397033",
+        "order": "9955938",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.001066,
+        "cost": 0.081016,
+        "amount": 76.0,
+        "fee": {
+            "cost": 8.102e-05,
+            "currency": "ETH"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399202,
+            "orderId": 10031145,
+            "price": "0.00115110",
+            "qty": "69.00000000",
+            "commission": "0.06900000",
+            "commissionAsset": "STORJ",
+            "time": 1535693615665,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535693615665,
+        "datetime": "2018-08-31T05:33:35.665Z",
+        "symbol": "STORJ/ETH",
+        "id": "399202",
+        "order": "10031145",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011511,
+        "cost": 0.0794259,
+        "amount": 69.0,
+        "fee": {
+            "cost": 0.069,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399261,
+            "orderId": 10032330,
+            "price": "0.00116810",
+            "qty": "69.00000000",
+            "commission": "0.00008060",
+            "commissionAsset": "ETH",
+            "time": 1535697163079,
+            "isBuyer": false,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535697163079,
+        "datetime": "2018-08-31T06:32:43.079Z",
+        "symbol": "STORJ/ETH",
+        "id": "399261",
+        "order": "10032330",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0011681,
+        "cost": 0.0805989,
+        "amount": 69.0,
+        "fee": {
+            "cost": 8.06e-05,
+            "currency": "ETH"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399285,
+            "orderId": 10033652,
+            "price": "0.00119220",
+            "qty": "27.00000000",
+            "commission": "0.02700000",
+            "commissionAsset": "STORJ",
+            "time": 1535699245794,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535699245794,
+        "datetime": "2018-08-31T07:07:25.794Z",
+        "symbol": "STORJ/ETH",
+        "id": "399285",
+        "order": "10033652",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011922,
+        "cost": 0.0321894,
+        "amount": 27.0,
+        "fee": {
+            "cost": 0.027,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399286,
+            "orderId": 10033652,
+            "price": "0.00119870",
+            "qty": "40.00000000",
+            "commission": "0.04000000",
+            "commissionAsset": "STORJ",
+            "time": 1535699245794,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535699245794,
+        "datetime": "2018-08-31T07:07:25.794Z",
+        "symbol": "STORJ/ETH",
+        "id": "399286",
+        "order": "10033652",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011987,
+        "cost": 0.047948000000000005,
+        "amount": 40.0,
+        "fee": {
+            "cost": 0.04,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399773,
+            "orderId": 10056732,
+            "price": "0.00116050",
+            "qty": "15.00000000",
+            "commission": "0.01500000",
+            "commissionAsset": "STORJ",
+            "time": 1535820369067,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535820369067,
+        "datetime": "2018-09-01T16:46:09.067Z",
+        "symbol": "STORJ/ETH",
+        "id": "399773",
+        "order": "10056732",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011605,
+        "cost": 0.0174075,
+        "amount": 15.0,
+        "fee": {
+            "cost": 0.015,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399774,
+            "orderId": 10056732,
+            "price": "0.00116280",
+            "qty": "14.00000000",
+            "commission": "0.01400000",
+            "commissionAsset": "STORJ",
+            "time": 1535820369067,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535820369067,
+        "datetime": "2018-09-01T16:46:09.067Z",
+        "symbol": "STORJ/ETH",
+        "id": "399774",
+        "order": "10056732",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011628,
+        "cost": 0.0162792,
+        "amount": 14.0,
+        "fee": {
+            "cost": 0.014,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 399775,
+            "orderId": 10056732,
+            "price": "0.00116410",
+            "qty": "38.00000000",
+            "commission": "0.03800000",
+            "commissionAsset": "STORJ",
+            "time": 1535820369067,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535820369067,
+        "datetime": "2018-09-01T16:46:09.067Z",
+        "symbol": "STORJ/ETH",
+        "id": "399775",
+        "order": "10056732",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011641,
+        "cost": 0.0442358,
+        "amount": 38.0,
+        "fee": {
+            "cost": 0.038,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400059,
+            "orderId": 10064150,
+            "price": "0.00112920",
+            "qty": "13.00000000",
+            "commission": "0.01300000",
+            "commissionAsset": "STORJ",
+            "time": 1535861891272,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535861891272,
+        "datetime": "2018-09-02T04:18:11.272Z",
+        "symbol": "STORJ/ETH",
+        "id": "400059",
+        "order": "10064150",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011292,
+        "cost": 0.0146796,
+        "amount": 13.0,
+        "fee": {
+            "cost": 0.013,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400060,
+            "orderId": 10064150,
+            "price": "0.00113260",
+            "qty": "24.00000000",
+            "commission": "0.02400000",
+            "commissionAsset": "STORJ",
+            "time": 1535861891272,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535861891272,
+        "datetime": "2018-09-02T04:18:11.272Z",
+        "symbol": "STORJ/ETH",
+        "id": "400060",
+        "order": "10064150",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011326,
+        "cost": 0.027182400000000002,
+        "amount": 24.0,
+        "fee": {
+            "cost": 0.024,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400061,
+            "orderId": 10064150,
+            "price": "0.00113660",
+            "qty": "97.00000000",
+            "commission": "0.09700000",
+            "commissionAsset": "STORJ",
+            "time": 1535861891272,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535861891272,
+        "datetime": "2018-09-02T04:18:11.272Z",
+        "symbol": "STORJ/ETH",
+        "id": "400061",
+        "order": "10064150",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011366,
+        "cost": 0.11025019999999999,
+        "amount": 97.0,
+        "fee": {
+            "cost": 0.097,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400421,
+            "orderId": 10071376,
+            "price": "0.00111360",
+            "qty": "14.00000000",
+            "commission": "0.01400000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400421",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011136,
+        "cost": 0.015590399999999999,
+        "amount": 14.0,
+        "fee": {
+            "cost": 0.014,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400422,
+            "orderId": 10071376,
+            "price": "0.00111390",
+            "qty": "14.00000000",
+            "commission": "0.01400000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400422",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011139,
+        "cost": 0.015594599999999998,
+        "amount": 14.0,
+        "fee": {
+            "cost": 0.014,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400423,
+            "orderId": 10071376,
+            "price": "0.00111850",
+            "qty": "22.00000000",
+            "commission": "0.02200000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400423",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011185,
+        "cost": 0.024606999999999997,
+        "amount": 22.0,
+        "fee": {
+            "cost": 0.022,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400424,
+            "orderId": 10071376,
+            "price": "0.00111980",
+            "qty": "15.00000000",
+            "commission": "0.01500000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400424",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011198,
+        "cost": 0.016797,
+        "amount": 15.0,
+        "fee": {
+            "cost": 0.015,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400425,
+            "orderId": 10071376,
+            "price": "0.00112180",
+            "qty": "18.00000000",
+            "commission": "0.01800000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400425",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011218,
+        "cost": 0.0201924,
+        "amount": 18.0,
+        "fee": {
+            "cost": 0.018,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400426,
+            "orderId": 10071376,
+            "price": "0.00112480",
+            "qty": "87.00000000",
+            "commission": "0.08700000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400426",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "buy",
+        "price": 0.0011248,
+        "cost": 0.0978576,
+        "amount": 87.0,
+        "fee": {
+            "cost": 0.087,
+            "currency": "STORJ"
+        }
+    },
+    {
+        "info": {
+            "symbol": "STORJETH",
+            "id": 400427,
+            "orderId": 10071376,
+            "price": "0.00112540",
+            "qty": "98.00000000",
+            "commission": "0.09800000",
+            "commissionAsset": "STORJ",
+            "time": 1535911975801,
+            "isBuyer": true,
+            "isMaker": false,
+            "isBestMatch": true
+        },
+        "timestamp": 1535911975801,
+        "datetime": "2018-09-02T18:12:55.801Z",
+        "symbol": "STORJ/ETH",
+        "id": "400427",
+        "order": "10071376",
+        "type": null,
+        "takerOrMaker": "taker",
+        "side": "sell",
+        "price": 0.0011254,
+        "cost": 0.11028919999999999,
+        "amount": 98.0,
+        "fee": {
+            "cost": 0.098,
+            "currency": "STORJ"
+        }
+    }
+]

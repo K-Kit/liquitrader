@@ -46,7 +46,9 @@ class GenericExchange:
                  candle_timeframes: typing.List[str]):
 
         self.pairs = {}
-        self._balances = None
+
+        # this is the amount of quote currency we hold
+        self.balance = None
 
         # create default dict to store balances, averages, trade history, last_order_id
         # makes sense to calculate averages in the exchange since we'll need to be able to
@@ -73,10 +75,6 @@ class GenericExchange:
         # Connect to exchange
         self._init_client_connection()
 
-    # ----
-    @property
-    def balances(self):
-        return self._balances
 
     # ----
     def _init_client_connection(self):
@@ -140,6 +138,9 @@ class GenericExchange:
 
         balances = self._client.fetchBalance()
         for key in balances:
+            if key == self._quote_currency:
+                self.balance = balances[key]['total']
+
             symbol = key + '/' + self._quote_currency
 
             if symbol in self.pairs:

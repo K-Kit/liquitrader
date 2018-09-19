@@ -222,6 +222,6 @@ if __name__ == '__main__':
 
     from pprint import pprint
 
-    # pprint(run_ta(pairs['ADA/USDT']['candlesticks'], indicators))
-    print(pairs['ADA/USDT']['indicators'].keys())
+    pprint(run_ta(pairs['ADA/USDT']['candlesticks'], indicators))
+    # print(pairs['ADA/USDT']['indicators'].keys())
 

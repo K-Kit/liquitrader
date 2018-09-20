@@ -222,6 +222,10 @@ if __name__ == '__main__':
 
     from pprint import pprint
 
-    pprint(run_ta(pairs['ADA/USDT']['candlesticks'], indicators))
+    z = run_ta(pairs['ADA/USDT']['candlesticks'], indicators)
+    print(z.keys())
+    print(z['MFI_ARRAY_5m'])
+    print(type(z['MFI_ARRAY_5m']))
+
     # print(pairs['ADA/USDT']['indicators'].keys())
 

@@ -17,10 +17,12 @@ class BuyCondition(Condition):
         :return:
         """
         symbol = pair['symbol']
-        price = pair['close']
+        if 'close' not in pair:
+            return None
+        price = float(pair['close'])
         trail_to = None
         analysis = [evaluate_condition(condition, pair, indicators) for condition in self.conditions_list]
-        print(analysis)
+
         res = False not in analysis
         if res and symbol in self.pairs_trailing:
             current_marker = self.pairs_trailing[symbol]['trail_from']
@@ -34,6 +36,7 @@ class BuyCondition(Condition):
             if symbol in self.pairs_trailing: self.pairs_trailing.pop(symbol)
             return None
         if price >= trail_to and not trail_to is None:
+            print(analysis)
             return self.buy_value*price
 
 

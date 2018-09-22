@@ -102,9 +102,9 @@ class BinanceExchange(GenericExchange):
             return
 
         elif symbol in self.pairs:
-            self.pairs[symbol]['close'] = msg['c']
-            self.pairs[symbol]['quoteVolume'] = msg['q']
-            self.pairs[symbol]['percentage'] = msg['P']
+            self.pairs[symbol]['close'] = float(msg['c'])
+            self.pairs[symbol]['quoteVolume'] = float(msg['q'])
+            self.pairs[symbol]['percentage'] = float(msg['P'])
 
     # ----
     def handle_depth_socket(self, msg, symbol):

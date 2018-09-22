@@ -183,7 +183,6 @@ class GenericExchange:
                     self.pairs[symbol].update(average_data)
                     self.pairs[symbol].update(balances[key])
 
-        return self.wallet
 
 
     # ----

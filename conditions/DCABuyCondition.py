@@ -8,16 +8,10 @@ class DCABuyCondition(Condition):
     Minimum required for DCA strategy example
     {"default": {"trigger": -3, "percentage": 100}}
     additional level options:
-    {"default":
-        {"trigger": -3, "percentage": 100}
-        },
-    "0":
-        {"trigger": -5, "percentage": 50}
-        },
-    "3":
-        {"trigger": -2, "percentage": 25}
-        }
-    }
+    {"default": {"trigger": -3, "percentage": 100},
+                "0": {"trigger": -5, "percentage": 50},
+                "3":{"trigger": -2, "percentage": 25}
+                }
     In this example: pair @ dca level 0, triggers at -5%, for 50% of value
     then level 1 and 2 trigger at -3% for 100%
     level 3 at -2% for 25%
@@ -38,6 +32,8 @@ class DCABuyCondition(Condition):
         :param pair:
         :return:
         """
+        if 'total' not in pair or 'close' not in pair:
+            return None
         if 'dca_level' not in pair:
             pair['dca_level'] = 1
         trail_to = None

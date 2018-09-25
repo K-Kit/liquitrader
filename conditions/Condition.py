@@ -35,7 +35,7 @@ class Condition:
         pass
 
 if __name__ == '__main__':
-    from testconditions import *
+    from examples import *
     strategy = {}
     # 1 and 3 are true with the test data
     strategy['conditions'] = [condition_1, condition_3]

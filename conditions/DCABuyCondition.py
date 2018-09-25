@@ -23,7 +23,7 @@ class DCABuyCondition(Condition):
         self.dca_strategy = condition_config['dca_strategy']
         self.max_dca_level = condition_config['max_dca_level']
 
-    def evaluate(self, pair: dict, indicators: dict):
+    def evaluate(self, pair: dict, indicators: dict, balance):
         """
         evaluate single pair against conditions
         if not in pairs_trailing and conditions = true : add to dict, set floor/ceiling at price -> return true
@@ -35,7 +35,7 @@ class DCABuyCondition(Condition):
         if 'total' not in pair or 'close' not in pair:
             return None
         if 'dca_level' not in pair:
-            pair['dca_level'] = 1
+            pair['dca_level'] = 0
         trail_to = None
         symbol = pair['symbol']
         price = pair['close']
@@ -51,15 +51,13 @@ class DCABuyCondition(Condition):
         percent_change = get_percent_change(current_value, pair['total_cost'])
 
         # check percent change, if above trigger return none
-        if percent_change > self.get_dca_trigger(dca_level):
-            print('{}: above dca trigger {}:, currently at {}'.format(symbol, self.get_dca_trigger(dca_level),percent_change))
-            return None
+        above_trigger = percent_change > self.get_dca_trigger(dca_level)
 
         # evaluate all conditions return list of bools
         analysis = [evaluate_condition(condition, pair, indicators) for condition in self.conditions_list]
 
         # if any are false, result is false
-        res = False not in analysis
+        res = False not in analysis and not above_trigger
 
         # if we're already trailing, update trail_to if needed
         if res and symbol in self.pairs_trailing:
@@ -99,7 +97,7 @@ class DCABuyCondition(Condition):
 
 
 if __name__ == '__main__':
-    from testconditions import *
+    from examples import *
     strategy = {}
     # 1 and 3 are true with the test data
     strategy['conditions'] = [condition_1, condition_3]

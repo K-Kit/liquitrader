@@ -1,5 +1,5 @@
 from Condition import Condition
-from condition_tools import evaluate_condition
+from condition_tools import evaluate_condition, get_buy_value
 
 class BuyCondition(Condition):
 
@@ -7,7 +7,7 @@ class BuyCondition(Condition):
         super().__init__(condition_config)
         self.buy_value = condition_config['buy_value']
 
-    def evaluate(self, pair: dict, indicators: dict):
+    def evaluate(self, pair: dict, indicators: dict, balance):
         """
         evaluate single pair against conditions
         if not in pairs_trailing and conditions = true : add to dict, set floor/ceiling at price -> return true
@@ -22,7 +22,6 @@ class BuyCondition(Condition):
         price = float(pair['close'])
         trail_to = None
         analysis = [evaluate_condition(condition, pair, indicators) for condition in self.conditions_list]
-
         res = False not in analysis
         if res and symbol in self.pairs_trailing:
             current_marker = self.pairs_trailing[symbol]['trail_from']
@@ -37,26 +36,26 @@ class BuyCondition(Condition):
             return None
         if price >= trail_to and not trail_to is None:
             print(analysis)
-            return self.buy_value*price
+            return get_buy_value(self.buy_value, balance)/price
 
 
 if __name__ == '__main__':
-    from testconditions import *
+    from examples import *
     strategy = {}
     # 1 and 3 are true with the test data
     strategy['conditions'] = [condition_2, condition_3]
     strategy['trailing %'] = 0.1
-    strategy['buy_value'] = 0.02
+    strategy['buy_value'] = '200%'
     cond = BuyCondition(strategy)
     print(vars(cond))
-    print(cond.evaluate(pair1,indicators1))
+    print(cond.evaluate(pair1,indicators1, 1))
     print(cond.pairs_trailing)
     pair1['close'] = 4.005
 
-    print(cond.evaluate(pair1,indicators1))
+    print(cond.evaluate(pair1,indicators1, 1))
     print(cond.pairs_trailing)
 
     pair1['close'] = 4.1
 
-    print(cond.evaluate(pair1,indicators1))
+    print(cond.evaluate(pair1,indicators1, 1))
     print(cond.pairs_trailing)

@@ -143,7 +143,7 @@ class BinanceExchange(GenericExchange):
 
         # todo add handling for usdt
         if self._quote_currency != 'USDT':
-            ticker_sockets.append()
+            ticker_sockets.append(self._quote_currency+'/USDT')
         else:
             self.quote_change = 0
 

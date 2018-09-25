@@ -108,29 +108,28 @@ def get_possible_sells(pairs, strategies):
 
 def pair_specific_buy_checks(pair, price, amount, balance, change):
     return all(
-        [exceeds_min_balance(balance, config['min_buy_balance'],price, amount),
+        [not exceeds_min_balance(balance, config['min_buy_balance'],price, amount),
         below_max_change(change, config['max_change']),
         above_min_change(change, config['min_change']),
         not is_blacklisted(pair, config['blacklist']),
-        is_blacklisted(pair, config['whitelist'])]
+        is_whitelisted(pair, config['whitelist'])]
     )
 
 def global_buy_checks():
-    # min and max 24h change for market and quote asset + max pairs
-    # todo add 1h change
+    # todo add 1h change + max pairs
     #quote change 24h
     above_min_change(exchange.quote_change, config['market_change']['min_24h_quote_change'])
     below_max_change(exchange.quote_change, config['market_change']['max_24h_quote_change'])
 
-    # quote change 1h
-    above_min_change()
-    below_max_change()
-
-    # average change 24h
-    above_min_change()
-    below_max_change()
-
-    below_max_pairs()
+    # # quote change 1h
+    # above_min_change()
+    # below_max_change()
+    #
+    # # average change 24h
+    # above_min_change()
+    # below_max_change()
+    #
+    # below_max_pairs()
 
 # check min balance, max pairs, quote change, market change, trading enabled, blacklist, whitelist, 24h change
 # todo add pair specific settings
@@ -146,13 +145,13 @@ possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
 possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
 
 
-
-for i in range(1, 30):
-    possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
-    handle_possible_buys(possible_buys)
-    possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
-    possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
-    time.sleep(1)
-    print(i)
-    print(possible_sells)
-    i+=1
+if __name__ == '__main__':
+    for i in range(1, 30):
+        possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
+        handle_possible_buys(possible_buys)
+        possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
+        possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
+        time.sleep(1)
+        print(i)
+        print(possible_sells)
+        i+=1

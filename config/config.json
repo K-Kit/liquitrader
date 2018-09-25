@@ -5,8 +5,9 @@
     "start_delay": 0,
     "max_pairs": 0,
     "blacklist": [],
-    "whitelist": [],
+    "whitelist": ["ALL"],
     "max_change": 0,
+  "min_change": 0,
     "market_change": {
         "max_1h_quote_change" : 10,
         "max_24h_quote_change" : 10,

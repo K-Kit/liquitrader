@@ -105,6 +105,9 @@ class BinanceExchange(GenericExchange):
             self.pairs[symbol]['close'] = float(msg['c'])
             self.pairs[symbol]['quoteVolume'] = float(msg['q'])
             self.pairs[symbol]['percentage'] = float(msg['P'])
+        elif symbol == self._quote_currency + '/USDT':
+            self.quote_change = float(msg['P'])
+            self.quote_price = float(msg['c'])
 
     # ----
     def handle_depth_socket(self, msg, symbol):
@@ -137,6 +140,12 @@ class BinanceExchange(GenericExchange):
 
         # store connection keys self.candle_sock
         # time.sleep due to issues opening all at same time
+
+        # todo add handling for usdt
+        if self._quote_currency != 'USDT':
+            ticker_sockets.append()
+        else:
+            self.quote_change = 0
 
         # TODO: Look into doing this without sleeps
         self.candle_socket = self.socket_manager.start_multiplex_socket(candle_sockets, self.process_multiplex_socket)

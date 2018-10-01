@@ -1,4 +1,5 @@
 def get_percent_change(current:float, bought:float):
+    if bought is None or bought == 0: return 0
     return (current-bought)/bought*100
 
 def get_current_value(price:float, amount:float):

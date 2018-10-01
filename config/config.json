@@ -16,7 +16,7 @@
         },
     "min_volume": 0,
     "min_price": 0,
-    "min_buy_balance": 0,
+    "min_buy_balance": "50%",
     "max_spread": 0,
     "trailing": 0,
     "min_available_volume": 0,
@@ -35,15 +35,15 @@
            "conditions": [
                          {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
-           "buy_value": "3%",
-           "trailing %": 0.1
+           "buy_value": "5%",
+           "trailing %": 0.5
        },
        {
           "conditions": [
                           {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 0}}
           ],
-          "buy_value": "3%",
-          "trailing %": 0.1
+          "buy_value": "5%",
+          "trailing %": 0.5
       }
     ],
     "sell_strategies":[

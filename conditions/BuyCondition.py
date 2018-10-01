@@ -35,7 +35,6 @@ class BuyCondition(Condition):
             if symbol in self.pairs_trailing: self.pairs_trailing.pop(symbol)
             return None
         if price >= trail_to and not trail_to is None:
-            print(analysis)
             return get_buy_value(self.buy_value, balance)/price
 
 

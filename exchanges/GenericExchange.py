@@ -145,13 +145,12 @@ class GenericExchange:
 
             if symbol in self.pairs:
                 amount = balances[key]['total']
-                self.pairs[symbol]['amount'] = amount
                 if amount == 0:
                     continue
 
                 # if we already have average data, calculate from existing
                 if symbol in self.pairs and 'total_cost' in self.pairs[symbol]:
-                    if amount != self.pairs[symbol]['amount']:
+                    if amount != self.pairs[symbol]['total']:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
                         self.pairs[symbol].update(balances[key])
@@ -182,6 +181,7 @@ class GenericExchange:
                         continue
                     self.pairs[symbol].update(average_data)
                     self.pairs[symbol].update(balances[key])
+                self.pairs[symbol]['total'] = amount
 
 
 
@@ -196,6 +196,11 @@ class GenericExchange:
 
         for pair in pairs:
             pairs[pair]['candlesticks'] = {}
+            pairs[pair]['total'] = 0
+            pairs[pair]['total_cost'] = None
+            pairs[pair]['avg_price'] = None
+            pairs[pair]['trades'] = []
+            pairs[pair]['last_id'] = 0
 
         self.pairs = pairs
 

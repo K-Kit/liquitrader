@@ -28,12 +28,12 @@ def test_market():
 def test_candles_not_none():
     # test to make sure candles aren't null
     # test to make sure candles are dataframe
-    ada_5m_candles = ex.pairs['ADA/USDT']['candlesticks']['5m']
+    ada_5m_candles = ex.candles['ADA/USDT']['5m']
     assert len(ada_5m_candles) > 10, 'populate candles did not fetch full candle history'
     assert isinstance(ada_5m_candles,pandas.core.frame.DataFrame), 'candle history did not get converted to dataframe'
 
 def test_all_timeperiods_added():
-    ada_candles = ex.pairs['ADA/USDT']['candlesticks']
+    ada_candles = ex.candles['ADA/USDT']
     assert list(ada_candles.keys()) == timeframes, 'did not fetch all timeframes'
     for t in timeframes:
         assert isinstance(ada_candles[t],pandas.core.frame.DataFrame), 'candle history did not get converted to dataframe'
@@ -42,7 +42,7 @@ def test_all_timeperiods_added():
 def test_all_pairs_have_candles():
     # test to make sure all pairs have candlestick data
     for pair in ex.pairs:
-        candle_5m = ex.pairs[pair]['candlesticks']['5m']
+        candle_5m = ex.candles[pair]['5m']
         assert isinstance(candle_5m,pandas.core.frame.DataFrame)
         assert len(candle_5m) > 10, 'populate candles did not fetch full candle history or pair is new: {}'.format(pair)
 

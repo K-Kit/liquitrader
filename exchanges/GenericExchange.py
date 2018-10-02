@@ -46,7 +46,8 @@ class GenericExchange:
                  candle_timeframes: typing.List[str]):
 
         self.pairs = {}
-
+        # moved candles to a seperate dict to make working with pairs easier / cheaper
+        self.candles = {}
         # this is the amount of quote currency we hold
         self.balance = None
 
@@ -193,17 +194,18 @@ class GenericExchange:
                     for x in self._client.fetchMarkets()
                     if x['active'] and x['quote'] == self._quote_currency.upper()
                 }
-
+        candles = {}
         for pair in pairs:
-            pairs[pair]['candlesticks'] = {}
+            candles[pair] = {}
             pairs[pair]['total'] = 0
             pairs[pair]['total_cost'] = None
             pairs[pair]['avg_price'] = None
+            pairs[pair]['last_order_time'] = 0
             pairs[pair]['trades'] = []
             pairs[pair]['last_id'] = 0
 
         self.pairs = pairs
-
+        self.candles = candles
         return pairs
 
     # ----
@@ -245,7 +247,7 @@ class GenericExchange:
 
         # Build our results from the results returned by the task_group coroutine we awaited before
         for (symbol, period), candlesticks in zip(args, results):
-            self.pairs[symbol]['candlesticks'][period] = candles_to_df(candlesticks)
+            self.candles[symbol][period] = candles_to_df(candlesticks)
 
         return self.pairs
 
@@ -261,7 +263,7 @@ class GenericExchange:
 
             for (symbol, timeframe), candle_data in zip(args, results):
                 candle = candle_tic_to_df(candle_data)
-                self.pairs[symbol]['candlesticks'][timeframe].loc[candle.index[0]] = candle.iloc[0]
+                self.candles[symbol][timeframe].loc[candle.index[0]] = candle.iloc[0]
 
             await asyncio.sleep(self._candle_upkeep_call_schedule)
 

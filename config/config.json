@@ -17,10 +17,11 @@
     "min_volume": 0,
     "min_price": 0,
     "min_buy_balance": "50%",
+    "dca_min_buy_balance": "20%",
+    "dca_timeout": 1,
     "max_spread": 0,
     "trailing": 0,
     "min_available_volume": 0,
-    "buy_value": 0,
     "sell_defaults": {
         "trailing": 0,
         "sell_value": 0
@@ -51,14 +52,14 @@
            "conditions": [
                {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
-           "sell_value": 0.01,
-           "trailing %": 0
+           "sell_value": 0.5,
+           "trailing %": 0.15
        },
        {
           "conditions": [
               {"left": {"value": "MFI", "candle_period": "30m"}, "op": "<", "right": {"value": 4}}
           ],
-          "sell_value": 3,
+          "sell_value": 1,
           "minimum_volume": 2,
           "trailing %": 3
       }
@@ -66,15 +67,11 @@
     "dca_buy_strategies":[
         {
            "conditions": [
-               {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}},
-                          {"left": {"value": "MFI", "candle_period": "30m"}, "op": "cross_up", "right": {"value": 40}, "cross_candles": 13},
-                          {"op": "min_volume", "right": 4}
+               {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
            "max_dca_level": 12,
            "trailing %": 0.1,
-           "dca_strategy": {"default": {"trigger": -3, "percentage": 100},
-                                "0": {"trigger": -5, "percentage": 50},
-                                "3":{"trigger": -2, "percentage": 25}}
+           "dca_strategy": {"default": {"trigger": -0.5, "percentage": 100}}
        },
         {
            "conditions": [

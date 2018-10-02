@@ -14,7 +14,7 @@ from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
-from conditions.condition_tools import *
+from conditions.condition_tools import get_buy_value, percentToFloat
 
 # test keys, trading disabled
 from dev_keys_binance import keys
@@ -69,11 +69,13 @@ else:
 
 exchange.initialize()
 # exchange.start()
-
+7
 # run TA on exchange.pairs dict, assign indicator values to pair['indicators']
 pairs = exchange.pairs
-for pair in pairs:
-    statistics[pair] = run_ta(pairs[pair]['candlesticks'], indicators)
+
+def do_technical_analysis():
+    for pair in pairs:
+        statistics[pair] = run_ta(exchange.candles[pair], indicators)
 
 import time
 time.sleep(5)
@@ -117,18 +119,17 @@ def get_possible_sells(pairs, strategies):
         return possible_trades
 
 
-def pair_specific_buy_checks(pair, price, amount, balance, change):
-    min_balance = config['min_buy_balance'] if not isinstance(config['min_buy_balance'], str) \
-        else percentToFloat(config['min_buy_balance']) * get_tcv()
-    return all(
-        [not exceeds_min_balance(balance, min_balance,price, amount),
+def pair_specific_buy_checks(pair, price, amount, balance, change, min_balance, dca = False):
+    min_balance = min_balance if not isinstance(min_balance, str) \
+        else percentToFloat(min_balance) * get_tcv()
+    checks = [not exceeds_min_balance(balance, min_balance,price, amount),
         below_max_change(change, config['max_change']),
         above_min_change(change, config['min_change']),
         not is_blacklisted(pair, config['blacklist']),
-        is_whitelisted(pair, config['whitelist']),
-        exchange.pairs[pair]['total'] < 0.8 * amount
+        is_whitelisted(pair, config['whitelist'])
         ]
-    )
+    if not dca: checks.append(exchange.pairs[pair]['total'] < 0.8 * amount)
+    return all(checks)
 
 def global_buy_checks():
     # todo add 1h change + max pairs
@@ -150,7 +151,7 @@ def global_buy_checks():
 # todo add pair specific settings
 def handle_possible_buys(possible_buys):
     for pair in possible_buys:
-        if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance, exchange.pairs[pair]['percentage']):
+        if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance, exchange.pairs[pair]['percentage'], config['min_buy_balance']):
             order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
             print(order)
             print(exchange.balance, get_tcv())
@@ -167,21 +168,42 @@ def handle_possible_sells(possible_sells):
         print(exchange.balance, get_tcv())
         print(pairs[pair]['total'] * pairs[pair]['close'])
 
+dca_buys = []
 
-possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
-possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
-possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
+def handle_possible_dca_buys(possible_buys):
+    global  dca_buys
+    dca_timeout = 0*60
+    for pair in possible_buys:
+        if exchange.pairs[pair]['total'] * exchange.pairs[pair]['amount'] < DUST_VALUE \
+                or time.time() - exchange.pairs[pair]['last_order_time'] < dca_timeout: continue
+        
+        if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance,
+                                    exchange.pairs[pair]['percentage'], config['dca_min_buy_balance']):
+            # place order
+            order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
+            dca_buys.append(order)
+            print(order)
+            print(exchange.balance, get_tcv())
+            print(pairs[pair]['total']*pairs[pair]['close'])
+
 
 
 if __name__ == '__main__':
-    for i in range(1, 10000):
-        print("balance: {}, TCV: {}".format(exchange.balance, get_tcv()))
-        possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
-        handle_possible_buys(possible_buys)
-        possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
-        possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
-        handle_possible_sells(possible_sells)
-        print(owned, sales)
-        time.sleep(1)
-        print(i)
-        i+=1
+    def run():
+        while True:
+            do_technical_analysis()
+            print("balance: {}, TCV: {}".format(exchange.balance, get_tcv()))
+            possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
+            handle_possible_buys(possible_buys)
+            possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
+            handle_possible_dca_buys(possible_dca_buys)
+
+            possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
+            handle_possible_sells(possible_sells)
+            # print(owned, sales)
+            time.sleep(1)
+
+
+    import threading
+
+    threading.Thread(target=run).start()

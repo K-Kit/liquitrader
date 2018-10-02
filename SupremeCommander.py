@@ -178,7 +178,7 @@ def handle_possible_dca_buys(possible_buys):
                 or time.time() - exchange.pairs[pair]['last_order_time'] < dca_timeout: continue
         
         if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance,
-                                    exchange.pairs[pair]['percentage'], config['dca_min_buy_balance']):
+                                    exchange.pairs[pair]['percentage'], config['dca_min_buy_balance'], True):
             # place order
             order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
             dca_buys.append(order)

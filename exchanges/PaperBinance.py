@@ -35,8 +35,8 @@ def create_paper_order(symbol, order_type, side, amount, price, _quote_currency)
     return {
         'id': current_order_id,
         'datetime': "",
-        'timestamp': time.time() / 1000,
-        'lastTradeTimestamp': time.time() / 1000,
+        'timestamp': time.time() * 1000,
+        'lastTradeTimestamp': time.time() * 1000,
         'status': "CLOSED",
         'symbol': symbol,
         'type': order_type,
@@ -74,6 +74,7 @@ class PaperBinance(BinanceExchange):
         pass
 
     def place_order(self, symbol, order_type, side, amount, price):
+        price = self.pairs[symbol]['close']
         order = create_paper_order(symbol, order_type, side, amount, price, self._quote_currency)
         if 'trades' in self.pairs[symbol]:
             self.pairs[symbol]['trades'].append(order)
@@ -85,12 +86,9 @@ class PaperBinance(BinanceExchange):
         self.balance -= amount*price if side == 'buy' else -amount*price
         average_data = calc_average_price_from_hist(trades, self.pairs[symbol]['total'])\
             if self.pairs[symbol]['avg_price'] is None else calculate_from_existing(trades, self.pairs[symbol]['total'], self.pairs[symbol])
-        try:
-            self.pairs[symbol].update(average_data)
-        except Exception as ex:
-            print(ex)
-            print(symbol, trades)
-            self.errors.append([symbol,trades, side])
+
+        self.pairs[symbol].update(average_data)
+        self.pairs[symbol]['last_order_time'] = time.time()
         print(self.pairs[symbol]['avg_price'], self.pairs[symbol]['total_cost'])
         return order
 

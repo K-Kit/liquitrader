@@ -92,7 +92,7 @@ class BinanceExchange(GenericExchange):
 
         candle = candle_tic_to_df([msg['t'], msg['o'], msg['h'], msg['l'], msg['c'], msg['v']])
         if symbol in self.pairs:
-            self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
+            self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
 
     # ----
     def handle_ticker_socket(self, msg, symbol):

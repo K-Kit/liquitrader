@@ -92,7 +92,10 @@ class BinanceExchange(GenericExchange):
 
         candle = candle_tic_to_df([msg['t'], msg['o'], msg['h'], msg['l'], msg['c'], msg['v']])
         if symbol in self.pairs:
-            self.pairs[symbol]['candlesticks'][candle_period].loc[candle.index[0]] = candle.iloc[0]
+            try:
+                self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
+            except Exception as ex:
+                print(ex)
 
     # ----
     def handle_ticker_socket(self, msg, symbol):
@@ -102,9 +105,12 @@ class BinanceExchange(GenericExchange):
             return
 
         elif symbol in self.pairs:
-            self.pairs[symbol]['close'] = msg['c']
-            self.pairs[symbol]['quoteVolume'] = msg['q']
-            self.pairs[symbol]['percentage'] = msg['P']
+            self.pairs[symbol]['close'] = float(msg['c'])
+            self.pairs[symbol]['quoteVolume'] = float(msg['q'])
+            self.pairs[symbol]['percentage'] = float(msg['P'])
+        elif symbol == self._quote_currency + '/USDT':
+            self.quote_change = float(msg['P'])
+            self.quote_price = float(msg['c'])
 
     # ----
     def handle_depth_socket(self, msg, symbol):
@@ -137,6 +143,12 @@ class BinanceExchange(GenericExchange):
 
         # store connection keys self.candle_sock
         # time.sleep due to issues opening all at same time
+
+        # todo add handling for usdt
+        if self._quote_currency != 'USDT':
+            ticker_sockets.append(self._quote_currency+'/USDT')
+        else:
+            self.quote_change = 0
 
         # TODO: Look into doing this without sleeps
         self.candle_socket = self.socket_manager.start_multiplex_socket(candle_sockets, self.process_multiplex_socket)

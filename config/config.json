@@ -5,23 +5,23 @@
     "start_delay": 0,
     "max_pairs": 0,
     "blacklist": [],
-    "whitelist": [],
+    "whitelist": ["ALL"],
+    "max_change": 0,
+  "min_change": 0,
     "market_change": {
-        "max_24h_alt_change" : 15,
-        "min_24h_alt_change" : -35,
-        "max_1h_base_change" : 10,
-        "max_24h_base_change" : 10,
+        "max_1h_quote_change" : 10,
+        "max_24h_quote_change" : 10,
+        "min_24h_quote_change" : -10,
         "min_24h_market_change" : -2.5
         },
-    "buy_defaults": {
-        "min_volume": 0,
-        "min_price": 0,
-        "min_buy_balance": 0,
-        "max_spread": 0,
-        "trailing": 0,
-        "min_available_volume": 0,
-        "buy_value": 0
-    },
+    "min_volume": 0,
+    "min_price": 0,
+    "min_buy_balance": "50%",
+    "dca_min_buy_balance": "20%",
+    "dca_timeout": 15,
+    "max_spread": 0,
+    "trailing": 0,
+    "min_available_volume": 0,
     "sell_defaults": {
         "trailing": 0,
         "sell_value": 0
@@ -34,34 +34,32 @@
     "buy_strategies":[
         {
            "conditions": [
-               "MFI_5m > 20, MA_5m > 0, MFI_20_CHANGE_OVER_20_5m CROSS_UP_OVER_10 RSI_14_CHANGE_OVER_10_15M "
+                         {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
-           "buy_value": 3,
-           "minimum_volume": 2,
-           "trailing %": 3
+           "buy_value": "5%",
+           "trailing %": 0.5
        },
        {
           "conditions": [
-              "MFI_5m < 20, MA_5m < 0"
+                          {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 0}}
           ],
-          "buy_value": 3,
-          "minimum_volume": 2,
-          "trailing %": 3
+          "buy_value": "5%",
+          "trailing %": 0.5
       }
     ],
     "sell_strategies":[
         {
            "conditions": [
-               "asdf > xyz"
+               {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
-           "sell_value": 3,
-           "trailing %": 3
+           "sell_value": 0.5,
+           "trailing %": 0.15
        },
        {
           "conditions": [
-              "asdf > xyz"
+              {"left": {"value": "MFI", "candle_period": "30m"}, "op": "<", "right": {"value": 4}}
           ],
-          "sell_value": 3,
+          "sell_value": 1,
           "minimum_volume": 2,
           "trailing %": 3
       }
@@ -69,41 +67,22 @@
     "dca_buy_strategies":[
         {
            "conditions": [
-               "asdf > xyz"
+               {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
-           "buy_value": 3,
-           "minimum_volume": 2,
-           "trailing %": 3,
-           "dca_percentage": 50,
-           "dca_trigger": -3
+           "max_dca_level": 12,
+           "trailing %": 0.1,
+           "dca_strategy": {"default": {"trigger": -0.5, "percentage": 100}}
        },
-       {
-          "conditions": [
-              "asdf > xyz"
-          ],
-          "buy_value": 3,
-          "minimum_volume": 2,
-          "trailing %": 3,
-          "dca_percentage": 50,
-          "max_cost": 0,
-          "dca_trigger": -3
-      }
-    ],
-    "dca_sell_strategies":[
         {
            "conditions": [
-               "asdf > xyz"
+               {"left": {"value": "MFI", "candle_period": "30m"}, "op": "<", "right": {"value": 4}},
+                          {"left": {"value": "MFI", "candle_period": "30m"}, "op": "cross_up", "right": {"value": 4}, "cross_candles": 3},
+                          {"op": "min_volume", "right": 4}
            ],
-           "sell_value": 3,
-           "trailing %": 3
-       },
-       {
-          "conditions": [
-              "asdf > xyz"
-          ],
-          "sell_value": 3,
-          "trailing %": 3
-      }
+           "max_dca_level": 12,
+           "trailing %": 3,
+           "dca_strategy": {"default": {"trigger": -3, "percentage": 100}}
+       }
     ],
 
     "bear_override": {},

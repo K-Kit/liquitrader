@@ -18,7 +18,7 @@
     "min_price": 0,
     "min_buy_balance": "50%",
     "dca_min_buy_balance": "20%",
-    "dca_timeout": 1,
+    "dca_timeout": 15,
     "max_spread": 0,
     "trailing": 0,
     "min_available_volume": 0,

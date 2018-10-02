@@ -46,14 +46,15 @@ class GenericExchange:
                  candle_timeframes: typing.List[str]):
 
         self.pairs = {}
-
+        # moved candles to a seperate dict to make working with pairs easier / cheaper
+        self.candles = {}
         # this is the amount of quote currency we hold
         self.balance = None
 
         # create default dict to store balances, averages, trade history, last_order_id
         # makes sense to calculate averages in the exchange since we'll need to be able to
         # fetch trade history during average calculation, couldnt think of a clean way to do this from a separate class
-        self.wallet = {}
+        # self.wallet = {}
 
         self._access_keys = access_keys
 
@@ -145,22 +146,22 @@ class GenericExchange:
 
             if symbol in self.pairs:
                 amount = balances[key]['total']
-                self.pairs[symbol]['amount'] = amount
                 if amount == 0:
                     continue
 
                 # if we already have average data, calculate from existing
-                if symbol in self.wallet:
-                    if amount != self.wallet[symbol]['amount']:
+                if symbol in self.pairs and self.pairs[symbol]['total_cost'] is not None:
+                    if amount != self.pairs[symbol]['total']:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
-                        self.wallet[symbol].update(balances[key])
+                        self.pairs[symbol].update(balances[key])
                         # update with new average data
-                        new_average_data = calculate_from_existing(trades,amount, self.wallet[symbol])
+                        new_average_data = calculate_from_existing(trades,amount, self.pairs[symbol])
                         if new_average_data is None:
-                            self.wallet.pop(symbol)
+                            self.pairs[symbol]['total_cost'] = None
+                            self.pairs[symbol]['avg_price'] = None
                         else:
-                            self.wallet[symbol].update(new_average_data)
+                            self.pairs[symbol].update(new_average_data)
 
                 # if we don't have average data / trade history, add new
                 else:
@@ -179,10 +180,10 @@ class GenericExchange:
                         print(self.pairs[symbol]['precision'])
                         print(amount)
                         continue
-                    self.wallet[symbol] = average_data
-                    self.wallet[symbol].update(balances[key])
+                    self.pairs[symbol].update(average_data)
+                    self.pairs[symbol].update(balances[key])
+                self.pairs[symbol]['amount'] = amount
 
-        return self.wallet
 
 
     # ----
@@ -193,12 +194,18 @@ class GenericExchange:
                     for x in self._client.fetchMarkets()
                     if x['active'] and x['quote'] == self._quote_currency.upper()
                 }
-
+        candles = {}
         for pair in pairs:
-            pairs[pair]['candlesticks'] = {}
+            candles[pair] = {}
+            pairs[pair]['total'] = 0
+            pairs[pair]['total_cost'] = None
+            pairs[pair]['avg_price'] = None
+            pairs[pair]['last_order_time'] = 0
+            pairs[pair]['trades'] = []
+            pairs[pair]['last_id'] = 0
 
         self.pairs = pairs
-
+        self.candles = candles
         return pairs
 
     # ----
@@ -235,12 +242,12 @@ class GenericExchange:
         return args, task_group.result()
 
     # --
-    async def load_all_candle_histories(self, num_candles=100):
+    async def load_all_candle_histories(self, num_candles=300):
         args, results = await self._get_candles(num_candles)
 
         # Build our results from the results returned by the task_group coroutine we awaited before
         for (symbol, period), candlesticks in zip(args, results):
-            self.pairs[symbol]['candlesticks'][period] = candles_to_df(candlesticks)
+            self.candles[symbol][period] = candles_to_df(candlesticks)
 
         return self.pairs
 
@@ -256,7 +263,7 @@ class GenericExchange:
 
             for (symbol, timeframe), candle_data in zip(args, results):
                 candle = candle_tic_to_df(candle_data)
-                self.pairs[symbol]['candlesticks'][timeframe].loc[candle.index[0]] = candle.iloc[0]
+                self.candles[symbol][timeframe].loc[candle.index[0]] = candle.iloc[0]
 
             await asyncio.sleep(self._candle_upkeep_call_schedule)
 

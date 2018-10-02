@@ -23,6 +23,8 @@ filename = 'config/config.json'
 with open(filename, 'r') as f:
     config = json.load(f)
 
+DUST_VALUE = 0.02
+
 # timeframes is a placeholder, this will need to be parsed from buy/sell conditions
 timeframes=['5m', '30m']
 
@@ -74,7 +76,7 @@ for pair in pairs:
     statistics[pair] = run_ta(pairs[pair]['candlesticks'], indicators)
 
 import time
-time.sleep(20)
+time.sleep(5)
 
 owned = []
 # return total current value (pairs + balance)
@@ -123,7 +125,9 @@ def pair_specific_buy_checks(pair, price, amount, balance, change):
         below_max_change(change, config['max_change']),
         above_min_change(change, config['min_change']),
         not is_blacklisted(pair, config['blacklist']),
-        is_whitelisted(pair, config['whitelist'])]
+        is_whitelisted(pair, config['whitelist']),
+        exchange.pairs[pair]['total'] < 0.8 * amount
+        ]
     )
 
 def global_buy_checks():
@@ -152,6 +156,16 @@ def handle_possible_buys(possible_buys):
             print(exchange.balance, get_tcv())
             print(pairs[pair]['total']*pairs[pair]['close'])
 
+sales = []
+def handle_possible_sells(possible_sells):
+    global sales
+    for pair in possible_sells:
+        if exchange.pairs[pair]['total'] * exchange.pairs[pair]['amount'] < DUST_VALUE: continue
+        order = exchange.place_order(pair, 'limit', 'sell', exchange.pairs[pair]['amount'], possible_sells[pair])
+        sales.append(order)
+        print(order)
+        print(exchange.balance, get_tcv())
+        print(pairs[pair]['total'] * pairs[pair]['close'])
 
 
 possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
@@ -160,12 +174,14 @@ possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
 
 
 if __name__ == '__main__':
-    for i in range(1, 30):
+    for i in range(1, 10000):
         print("balance: {}, TCV: {}".format(exchange.balance, get_tcv()))
         possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
         handle_possible_buys(possible_buys)
         possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
         possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
+        handle_possible_sells(possible_sells)
+        print(owned, sales)
         time.sleep(1)
         print(i)
         i+=1

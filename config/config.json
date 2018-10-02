@@ -51,8 +51,8 @@
            "conditions": [
                {"left": {"value": "MFI", "candle_period": "30m"}, "op": ">", "right": {"value": 4}}
            ],
-           "sell_value": 3,
-           "trailing %": 3
+           "sell_value": 0.01,
+           "trailing %": 0
        },
        {
           "conditions": [

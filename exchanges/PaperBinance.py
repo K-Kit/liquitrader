@@ -68,6 +68,7 @@ class PaperBinance(BinanceExchange):
         super().__init__(exchange_id, quote_currency, access_keys, candle_timeframes)
         self.order_id = 0
         self.balance = starting_balance
+        self.errors = []
 
     def update_balances(self):
         pass
@@ -84,7 +85,12 @@ class PaperBinance(BinanceExchange):
         self.balance -= amount*price if side == 'buy' else -amount*price
         average_data = calc_average_price_from_hist(trades, self.pairs[symbol]['total'])\
             if self.pairs[symbol]['avg_price'] is None else calculate_from_existing(trades, self.pairs[symbol]['total'], self.pairs[symbol])
-        self.pairs[symbol].update(average_data)
+        try:
+            self.pairs[symbol].update(average_data)
+        except Exception as ex:
+            print(ex)
+            print(symbol, trades)
+            self.errors.append([symbol,trades, side])
         print(self.pairs[symbol]['avg_price'], self.pairs[symbol]['total_cost'])
         return order
 

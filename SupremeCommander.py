@@ -246,7 +246,8 @@ def handle_possible_sells(possible_sells):
             price = minimum_fill
         else:
             continue
-        profits.append(exchange.pairs[pair]['total'] * price.average_price - exchange.pairs[pair]['total_cost'])
+        current_value = exchange.pairs[pair]['total'] * price.average_price
+        profits.append((current_value - exchange.pairs[pair]['total_cost']) / exchange.pairs[pair]['total_cost'] * 100)
         order = exchange.place_order(pair, 'limit', 'sell', exchange.pairs[pair]['total'], price.price)
         trade_history.append(order)
         print(order)
@@ -286,6 +287,12 @@ def handle_possible_dca_buys(possible_buys):
             print(exchange.balance, get_tcv())
             print(pairs[pair]['total']*pairs[pair]['close'])
 
+# this is just here temporarily for personal use
+def get_percent_change(pairs):
+    df = pd.DataFrame.from_dict(pairs, orient='index')
+    df['current_value'] = df['total'] * df['close']
+    df['change'] = (df['current_value'] - df['total_cost']) / df['total_cost'] * 100
+    return df['change'].dropna()
 
 if __name__ == '__main__':
     def run():

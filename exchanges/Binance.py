@@ -16,6 +16,7 @@ def gen_socket_list(pairs: dict, timeframes: list):
     return candles, depth, tickers
 
 
+
 # TODO check last socket update time and restart if needed
 
 class BinanceExchange(GenericExchange):
@@ -121,8 +122,33 @@ class BinanceExchange(GenericExchange):
 
         if symbol in self.pairs:
             pair = self.pairs[symbol]
+            pair['last_depth_socket_tick'] = time.time()
             pair['asks'] = [[float(ask[0]), float(ask[1])] for ask in msg['asks']]
             pair['bids'] = [[float(bid[0]), float(bid[1])] for bid in msg['bids']]
+
+    # ----
+    def get_depth(self, symbol, side):
+        """
+        get bids or asks for pair. if side == buy, return asks, else bids
+        if socket has ticked since last depth check, return pair[bids/asks]
+        else fetch fresh orderbook and return
+        :param symbol:
+        :param side:
+        :return:
+        """
+        pair = self.pairs[symbol]
+        if pair['last_depth_check'] < pair['last_depth_socket_tick']:
+            pair['last_depth_check'] = time.time()
+            return pair['asks'] if side.upper() == 'BUY' else pair['bids']
+
+        elif time.time() - pair['last_depth_check'] > 0.5:
+            depth = self._client.fetch_order_book(symbol)
+            pair['last_depth_check'] = time.time()
+            return depth['asks'] if side.upper() == 'BUY' else depth['bids']
+
+        else:
+            return None
+
 
     # ----
     def initialize(self):

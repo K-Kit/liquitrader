@@ -6,7 +6,10 @@ after technical analysis check conditions
 import json
 from functools import reduce
 
+import pandas as pd
+
 from exchanges import Binance
+from utils.DepthAnalyzer import *
 
 from exchanges import PaperBinance
 from analyzers.TechnicalAnalysis import run_ta
@@ -58,7 +61,7 @@ for strategy in config['sell_strategies']:
     sell_strategies.append(SellCondition(strategy))
 
 #temp
-config['starting_balance'] = 10
+config['starting_balance'] = 1000
 
 if config['exchange'].lower() == 'binance':
     exchange = PaperBinance.PaperBinance('binance', 'ETH',config['starting_balance'], {'public': keys.public, 'secret': keys.secret}, timeframes)
@@ -69,7 +72,7 @@ else:
 
 exchange.initialize()
 # exchange.start()
-7
+
 # run TA on exchange.pairs dict, assign indicator values to pair['indicators']
 pairs = exchange.pairs
 
@@ -79,8 +82,12 @@ def do_technical_analysis():
 
 import time
 time.sleep(5)
-
+trade_history = []
 owned = []
+
+def get_current_pending_value(pairs, balance):
+    return pd.DataFrame.from_dict(pairs, orient='index').total_cost.sum() + balance
+
 # return total current value (pairs + balance)
 def get_tcv():
     pending = 0
@@ -128,75 +135,175 @@ def pair_specific_buy_checks(pair, price, amount, balance, change, min_balance, 
         not is_blacklisted(pair, config['blacklist']),
         is_whitelisted(pair, config['whitelist'])
         ]
-    if not dca: checks.append(exchange.pairs[pair]['total'] < 0.8 * amount)
+    if not dca:
+        checks.append(exchange.pairs[pair]['total'] < 0.8 * amount)
+        checks.append(below_max_pairs(len(owned), config['max_pairs']))
     return all(checks)
+
+
+def in_range(change, min, max):
+    above_min = above_min_change(change, min)
+    below_max = below_max_change(change, max)
+    if min == 0:
+        return below_max
+    elif max == 0:
+        return above_min
+    elif min == 0 and max == 0:
+        return True
+    else:
+        return below_max and above_min
+
+
+def get_average_market_change(pairs):
+    return pd.DataFrame.from_dict(pairs, orient='index').percentage.mean()
+
 
 def global_buy_checks():
     # todo add 1h change + max pairs
-    #quote change 24h
-    above_min_change(exchange.quote_change, config['market_change']['min_24h_quote_change'])
-    below_max_change(exchange.quote_change, config['market_change']['max_24h_quote_change'])
+    check_24h_quote_change = in_range(exchange.quote_change_info['24h'], config['market_change']['min_24h_quote_change'],
+                                config['market_change']['max_24h_quote_change'])
 
-    # # quote change 1h
-    # above_min_change()
-    # below_max_change()
-    #
-    # # average change 24h
-    # above_min_change()
-    # below_max_change()
-    #
-    # below_max_pairs()
+    check_1h_quote_change = in_range(exchange.quote_change_info['1h'], config['market_change']['min_1h_quote_change'],
+                                config['market_change']['max_1h_quote_change'])
+    
+
+    check_24h_market_change = in_range(get_average_market_change(pairs), config['market_change']['min_24h_market_change'],
+                                config['market_change']['max_24h_market_change'])
+
+    return all([
+        check_1h_quote_change,
+        check_24h_market_change,
+        check_24h_quote_change
+    ])
+
+
+def in_max_spread(close, fill_price, max_spread):
+    if max_spread == 0: max_spread = 1
+    return abs((close - fill_price) / fill_price) <= max_spread
+
+
+def check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, max_spread, dca = False):
+    can_fill, minimum_fill = process_depth(orderbook, remaining_amount, min_cost)
+    if can_fill is not None and in_max_spread(current_price, can_fill.price, max_spread):
+        return can_fill
+    elif minimum_fill is not None and in_max_spread(current_price, minimum_fill.price, max_spread) and not dca:
+        return minimum_fill
+    else:
+        return None
+
 
 # check min balance, max pairs, quote change, market change, trading enabled, blacklist, whitelist, 24h change
 # todo add pair specific settings
 def handle_possible_buys(possible_buys):
+    global trade_history
     for pair in possible_buys:
         if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance, exchange.pairs[pair]['percentage'], config['min_buy_balance']):
-            order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
+            # amount we'd like to own
+            target_amount = possible_buys[pair]
+            # difference between target and current owned quantity.
+            remaining_amount = target_amount - exchange.pairs[pair]['total']
+            # lowest cost trade-able
+            min_cost = exchange.pairs[pair]['limits']['cost']['min']
+            current_price = exchange.pairs[pair]['close']
+
+            # get orderbook, if time since last orderbook check is too soon, it will return none
+            orderbook = exchange.get_depth(pair, 'BUY')
+            if orderbook is None: continue
+
+            # get viable trade, returns None if none available
+            price_info = check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, config['max_spread'])
+
+            # Check to see if amount remaining to buy is greater than min trade quantity for pair
+            if price_info is None or price_info.amount * price_info.average_price < min_cost:
+                continue
+
+            # place order
+            order = exchange.place_order(pair, 'limit', 'buy', price_info.amount, price_info.price)
+            # store order in trade history
+            trade_history.append(order)
             print(order)
             print(exchange.balance, get_tcv())
             print(pairs[pair]['total']*pairs[pair]['close'])
 
-sales = []
+
+# temp variable for monitoring
+profits = []
 def handle_possible_sells(possible_sells):
-    global sales
+    global trade_history, profits
     for pair in possible_sells:
         if exchange.pairs[pair]['total'] * exchange.pairs[pair]['amount'] < DUST_VALUE: continue
-        order = exchange.place_order(pair, 'limit', 'sell', exchange.pairs[pair]['amount'], possible_sells[pair])
-        sales.append(order)
+        # lowest cost trade-able
+        min_cost = exchange.pairs[pair]['limits']['cost']['min']
+        lowest_sell_price = possible_sells[pair]
+        current_price = exchange.pairs[pair]['close']
+        orderbook = exchange.get_depth(pair, 'sell')
+        if orderbook is None:
+            continue
+        can_fill, minimum_fill = process_depth(orderbook, exchange.pairs[pair]['total'], min_cost)
+        if can_fill is not None and can_fill.price > lowest_sell_price:
+            price = can_fill
+        elif minimum_fill is not None and minimum_fill.price > lowest_sell_price:
+            price = minimum_fill
+        else:
+            continue
+        current_value = exchange.pairs[pair]['total'] * price.average_price
+        profits.append((current_value - exchange.pairs[pair]['total_cost']) / exchange.pairs[pair]['total_cost'] * 100)
+        order = exchange.place_order(pair, 'limit', 'sell', exchange.pairs[pair]['total'], price.price)
+        trade_history.append(order)
         print(order)
         print(exchange.balance, get_tcv())
         print(pairs[pair]['total'] * pairs[pair]['close'])
 
-dca_buys = []
-
 def handle_possible_dca_buys(possible_buys):
-    global  dca_buys
-    dca_timeout = 0*60
+    global trade_history
+    dca_timeout = config['dca_timeout'] * 60
     for pair in possible_buys:
         if exchange.pairs[pair]['total'] * exchange.pairs[pair]['amount'] < DUST_VALUE \
                 or time.time() - exchange.pairs[pair]['last_order_time'] < dca_timeout: continue
         
         if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance,
                                     exchange.pairs[pair]['percentage'], config['dca_min_buy_balance'], True):
-            # place order
+            # lowest cost trade-able
+            min_cost = exchange.pairs[pair]['limits']['cost']['min']
+            current_price = exchange.pairs[pair]['close']
+
+            # get orderbook, if time since last orderbook check is too soon, it will return none
+            orderbook = exchange.get_depth(pair, 'BUY')
+            if orderbook is None:
+                continue
+
+            # get viable trade, returns None if none available
+            price_info = check_for_viable_trade(current_price, orderbook, possible_buys[pair], min_cost,
+                                                config['max_spread'], True)
+
+            # Check to see if amount remaining to buy is greater than min trade quantity for pair
+            if price_info is None or price_info.amount * price_info.average_price < min_cost:
+                continue
+
             order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
-            dca_buys.append(order)
+            exchange.pairs[pair]['dca_level'] += 1
+            trade_history.append(order)
             print(order)
             print(exchange.balance, get_tcv())
             print(pairs[pair]['total']*pairs[pair]['close'])
 
-
+# this is just here temporarily for personal use
+def get_percent_change(pairs):
+    df = pd.DataFrame.from_dict(pairs, orient='index')
+    df['current_value'] = df['total'] * df['close']
+    df['change'] = (df['current_value'] - df['total_cost']) / df['total_cost'] * 100
+    return df['change'].dropna()
 
 if __name__ == '__main__':
     def run():
         while True:
             do_technical_analysis()
             print("balance: {}, TCV: {}".format(exchange.balance, get_tcv()))
-            possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
-            handle_possible_buys(possible_buys)
-            possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
-            handle_possible_dca_buys(possible_dca_buys)
+            if global_buy_checks():
+                possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
+                handle_possible_buys(possible_buys)
+                possible_dca_buys = get_possible_buys(exchange.pairs, dca_buy_strategies)
+                handle_possible_dca_buys(possible_dca_buys)
 
             possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
             handle_possible_sells(possible_sells)
@@ -207,3 +314,4 @@ if __name__ == '__main__':
     import threading
 
     threading.Thread(target=run).start()
+    print(get_average_market_change(pairs))

@@ -1,6 +1,7 @@
 import asyncio
 import typing
 import itertools
+import time
 
 import ccxt
 import ccxt.async_support as ccxt_async
@@ -206,6 +207,7 @@ class GenericExchange:
             pairs[pair]['last_order_time'] = 0
             pairs[pair]['trades'] = []
             pairs[pair]['last_id'] = 0
+            pairs[pair]['last_depth_check'] = 0
 
         self.pairs = pairs
         self.candles = candles
@@ -216,8 +218,22 @@ class GenericExchange:
         return self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
 
     # ----
-    def get_depth(self, symbol):
-        return self._client.fetch_order_book(symbol)
+    def get_depth(self, symbol, side):
+        """
+        get bids or asks for pair. if side == buy, return asks, else bids.
+        if the orderbook has been fetched too recently, return none
+        :param symbol:
+        :param side: buy/sell
+        :return: list: bids/asks
+        """
+        pair = self.pairs[symbol]
+        if time.time() - pair['last_depth_check'] > 0.5:
+            depth = self._client.fetch_order_book(symbol)
+            pair['last_depth_check'] = time.time()
+            return depth['asks'] if side.upper() == 'BUY' else depth['bids']
+
+        else:
+            return None
 
     # ----
     async def _get_candles(self, num_candles=1):
@@ -324,9 +340,13 @@ if __name__ == '__main__':
 
     print('Starting exchange')
     ex.initialize()
-    import threading
-    threading.Thread(target=ex.start()).start()
-
+    # import threading
+    # threading.Thread(target=ex.start()).start()
+    print(ex.get_depth('ADA/ETH', 'buy'))
+    print(ex.get_depth('ADA/ETH', 'buy'))
+    print(ex.get_depth('ADA/ETH', 'buy'))
+    time.sleep(1)
+    print(ex.get_depth('ADA/ETH', 'buy'))
     """
     loop = asyncio.get_event_loop()
 

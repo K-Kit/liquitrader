@@ -133,9 +133,6 @@ class BinanceExchange(GenericExchange):
 
         super().initialize()
 
-        asyncio.get_event_loop().run_until_complete(
-            self.load_all_candle_histories(num_candles=500))
-
         time.sleep(1)
 
         # generate list of stream names to start in multiplex socket
@@ -143,12 +140,6 @@ class BinanceExchange(GenericExchange):
 
         # store connection keys self.candle_sock
         # time.sleep due to issues opening all at same time
-
-        # todo add handling for usdt
-        if self._quote_currency != 'USDT':
-            ticker_sockets.append(self._quote_currency+'/USDT')
-        else:
-            self.quote_change = 0
 
         # TODO: Look into doing this without sleeps
         self.candle_socket = self.socket_manager.start_multiplex_socket(candle_sockets, self.process_multiplex_socket)
@@ -168,8 +159,8 @@ class BinanceExchange(GenericExchange):
         Checks to see if sockets are dead and restarts them as necessary
         Makes calls to upkeep methods
         """
-
-        pass
+        self._loop.create_task(self._quote_change_upkeep())
+        self._loop.run_forever()
 
     # ----
     def stop(self):
@@ -195,3 +186,4 @@ if __name__ == '__main__':
     ex = BinanceExchange('binance', 'ETH', {'public': keys.public, 'secret': keys.secret}, ['5m'])
     ex.initialize()
     ex.update_balances()
+    ex.start()

@@ -1,16 +1,15 @@
 import asyncio
 import typing
 import itertools
+import time
 
 import ccxt
 import ccxt.async_support as ccxt_async
 
-from utils.CandleTools import candles_to_df, candle_tic_to_df
+from utils.CandleTools import candles_to_df, candle_tic_to_df, get_change_between_candles
 from utils.AverageCalcs import calc_average_price_from_hist, calculate_from_existing
 
-# TODO filter pairs for min volume and blacklist
-# TODO update balances on start before filter, if below min volume and not blacklisted still fetch if owned
-# TODO on update balance check if balances not none, then if balances[id][total] != new balance, fetch trades for pair
+# TODO async update balances every min
 
 
 # DEFAULT_WALLET_VALUES = [('free',0),( 'used',0),('total',0),('current_value',0),( 'trades',None),( 'last_id',0), ('current_average', None) ]
@@ -71,7 +70,10 @@ class GenericExchange:
         self._loop = asyncio.get_event_loop()
 
         self._ticker_upkeep_call_schedule = 1  # Call ticker_upkeep() every 1s
-        self._candle_upkeep_call_schedule = 5  # Call candle_upkeep() every 5s
+        self._candle_upkeep_call_schedule = 60  # Call candle_upkeep() every 60s
+        self._quote_change_upkeep_call_schedule = 60  # Call quote_change_upkeep() every 60s
+
+        self.quote_change_info = {'1h': 0, '4h': 0, '24h': 0, '6h': 0, '12h': 0}
 
         # Connect to exchange
         self._init_client_connection()
@@ -102,12 +104,16 @@ class GenericExchange:
         # Mandatory to call this before any other calls are made to Bittrex
         self._loop.run_until_complete(self._client_async.load_markets())
         self._initialize_pairs()
+        asyncio.get_event_loop().run_until_complete(
+            self.load_all_candle_histories(num_candles=500))
 
     # ----
     def start(self):
         self._loop.create_task(self._candle_upkeep())
         self._loop.create_task(self._ticker_upkeep())
+        self._loop.create_task(self._quote_change_upkeep())
         self._loop.run_forever()
+
 
     # ----
     def restart(self):
@@ -128,12 +134,9 @@ class GenericExchange:
     def update_balances(self):
         """
         sets and returns dict of balances as such:
-
-        'BTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
-        'LTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
-
-        these will be accessible as balances[pairs[pair_name]['base']]
-
+        fetch balances from exchange.
+        loop through balances, calculate bought price / total cost for each pair
+        if we already own the pair calculate from previous bought price, else calculate from full history
         average calc dict format: {'total_cost': total_cost, 'amount': end_amount, 'avg_price': avg_price, 'last_id': last_buy_id}
         """
 
@@ -196,6 +199,7 @@ class GenericExchange:
                 }
         candles = {}
         for pair in pairs:
+            # assign default values for pairs
             candles[pair] = {}
             pairs[pair]['total'] = 0
             pairs[pair]['total_cost'] = None
@@ -203,6 +207,7 @@ class GenericExchange:
             pairs[pair]['last_order_time'] = 0
             pairs[pair]['trades'] = []
             pairs[pair]['last_id'] = 0
+            pairs[pair]['last_depth_check'] = 0
 
         self.pairs = pairs
         self.candles = candles
@@ -213,8 +218,22 @@ class GenericExchange:
         return self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
 
     # ----
-    def get_depth(self, symbol):
-        return self._client.fetch_order_book(symbol)
+    def get_depth(self, symbol, side):
+        """
+        get bids or asks for pair. if side == buy, return asks, else bids.
+        if the orderbook has been fetched too recently, return none
+        :param symbol:
+        :param side: buy/sell
+        :return: list: bids/asks
+        """
+        pair = self.pairs[symbol]
+        if time.time() - pair['last_depth_check'] > 0.5:
+            depth = self._client.fetch_order_book(symbol)
+            pair['last_depth_check'] = time.time()
+            return depth['asks'] if side.upper() == 'BUY' else depth['bids']
+
+        else:
+            return None
 
     # ----
     async def _get_candles(self, num_candles=1):
@@ -262,10 +281,33 @@ class GenericExchange:
             args, results = await self._get_candles(1)
 
             for (symbol, timeframe), candle_data in zip(args, results):
-                candle = candle_tic_to_df(candle_data)
+                candle = candle_tic_to_df(*candle_data)
                 self.candles[symbol][timeframe].loc[candle.index[0]] = candle.iloc[0]
 
             await asyncio.sleep(self._candle_upkeep_call_schedule)
+
+
+
+    # --
+    async def _quote_change_upkeep(self):
+        """
+        update candle history during runtime - see binance klines socket handler
+        candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
+        """
+
+        while 1:
+            if 'USD' in self._quote_currency:
+                return
+            quote_candles = await self._client_async.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
+            self.quote_candles = candles_to_df(quote_candles)
+            self.quote_price = self.quote_candles.iloc[-1]['close']
+            self.quote_change_info['1h'] = get_change_between_candles(self.quote_candles, 1)
+            self.quote_change_info['4h'] = get_change_between_candles(self.quote_candles, 4)
+            self.quote_change_info['6h'] = get_change_between_candles(self.quote_candles, 6)
+            self.quote_change_info['12h'] = get_change_between_candles(self.quote_candles, 12)
+            self.quote_change_info['24h'] = get_change_between_candles(self.quote_candles, 24)
+            print(self.quote_change_info)
+            await asyncio.sleep(self._quote_change_upkeep_call_schedule)
 
     # ----
     async def _ticker_upkeep(self):
@@ -290,15 +332,21 @@ class GenericExchange:
 
 if __name__ == '__main__':
     ex = GenericExchange('bittrex',
-                         'USDT',
+                         'ETH',
                          {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
                           'secret': '5942a5567e014fdfa05f0d202c5bec24'},
-                         ['1m', '5m', '15m']
+                         ['1m', '5m', '30m']
                          )
 
     print('Starting exchange')
-    ex.start()
-
+    ex.initialize()
+    # import threading
+    # threading.Thread(target=ex.start()).start()
+    print(ex.get_depth('ADA/ETH', 'buy'))
+    print(ex.get_depth('ADA/ETH', 'buy'))
+    print(ex.get_depth('ADA/ETH', 'buy'))
+    time.sleep(1)
+    print(ex.get_depth('ADA/ETH', 'buy'))
     """
     loop = asyncio.get_event_loop()
 

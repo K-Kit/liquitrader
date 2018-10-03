@@ -16,6 +16,7 @@ def gen_socket_list(pairs: dict, timeframes: list):
     return candles, depth, tickers
 
 
+
 # TODO check last socket update time and restart if needed
 
 class BinanceExchange(GenericExchange):
@@ -121,8 +122,33 @@ class BinanceExchange(GenericExchange):
 
         if symbol in self.pairs:
             pair = self.pairs[symbol]
+            pair['last_depth_socket_tick'] = time.time()
             pair['asks'] = [[float(ask[0]), float(ask[1])] for ask in msg['asks']]
             pair['bids'] = [[float(bid[0]), float(bid[1])] for bid in msg['bids']]
+
+    # ----
+    def get_depth(self, symbol, side):
+        """
+        get bids or asks for pair. if side == buy, return asks, else bids
+        if socket has ticked since last depth check, return pair[bids/asks]
+        else fetch fresh orderbook and return
+        :param symbol:
+        :param side:
+        :return:
+        """
+        pair = self.pairs[symbol]
+        if pair['last_depth_check'] < pair['last_depth_socket_tick']:
+            pair['last_depth_check'] = time.time()
+            return pair['asks'] if side.upper() == 'BUY' else pair['bids']
+
+        elif time.time() - pair['last_depth_check'] > 0.5:
+            depth = self._client.fetch_order_book(symbol)
+            pair['last_depth_check'] = time.time()
+            return depth['asks'] if side.upper() == 'BUY' else depth['bids']
+
+        else:
+            return None
+
 
     # ----
     def initialize(self):
@@ -133,9 +159,6 @@ class BinanceExchange(GenericExchange):
 
         super().initialize()
 
-        asyncio.get_event_loop().run_until_complete(
-            self.load_all_candle_histories(num_candles=500))
-
         time.sleep(1)
 
         # generate list of stream names to start in multiplex socket
@@ -143,12 +166,6 @@ class BinanceExchange(GenericExchange):
 
         # store connection keys self.candle_sock
         # time.sleep due to issues opening all at same time
-
-        # todo add handling for usdt
-        if self._quote_currency != 'USDT':
-            ticker_sockets.append(self._quote_currency+'/USDT')
-        else:
-            self.quote_change = 0
 
         # TODO: Look into doing this without sleeps
         self.candle_socket = self.socket_manager.start_multiplex_socket(candle_sockets, self.process_multiplex_socket)
@@ -168,8 +185,8 @@ class BinanceExchange(GenericExchange):
         Checks to see if sockets are dead and restarts them as necessary
         Makes calls to upkeep methods
         """
-
-        pass
+        self._loop.create_task(self._quote_change_upkeep())
+        self._loop.run_forever()
 
     # ----
     def stop(self):
@@ -195,3 +212,4 @@ if __name__ == '__main__':
     ex = BinanceExchange('binance', 'ETH', {'public': keys.public, 'secret': keys.secret}, ['5m'])
     ex.initialize()
     ex.update_balances()
+    ex.start()

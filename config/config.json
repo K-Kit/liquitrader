@@ -7,12 +7,14 @@
     "blacklist": [],
     "whitelist": ["ALL"],
     "max_change": 0,
-  "min_change": 0,
+    "min_change": 0,
     "market_change": {
         "max_1h_quote_change" : 10,
+        "min_1h_quote_change" : -10,
         "max_24h_quote_change" : 10,
         "min_24h_quote_change" : -10,
-        "min_24h_market_change" : -2.5
+        "min_24h_market_change" : -2.5,
+        "max_24h_market_change" : 5
         },
     "min_volume": 0,
     "min_price": 0,

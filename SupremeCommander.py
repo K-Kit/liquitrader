@@ -6,6 +6,8 @@ after technical analysis check conditions
 import json
 from functools import reduce
 
+import pandas as pd
+
 from exchanges import Binance
 
 from exchanges import PaperBinance
@@ -69,7 +71,7 @@ else:
 
 exchange.initialize()
 # exchange.start()
-7
+
 # run TA on exchange.pairs dict, assign indicator values to pair['indicators']
 pairs = exchange.pairs
 
@@ -128,31 +130,59 @@ def pair_specific_buy_checks(pair, price, amount, balance, change, min_balance, 
         not is_blacklisted(pair, config['blacklist']),
         is_whitelisted(pair, config['whitelist'])
         ]
-    if not dca: checks.append(exchange.pairs[pair]['total'] < 0.8 * amount)
+    if not dca:
+        checks.append(exchange.pairs[pair]['total'] < 0.8 * amount)
+        checks.append(below_max_pairs(len(owned), config['max_pairs']))
     return all(checks)
+
+
+def in_range(change, min, max):
+    above_min = above_min_change(change, min)
+    below_max = below_max_change(change, max)
+    if min == 0:
+        return below_max
+    elif max == 0:
+        return above_min
+    elif min == 0 and max == 0:
+        return True
+    else:
+        return below_max and above_min
+
+
+def get_average_market_change(pairs):
+    return pd.DataFrame.from_dict(pairs, orient='index').percentage.mean()
+
 
 def global_buy_checks():
     # todo add 1h change + max pairs
-    #quote change 24h
-    above_min_change(exchange.quote_change, config['market_change']['min_24h_quote_change'])
-    below_max_change(exchange.quote_change, config['market_change']['max_24h_quote_change'])
+    check_24h_quote_change = in_range(exchange.quote_change_info['24h'], config['market_change']['min_24h_quote_change'],
+                                config['market_change']['max_24h_quote_change'])
 
-    # # quote change 1h
-    # above_min_change()
-    # below_max_change()
-    #
-    # # average change 24h
-    # above_min_change()
-    # below_max_change()
-    #
-    # below_max_pairs()
+    check_1h_quote_change = in_range(exchange.quote_change_info['1h'], config['market_change']['min_1h_quote_change'],
+                                config['market_change']['max_1h_quote_change'])
+    
+
+    check_24h_market_change = in_range(get_average_market_change(pairs), config['market_change']['min_24h_market_change'],
+                                config['market_change']['max_24h_market_change'])
+
+    return all([
+        check_1h_quote_change,
+        check_24h_market_change,
+        check_24h_quote_change
+    ])
+
 
 # check min balance, max pairs, quote change, market change, trading enabled, blacklist, whitelist, 24h change
 # todo add pair specific settings
 def handle_possible_buys(possible_buys):
     for pair in possible_buys:
         if pair_specific_buy_checks(pair, exchange.pairs[pair]['close'], possible_buys[pair], exchange.balance, exchange.pairs[pair]['percentage'], config['min_buy_balance']):
-            order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
+            target_amount = possible_buys[pair]
+            remaining_amount = target_amount - exchange.pairs[pair]['total']
+            # Check to see if amount remaining to buy is greater than min trade quantity for pair
+            if remaining_amount < exchange.pairs[pair]['limits']['amount']['min']:
+                continue
+            order = exchange.place_order(pair, 'limit', 'buy', remaining_amount, exchange.pairs[pair]['close'])
             print(order)
             print(exchange.balance, get_tcv())
             print(pairs[pair]['total']*pairs[pair]['close'])
@@ -187,7 +217,6 @@ def handle_possible_dca_buys(possible_buys):
             print(pairs[pair]['total']*pairs[pair]['close'])
 
 
-
 if __name__ == '__main__':
     def run():
         while True:
@@ -207,3 +236,4 @@ if __name__ == '__main__':
     import threading
 
     threading.Thread(target=run).start()
+    print(get_average_market_change(pairs))

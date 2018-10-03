@@ -28,7 +28,11 @@ def is_whitelisted(pair, whitelist):
 
 
 if __name__ == '__main__':
-    print(exceeds_min_balance(1, 1, 1, 1))
-    print(exceeds_min_balance(2.1, 1, 1, 1))
-
-    print(exceeds_min_balance(2, 1, 1, 1))
+    # false
+    print(below_max_pairs(10,10))
+    # true
+    print(below_max_pairs(9,10))
+    # false
+    print(below_max_pairs(11,10))
+    # true
+    print(below_max_pairs(11,0))

@@ -85,8 +85,6 @@ time.sleep(5)
 trade_history = []
 owned = []
 
-def get_current_pending_value(pairs, balance):
-    return pd.DataFrame.from_dict(pairs, orient='index').total_cost.sum() + balance
 
 # return total current value (pairs + balance)
 def get_tcv():
@@ -108,7 +106,6 @@ def get_possible_buys(pairs, strategies):
             # strategy.evaluate(pairs[pair],statistics[pair])
             result = strategy.evaluate(pairs[pair], statistics[pair], tcv)
             if not result is None:
-                # print('{}: {}'.format(pair,result))
                 if pair not in possible_trades or possible_trades[pair] > result:
                     possible_trades[pair] = result
         return possible_trades
@@ -120,7 +117,6 @@ def get_possible_sells(pairs, strategies):
             # strategy.evaluate(pairs[pair],statistics[pair])
             result = strategy.evaluate(pairs[pair], statistics[pair])
             if not result is None:
-                # print('{}: {}'.format(pair, result))
                 if pair not in possible_trades or possible_trades[pair] < result:
                     possible_trades[pair] = result
         return possible_trades
@@ -139,23 +135,6 @@ def pair_specific_buy_checks(pair, price, amount, balance, change, min_balance, 
         checks.append(exchange.pairs[pair]['total'] < 0.8 * amount)
         checks.append(below_max_pairs(len(owned), config['max_pairs']))
     return all(checks)
-
-
-def in_range(change, min, max):
-    above_min = above_min_change(change, min)
-    below_max = below_max_change(change, max)
-    if min == 0:
-        return below_max
-    elif max == 0:
-        return above_min
-    elif min == 0 and max == 0:
-        return True
-    else:
-        return below_max and above_min
-
-
-def get_average_market_change(pairs):
-    return pd.DataFrame.from_dict(pairs, orient='index').percentage.mean()
 
 
 def global_buy_checks():
@@ -177,9 +156,6 @@ def global_buy_checks():
     ])
 
 
-def in_max_spread(close, fill_price, max_spread):
-    if max_spread == 0: max_spread = 1
-    return abs((close - fill_price) / fill_price) <= max_spread
 
 
 def check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, max_spread, dca = False):
@@ -208,7 +184,8 @@ def handle_possible_buys(possible_buys):
 
             # get orderbook, if time since last orderbook check is too soon, it will return none
             orderbook = exchange.get_depth(pair, 'BUY')
-            if orderbook is None: continue
+            if orderbook is None:
+                continue
 
             # get viable trade, returns None if none available
             price_info = check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, config['max_spread'])
@@ -221,9 +198,6 @@ def handle_possible_buys(possible_buys):
             order = exchange.place_order(pair, 'limit', 'buy', price_info.amount, price_info.price)
             # store order in trade history
             trade_history.append(order)
-            print(order)
-            print(exchange.balance, get_tcv())
-            print(pairs[pair]['total']*pairs[pair]['close'])
 
 
 # temp variable for monitoring
@@ -250,9 +224,6 @@ def handle_possible_sells(possible_sells):
         profits.append((current_value - exchange.pairs[pair]['total_cost']) / exchange.pairs[pair]['total_cost'] * 100)
         order = exchange.place_order(pair, 'limit', 'sell', exchange.pairs[pair]['total'], price.price)
         trade_history.append(order)
-        print(order)
-        print(exchange.balance, get_tcv())
-        print(pairs[pair]['total'] * pairs[pair]['close'])
 
 def handle_possible_dca_buys(possible_buys):
     global trade_history
@@ -283,9 +254,7 @@ def handle_possible_dca_buys(possible_buys):
             order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exchange.pairs[pair]['close'])
             exchange.pairs[pair]['dca_level'] += 1
             trade_history.append(order)
-            print(order)
-            print(exchange.balance, get_tcv())
-            print(pairs[pair]['total']*pairs[pair]['close'])
+
 
 # this is just here temporarily for personal use
 def get_percent_change(pairs):
@@ -294,11 +263,11 @@ def get_percent_change(pairs):
     df['change'] = (df['current_value'] - df['total_cost']) / df['total_cost'] * 100
     return df['change'].dropna()
 
+
 if __name__ == '__main__':
     def run():
         while True:
             do_technical_analysis()
-            print("balance: {}, TCV: {}".format(exchange.balance, get_tcv()))
             if global_buy_checks():
                 possible_buys = get_possible_buys(exchange.pairs, buy_strategies)
                 handle_possible_buys(possible_buys)
@@ -307,7 +276,6 @@ if __name__ == '__main__':
 
             possible_sells = get_possible_sells(exchange.pairs, sell_strategies)
             handle_possible_sells(possible_sells)
-            # print(owned, sales)
             time.sleep(1)
 
 

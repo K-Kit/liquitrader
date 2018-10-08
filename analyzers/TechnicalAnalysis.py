@@ -89,7 +89,6 @@ def run_ta(candlesticks, indicators):
                 try:
                     inds = get_indicators(candlesticks[key], indicator['name'],candle_period= indicator['candle_period'])
                 except Exception as ex:
-                    print(candlesticks.tail(5))
                     print(ex)
                     continue
                 for k, v in inds:

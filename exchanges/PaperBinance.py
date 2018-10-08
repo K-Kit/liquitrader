@@ -89,7 +89,6 @@ class PaperBinance(BinanceExchange):
 
         self.pairs[symbol].update(average_data)
         self.pairs[symbol]['last_order_time'] = time.time()
-        print(self.pairs[symbol]['avg_price'], self.pairs[symbol]['total_cost'])
         return order
 
 if __name__ == '__main__':

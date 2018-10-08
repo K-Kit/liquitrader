@@ -1,5 +1,7 @@
 {
     "exchange": "binance",
+  "paper_trading": true,
+  "starting_balance": 10,
     "market": "ETH",
     "gui_port": 5000,
     "start_delay": 0,

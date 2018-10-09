@@ -84,7 +84,7 @@ def run_ta(candlesticks, indicators):
     '''
     stats = {}
     for key in candlesticks:
-        for k, indicator in indicators.items():
+        for indicator in indicators:
             if indicator['name'] in ta_list:
                 try:
                     inds = get_indicators(candlesticks[key], indicator['name'],candle_period= indicator['candle_period'])

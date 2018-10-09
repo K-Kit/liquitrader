@@ -72,6 +72,7 @@ class GenericExchange:
         self._ticker_upkeep_call_schedule = 1  # Call ticker_upkeep() every 1s
         self._candle_upkeep_call_schedule = 60  # Call candle_upkeep() every 60s
         self._quote_change_upkeep_call_schedule = 60  # Call quote_change_upkeep() every 60s
+        self._balance_upkeep_call_schedule = 65
 
         self.quote_change_info = {'1h': 0, '4h': 0, '24h': 0, '6h': 0, '12h': 0}
 
@@ -112,6 +113,7 @@ class GenericExchange:
         self._loop.create_task(self._candle_upkeep())
         self._loop.create_task(self._ticker_upkeep())
         self._loop.create_task(self._quote_change_upkeep())
+        self._loop.create_task(self._balances_upkeep())
         self._loop.run_forever()
 
 
@@ -215,7 +217,12 @@ class GenericExchange:
 
     # ----
     def place_order(self, symbol, order_type, side, amount, price):
-        return self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
+        bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
+        order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
+        if bought_price is not None: order['bought_price'] = bought_price
+        # temp - will manually calc avg instead of calling update
+        self.update_balances()
+        return order
 
     # ----
     def get_depth(self, symbol, side):
@@ -309,6 +316,17 @@ class GenericExchange:
             print(self.quote_change_info)
             await asyncio.sleep(self._quote_change_upkeep_call_schedule)
 
+    # --
+    async def _balances_upkeep(self):
+        """
+        update candle history during runtime - see binance klines socket handler
+        candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
+        """
+
+        while 1:
+            self.update_balances()
+            await asyncio.sleep(self._balance_upkeep_call_schedule)
+
     # ----
     async def _ticker_upkeep(self):
         """
@@ -328,6 +346,9 @@ class GenericExchange:
                     self.pairs[symbol].update(ticker_info)
 
             await asyncio.sleep(self._ticker_upkeep_call_schedule)
+
+    def get_min_cost(self, symbol):
+        return self.pairs[symbol]['limits']['cost']['min']
 
 
 if __name__ == '__main__':

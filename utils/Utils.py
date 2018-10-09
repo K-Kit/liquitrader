@@ -30,7 +30,11 @@ def is_whitelisted(pair, whitelist):
 
 
 def get_average_market_change(pairs):
-    return pd.DataFrame.from_dict(pairs, orient='index').percentage.mean()
+    try:
+        return pd.DataFrame.from_dict(pairs, orient='index').percentage.mean()
+    except Exception as ex:
+        print(ex)
+        return 0
 
 
 def in_max_spread(close, fill_price, max_spread):

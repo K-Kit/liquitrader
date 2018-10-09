@@ -186,6 +186,7 @@ class BinanceExchange(GenericExchange):
         Makes calls to upkeep methods
         """
         self._loop.create_task(self._quote_change_upkeep())
+        self._loop.create_task(self._balances_upkeep())
         self._loop.run_forever()
 
     # ----

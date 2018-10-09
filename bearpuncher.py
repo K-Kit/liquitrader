@@ -41,19 +41,38 @@ class Bearpuncher:
     """
     def __init__(self):
         self.exchange = None
-        self.statistics = None
+        self.statistics = {}
         self.config = None
         self.buy_strategies = None
         self.sell_strategies = None
         self.dca_buy_strategies = None
-        self.trade_history = None
-        self.indicators = None
+        self.trade_history = []
+        self.indicators = [
+       {'name': 'MFI', 'candle_period': 0},
+       {'name': 'BBANDS', 'candle_period': 0},
+       {'name': 'MFI', 'candle_period': 32},
+       {'name': 'MFI', 'candle_period': 30},
+       {'name': 'BBANDS', 'candle_period': 14}]
+
+        self.owned = []
 
     def load_config(self):
         # todo if null raise error
         filename = 'config/config.json'
         with open(filename, 'r') as f:
             self.config = json.load(f)
+
+    # return total current value (pairs + balance)
+    def get_tcv(self):
+        pending = 0
+        global owned
+        self.owned = []
+        for pair, value in self.exchange.pairs.items():
+            if 'total' not in value or 'close' not in value: continue
+            pending += value['close'] * value['total']
+            if value['close'] * value['total'] > 0:
+                self.owned.append(pair)
+        return pending + self.exchange.balance
 
     def get_timeframes(self):
         if self.config is None:
@@ -69,6 +88,7 @@ class Bearpuncher:
             # temp
             timeframes.add('5m')
             timeframes.add('30m')
+            timeframes.add('1h')
             return timeframes
 
     def initialize_exchange(self):
@@ -140,13 +160,13 @@ class Bearpuncher:
     # todo add pair specific settings
     def handle_possible_buys(self, possible_buys):
         for pair in possible_buys:
-            if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance, self.exchange.pairs[pair]['percentage'], config['min_buy_balance']):
+            if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance, self.exchange.pairs[pair]['percentage'], self.config['min_buy_balance']):
                 # amount we'd like to own
                 target_amount = possible_buys[pair]
                 # difference between target and current owned quantity.
                 remaining_amount = target_amount - self.exchange.pairs[pair]['total']
                 # lowest cost trade-able
-                min_cost = self.exchange.pairs[pair]['limits']['cost']['min']
+                min_cost = self.exchange.get_min_cost(pair)
                 current_price = self.exchange.pairs[pair]['close']
     
                 # get orderbook, if time since last orderbook check is too soon, it will return none
@@ -155,7 +175,7 @@ class Bearpuncher:
                     continue
     
                 # get viable trade, returns None if none available
-                price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, config['max_spread'])
+                price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, self.config['max_spread'])
     
                 # Check to see if amount remaining to buy is greater than min trade quantity for pair
                 if price_info is None or price_info.amount * price_info.average_price < min_cost:
@@ -165,12 +185,15 @@ class Bearpuncher:
                 order = self.exchange.place_order(pair, 'limit', 'buy', price_info.amount, price_info.price)
                 # store order in trade history
                 self.trade_history.append(order)
+                self.save_trade_history()
 
     def handle_possible_sells(self, possible_sells):
         for pair in possible_sells:
-            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['amount'] < DUST_VALUE: continue
+            
             # lowest cost trade-able
-            min_cost = self.exchange.pairs[pair]['limits']['cost']['min']
+            min_cost = self.exchange.get_min_cost(pair)
+            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['close'] < min_cost: continue
+            
             lowest_sell_price = possible_sells[pair]
             current_price = self.exchange.pairs[pair]['close']
             orderbook = self.exchange.get_depth(pair, 'sell')
@@ -188,17 +211,19 @@ class Bearpuncher:
             #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
             order = self.exchange.place_order(pair, 'limit', 'sell', self.exchange.pairs[pair]['total'], price.price)
             self.trade_history.append(order)
+            self.save_trade_history()
 
     def handle_possible_dca_buys(self, possible_buys):
         dca_timeout = self.config['dca_timeout'] * 60
         for pair in possible_buys:
-            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['amount'] < DUST_VALUE \
+            min_cost = self.exchange.get_min_cost(pair)
+            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['amount'] < min_cost \
                     or time.time() - self.exchange.pairs[pair]['last_order_time'] < dca_timeout: continue
 
             if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance,
                                         self.exchange.pairs[pair]['percentage'], self.config['dca_min_buy_balance'], True):
                 # lowest cost trade-able
-                min_cost = self.exchange.pairs[pair]['limits']['cost']['min']
+                
                 current_price = self.exchange.pairs[pair]['close']
 
                 # get orderbook, if time since last orderbook check is too soon, it will return none
@@ -217,6 +242,7 @@ class Bearpuncher:
                 order = self.exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], self.exchange.pairs[pair]['close'])
                 self.exchange.pairs[pair]['dca_level'] += 1
                 self.trade_history.append(order)
+                self.save_trade_history()
 
     def pair_specific_buy_checks(self, pair, price, amount, balance, change, min_balance, dca=False):
         min_balance = min_balance if not isinstance(min_balance, str) \
@@ -229,7 +255,7 @@ class Bearpuncher:
                   ]
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
-            checks.append(below_max_pairs(len(owned), self.config['max_pairs']))
+            checks.append(below_max_pairs(len(self.owned), self.config['max_pairs']))
         return all(checks)
 
     def global_buy_checks(self):
@@ -237,13 +263,13 @@ class Bearpuncher:
                                           self.config['market_change']['min_24h_quote_change'],
                                           self.config['market_change']['max_24h_quote_change'])
 
-        check_1h_quote_change = in_range(exchange.quote_change_info['1h'],
+        check_1h_quote_change = in_range(self.exchange.quote_change_info['1h'],
                                          self.config['market_change']['min_1h_quote_change'],
                                          self.config['market_change']['max_1h_quote_change'])
 
         check_24h_market_change = in_range(get_average_market_change(self.exchange.pairs),
                                            self.config['market_change']['min_24h_market_change'],
-                                           config['market_change']['max_24h_market_change'])
+                                           self.config['market_change']['max_24h_market_change'])
 
         return all([
             check_1h_quote_change,
@@ -256,10 +282,54 @@ class Bearpuncher:
         for pair in self.exchange.pairs:
             self.statistics[pair] = run_ta(self.exchange.candles[pair], self.indicators)
 
+    def save_trade_history(self):
+        fp = 'tradehistory.json'
+        with open(fp, 'w') as f:
+            json.dump(self.trade_history, f)
+
+
+    def load_trade_history(self):
+        fp = 'tradehistory.json'
+        with open(fp, 'r') as f:
+            self.trade_history = json.load(f)
+
+
 
 if __name__ == '__main__':
+
+    def get_trades_frame():
+        df = pd.DataFrame(bp.trade_history)
+        df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+        cols = ['symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+        return df[cols]
+
+    def get_relevent_pair_data(additional_columns = None):
+        return pd.DataFrame.from_dict(bp.exchange.pairs, orient='index')
+
     bp = Bearpuncher()
     bp.load_config()
+    bp.load_trade_history()
     bp.get_timeframes()
     bp.initialize_exchange()
     bp.load_strategies()
+
+    def run():
+        while True:
+            bp.do_technical_analysis()
+            if bp.global_buy_checks():
+                possible_buys = bp.get_possible_buys(bp.exchange.pairs, bp.buy_strategies)
+                bp.handle_possible_buys(possible_buys)
+                possible_dca_buys = bp.get_possible_buys(bp.exchange.pairs, bp.dca_buy_strategies)
+                bp.handle_possible_dca_buys(possible_dca_buys)
+
+            possible_sells = bp.get_possible_sells(bp.exchange.pairs, bp.sell_strategies)
+            bp.handle_possible_sells(possible_sells)
+            time.sleep(1)
+
+
+    import threading
+
+    thread = threading.Thread(target=run)
+    thread2 = threading.Thread(target=bp.exchange.start)
+    thread.start()
+    thread2.start()

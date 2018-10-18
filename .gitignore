@@ -104,3 +104,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+tradehistory.json
+sell_log
+market
+buy_log

@@ -1,4 +1,5 @@
-from BuyCondition import *
+from conditions.BuyCondition import Condition
+from conditions.condition_tools import evaluate_condition
 from utils.Utils import get_current_value, get_percent_change
 
 class DCABuyCondition(Condition):
@@ -97,7 +98,7 @@ class DCABuyCondition(Condition):
 
 
 if __name__ == '__main__':
-    from examples import *
+    from conditions.examples import *
     strategy = {}
     # 1 and 3 are true with the test data
     strategy['conditions'] = [condition_1, condition_3]

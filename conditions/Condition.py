@@ -14,7 +14,7 @@ class Condition:
         self.trailing_value = condition_config['trailing %']
         self.pairs_trailing = {}
 
-    def evaluate(self, pair):
+    def evaluate(self, pair: dict, indicators: dict, balance):
         """
         evaluate single pair against conditions
         if not in pairs_trailing and conditions = true : add to dict, set floor/ceiling at price -> return true

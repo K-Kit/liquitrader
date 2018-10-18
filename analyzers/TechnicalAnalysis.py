@@ -86,11 +86,11 @@ def run_ta(candlesticks, indicators):
     for key in candlesticks:
         for indicator in indicators:
             if indicator['name'] in ta_list:
-                try:
-                    inds = get_indicators(candlesticks[key], indicator['name'],candle_period= indicator['candle_period'])
-                except Exception as ex:
-                    print(ex)
-                    continue
+                # try:
+                inds = get_indicators(candlesticks[key], indicator['name'],candle_period= indicator['candle_period'])
+                # except Exception as ex:
+                #     print(ex)
+                #     continue
                 for k, v in inds:
                     stats.update({k + '_'+key: v})
 

@@ -28,7 +28,7 @@ class SellCondition(Condition):
         trail_to = None
         current_value = get_current_value(price, pair['total'])
         percent_change = get_percent_change(current_value, pair['total_cost'])
-        analysis = [evaluate_condition(condition, pair, indicators) for condition in self.conditions_list]
+        analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
         # check percent change, if above trigger return none
         res = False not in analysis and percent_change > self.sell_value
         if res and symbol in self.pairs_trailing:

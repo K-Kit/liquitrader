@@ -54,7 +54,7 @@ class BinanceExchange(GenericExchange):
 
         # so we dont have to mess with foat/str precision per pair
         self._client.options['parseOrderToPrecision'] = True
-        self._client.options['recvWindow'] = 10000
+        self._client.options['recvWindow'] = 10000000
 
     # ----
     def init_socket_manager(self, public, secret):
@@ -96,7 +96,8 @@ class BinanceExchange(GenericExchange):
             try:
                 self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
             except Exception as ex:
-                print(ex)
+                print("binance.handle_candle_socket", ex, msg)
+                self.reload_single_candle_history(symbol)
 
     # ----
     def handle_ticker_socket(self, msg, symbol):

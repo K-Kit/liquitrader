@@ -1,9 +1,12 @@
 import json
 import time
+import traceback
 from functools import reduce
+import datetime
 
 import pandas as pd
 
+from Config import Config
 from exchanges import Binance
 from exchanges import GenericExchange
 from utils.DepthAnalyzer import *
@@ -18,6 +21,28 @@ from conditions.condition_tools import get_buy_value, percentToFloat
 
 # test keys, trading disabled
 from dev_keys_binance import keys
+
+DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost', 'current_value', 'dca_level', 'total', 'percentage']
+
+# FRIENDLY_HOLDING_COLUMNS =  ['Last Purchase Time', 'Symbol', 'Price', 'Bought Price', '% Change', 'Volume',
+#                              'Bought Value', 'Current Value', 'DCA Level', 'Amount', '24h Change']
+COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
+                 'symbol': 'Symbol',
+                 'avg_price': 'Bought Price',
+                 'close': 'Price',
+                 'gain': '% Change',
+                 'quoteVolume': 'Volume',
+                 'total_cost': 'Bought Value',
+                 'current_value': 'Current Value',
+                 'dca_level': 'DCA Level',
+                 'total': 'Amount',
+                 'percentage': '24h Change'
+                  }
+
+
+FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
+                             'Amount', '24h Change']
+
 
 class Bearpuncher:
     """
@@ -47,20 +72,29 @@ class Bearpuncher:
         self.sell_strategies = None
         self.dca_buy_strategies = None
         self.trade_history = []
-        self.indicators = [
-       {'name': 'MFI', 'candle_period': 0},
-       {'name': 'BBANDS', 'candle_period': 0},
-       {'name': 'MFI', 'candle_period': 32},
-       {'name': 'MFI', 'candle_period': 30},
-       {'name': 'BBANDS', 'candle_period': 14}]
-
+        self.indicators = None
+        self.timeframes = None
         self.owned = []
 
-    def load_config(self):
-        # todo if null raise error
-        filename = 'config/config.json'
-        with open(filename, 'r') as f:
-            self.config = json.load(f)
+    def initialize_config(self):
+        self.config = Config()
+        self.config.load_general_settings()
+        self.config.load_global_trade_conditions()
+        self.indicators = self.config.get_indicators()
+        self.timeframes = self.config.timeframes
+
+    def initialize_exchange(self):
+        if self.config.general_settings['exchange'].lower() == 'binance' and self.config.general_settings['paper_trading']:
+            self.exchange = PaperBinance.PaperBinance('binance', self.config.general_settings['market'].upper(), self.config.general_settings['starting_balance'],
+                                                 {'public': keys.public, 'secret': keys.secret}, self.timeframes)
+            # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
+        elif self.config.general_settings['exchange'].lower() == 'binance':
+            self.exchange = Binance.BinanceExchange('binance', self.config.general_settings['market'].upper(),
+                                                 {'public': keys.public, 'secret': keys.secret}, self.timeframes)
+        else:
+            self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(), self.config.general_settings['market'].upper(),
+                                                 {'public': keys.public, 'secret': keys.secret}, self.timeframes)
+        self.exchange.initialize()
 
     # return total current value (pairs + balance)
     def get_tcv(self):
@@ -74,49 +108,21 @@ class Bearpuncher:
                 self.owned.append(pair)
         return pending + self.exchange.balance
 
-    def get_timeframes(self):
-        if self.config is None:
-            raise Exception("Config not found, cannot parse timeframes")
-        else:
-            timeframes = set()
-            for conditions in self.config['buy_strategies']:
-                pass
-            for conditions in self.config['sell_strategies']:
-                pass
-            for conditions in self.config['dca_buy_strategies']:
-                pass
-            # temp
-            timeframes.add('5m')
-            timeframes.add('30m')
-            timeframes.add('1h')
-            return timeframes
 
-    def initialize_exchange(self):
-        if self.config['exchange'].lower() == 'binance' and self.config['paper_trading']:
-            self.exchange = PaperBinance.PaperBinance('binance', self.config['market'].upper(), self.config['starting_balance'],
-                                                 {'public': keys.public, 'secret': keys.secret}, self.get_timeframes())
-            # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
-        elif self.config['exchange'].lower() == 'binance':
-            self.exchange = Binance.BinanceExchange('binance', self.config['market'].upper(),
-                                                 {'public': keys.public, 'secret': keys.secret}, self.get_timeframes())
-        else:
-            self.exchange = GenericExchange.GenericExchange(self.config['exchange'].lower(), self.config['market'].upper(),
-                                                 {'public': keys.public, 'secret': keys.secret}, self.get_timeframes())
-        self.exchange.initialize()
 
     def load_strategies(self):
         # TODO get candle periods and indicators here or in load config
         # instantiate strategies
         buy_strategies = []
-        for strategy in self.config['buy_strategies']:
+        for strategy in self.config.buy_strategies:
             buy_strategies.append(BuyCondition(strategy))
 
         dca_buy_strategies = []
-        for strategy in self.config['dca_buy_strategies']:
+        for strategy in self.config.dca_buy_strategies:
             dca_buy_strategies.append(DCABuyCondition(strategy))
 
         sell_strategies = []
-        for strategy in self.config['sell_strategies']:
+        for strategy in self.config.sell_strategies:
             sell_strategies.append(SellCondition(strategy))
 
         self.buy_strategies = buy_strategies
@@ -129,7 +135,12 @@ class Bearpuncher:
         for strategy in strategies:
             for pair in pairs:
                 # strategy.evaluate(pairs[pair],statistics[pair])
-                result = strategy.evaluate(pairs[pair], self.statistics[pair], tcv)
+                try:
+                    result = strategy.evaluate(pairs[pair], self.statistics[pair], tcv)
+                except Exception as ex:
+                    print('exception in get possible buys: {}'.format(traceback.format_exc()))
+                    self.exchange.reload_single_candle_history(pair)
+                    continue
                 if not result is None:
                     if pair not in possible_trades or possible_trades[pair] > result:
                         possible_trades[pair] = result
@@ -160,7 +171,7 @@ class Bearpuncher:
     # todo add pair specific settings
     def handle_possible_buys(self, possible_buys):
         for pair in possible_buys:
-            if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance, self.exchange.pairs[pair]['percentage'], self.config['min_buy_balance']):
+            if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance, self.exchange.pairs[pair]['percentage'], self.config.global_trade_conditions['min_buy_balance']):
                 # amount we'd like to own
                 target_amount = possible_buys[pair]
                 # difference between target and current owned quantity.
@@ -175,7 +186,7 @@ class Bearpuncher:
                     continue
     
                 # get viable trade, returns None if none available
-                price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, self.config['max_spread'])
+                price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, self.config.global_trade_conditions['max_spread'])
     
                 # Check to see if amount remaining to buy is greater than min trade quantity for pair
                 if price_info is None or price_info.amount * price_info.average_price < min_cost:
@@ -214,14 +225,14 @@ class Bearpuncher:
             self.save_trade_history()
 
     def handle_possible_dca_buys(self, possible_buys):
-        dca_timeout = self.config['dca_timeout'] * 60
+        dca_timeout = self.config.global_trade_conditions['dca_timeout'] * 60
         for pair in possible_buys:
             min_cost = self.exchange.get_min_cost(pair)
-            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['amount'] < min_cost \
+            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['close'] < min_cost \
                     or time.time() - self.exchange.pairs[pair]['last_order_time'] < dca_timeout: continue
 
             if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance,
-                                        self.exchange.pairs[pair]['percentage'], self.config['dca_min_buy_balance'], True):
+                                        self.exchange.pairs[pair]['percentage'], self.config.global_trade_conditions['dca_min_buy_balance'], True):
                 # lowest cost trade-able
                 
                 current_price = self.exchange.pairs[pair]['close']
@@ -233,7 +244,7 @@ class Bearpuncher:
 
                 # get viable trade, returns None if none available
                 price_info = self.check_for_viable_trade(current_price, orderbook, possible_buys[pair], min_cost,
-                                                    self.config['max_spread'], True)
+                                                    self.config.global_trade_conditions['max_spread'], True)
 
                 # Check to see if amount remaining to buy is greater than min trade quantity for pair
                 if price_info is None or price_info.amount * price_info.average_price < min_cost:
@@ -248,28 +259,28 @@ class Bearpuncher:
         min_balance = min_balance if not isinstance(min_balance, str) \
             else percentToFloat(min_balance) * self.get_tcv()
         checks = [not exceeds_min_balance(balance, min_balance, price, amount),
-                  below_max_change(change, self.config['max_change']),
-                  above_min_change(change, self.config['min_change']),
-                  not is_blacklisted(pair, self.config['blacklist']),
-                  is_whitelisted(pair, self.config['whitelist'])
+                  below_max_change(change, self.config.global_trade_conditions['max_change']),
+                  above_min_change(change, self.config.global_trade_conditions['min_change']),
+                  not is_blacklisted(pair, self.config.global_trade_conditions['blacklist']),
+                  is_whitelisted(pair, self.config.global_trade_conditions['whitelist'])
                   ]
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
-            checks.append(below_max_pairs(len(self.owned), self.config['max_pairs']))
+            checks.append(below_max_pairs(len(self.owned), self.config.global_trade_conditions['max_pairs']))
         return all(checks)
 
     def global_buy_checks(self):
         check_24h_quote_change = in_range(self.exchange.quote_change_info['24h'],
-                                          self.config['market_change']['min_24h_quote_change'],
-                                          self.config['market_change']['max_24h_quote_change'])
+                                          self.config.global_trade_conditions['market_change']['min_24h_quote_change'],
+                                          self.config.global_trade_conditions['market_change']['max_24h_quote_change'])
 
         check_1h_quote_change = in_range(self.exchange.quote_change_info['1h'],
-                                         self.config['market_change']['min_1h_quote_change'],
-                                         self.config['market_change']['max_1h_quote_change'])
+                                         self.config.global_trade_conditions['market_change']['min_1h_quote_change'],
+                                         self.config.global_trade_conditions['market_change']['max_1h_quote_change'])
 
         check_24h_market_change = in_range(get_average_market_change(self.exchange.pairs),
-                                           self.config['market_change']['min_24h_market_change'],
-                                           self.config['market_change']['max_24h_market_change'])
+                                           self.config.global_trade_conditions['market_change']['min_24h_market_change'],
+                                           self.config.global_trade_conditions['market_change']['max_24h_market_change'])
 
         return all([
             check_1h_quote_change,
@@ -280,56 +291,171 @@ class Bearpuncher:
     def do_technical_analysis(self):
         # todo raise error if indicators none
         for pair in self.exchange.pairs:
-            self.statistics[pair] = run_ta(self.exchange.candles[pair], self.indicators)
+            try:
+                self.statistics[pair] = run_ta(self.exchange.candles[pair], self.indicators)
+            except Exception as ex:
+                print('err in do ta', pair, ex)
+                self.exchange.reload_single_candle_history(pair)
+                continue
 
     def save_trade_history(self):
         fp = 'tradehistory.json'
         with open(fp, 'w') as f:
             json.dump(self.trade_history, f)
 
-
     def load_trade_history(self):
         fp = 'tradehistory.json'
         with open(fp, 'r') as f:
             self.trade_history = json.load(f)
 
+    def pairs_to_df(self, basic = True, friendly = False):
+        df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
+        if 'total_cost' in df:
+            df['current_value'] = df.close * df.total
+            df['gain'] = (df.current_value - df.total_cost) / df.total_cost * 100
+        if friendly:
+            df = df[DEFAULT_COLUMNS] if basic else df
+            df.rename(columns=COLUMN_ALIASES,
+                      inplace=True)
+            return df
+        else:
+            return df[DEFAULT_COLUMNS] if basic else df
+
+    def get_pending_value(self):
+        df = self.pairs_to_df()
+        if 'total_cost' in df:
+            return df.total_cost.sum() + self.exchange.balance
+        else:
+            return 0
+
+    def get_pair(self, symbol):
+        return self.exchange.pairs[symbol]
+
+    @staticmethod
+    def calc_gains_on_df(df):
+        df['total_cost'] = df.bought_price * df.filled
+        df['gain'] = df['cost'] - df['total_cost']
+        df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
+        return df
+
+    def get_daily_profit_data(self):
+        df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        df = self.calc_gains_on_df(df)
+        # todo timezones
+        df = df.set_index(
+            pd.to_datetime(df.timestamp, unit='ms')
+        )
+        return df.resample('1d').sum()
+
+    def get_pair_profit_data(self):
+        df = pd.DataFrame(self.trade_history)
+        df = self.calc_gains_on_df(df)
+        return df.groupby('symbol').sum()[['total_cost', 'cost', 'amount', 'gain']]
+
+    def get_total_profit(self):
+        df = pd.DataFrame(self.trade_history)
+        df = df[df.side == 'sell']
+        # filled is the amount filled
+        df['total_cost'] = df.bought_price * df.filled
+        df['gain'] = df['cost'] - df['total_cost']
+        return df.gain.sum()
+
+    def get_cumulative_profit(self):
+        return self.get_daily_profit_data().cumsum()
+
+
+    #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
+
+
+# TODO move all this stuff to another file just here for convenience
+from flask import Flask
+from flask import jsonify
+
+app = Flask(__name__)
+
+@app.route("/")
+def gethello():
+    return "hello"
+
+@app.route("/holding")
+def get_holding():
+    df = bp.pairs_to_df(friendly=True)
+    df[df['Amount'] > 0].to_json(orient='records', path_or_buf='holding')
+    return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
+
+
+@app.route("/market")
+def get_market():
+    df = bp.pairs_to_df(friendly=True)
+    df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records', path_or_buf='market')
+    return jsonify(df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records'))
+
+
+@app.route("/buy_log")
+def get_buy_log_frame():
+    df = pd.DataFrame(bp.trade_history)
+    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+    df['net_gain'] = (df.price - df.bought_price) * df.filled
+    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    df[df.side == 'buy'][cols].to_json(orient='records', path_or_buf='buy_log')
+    return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))
+
+
+@app.route("/sell_log")
+def get_sell_log_frame():
+    df = pd.DataFrame(bp.trade_history)
+    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    df[df.side == 'sell'][cols].to_json(orient='records', path_or_buf = 'sell_log')
+    return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
+
+@app.route("/dashboard_data")
+def get_dashboard_data():
+    data = {
+    "quote_balance" : bp.exchange.balance,
+    "total_pending_value" : bp.get_pending_value(),
+    "total_current_value" : bp.get_tcv(),
+    "total_profit" : bp.get_total_profit(),
+    "total_profit_percent" : bp.get_total_profit() / bp.exchange.balance * 100,
+    "daily_profit_data" : bp.get_daily_profit_data().to_json(orient='records'),
+    "holding_chart_data" : bp.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
+    "cum_profit" : bp.get_cumulative_profit().to_json(orient='records'),
+    "pair_profit_data" : bp.get_pair_profit_data().to_json(orient='records')
+    }
+    return data
+
+
 
 
 if __name__ == '__main__':
-
-    def get_trades_frame():
-        df = pd.DataFrame(bp.trade_history)
-        df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-        cols = ['symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
-        return df[cols]
-
-    def get_relevent_pair_data(additional_columns = None):
-        return pd.DataFrame.from_dict(bp.exchange.pairs, orient='index')
-
     bp = Bearpuncher()
-    bp.load_config()
+    bp.initialize_config()
     bp.load_trade_history()
-    bp.get_timeframes()
     bp.initialize_exchange()
     bp.load_strategies()
 
     def run():
         while True:
-            bp.do_technical_analysis()
-            if bp.global_buy_checks():
-                possible_buys = bp.get_possible_buys(bp.exchange.pairs, bp.buy_strategies)
-                bp.handle_possible_buys(possible_buys)
-                possible_dca_buys = bp.get_possible_buys(bp.exchange.pairs, bp.dca_buy_strategies)
-                bp.handle_possible_dca_buys(possible_dca_buys)
+            try:
+                bp.do_technical_analysis()
+                if bp.global_buy_checks():
+                    possible_buys = bp.get_possible_buys(bp.exchange.pairs, bp.buy_strategies)
+                    bp.handle_possible_buys(possible_buys)
+                    possible_dca_buys = bp.get_possible_buys(bp.exchange.pairs, bp.dca_buy_strategies)
+                    bp.handle_possible_dca_buys(possible_dca_buys)
 
-            possible_sells = bp.get_possible_sells(bp.exchange.pairs, bp.sell_strategies)
-            bp.handle_possible_sells(possible_sells)
-            time.sleep(1)
+                possible_sells = bp.get_possible_sells(bp.exchange.pairs, bp.sell_strategies)
+                bp.handle_possible_sells(possible_sells)
+                time.sleep(1)
+            except Exception as ex:
+                print('err in run: {}'.format(traceback.format_exc()))
 
 
     import threading
 
-    thread = threading.Thread(target=run)
-    thread2 = threading.Thread(target=bp.exchange.start)
-    thread.start()
-    thread2.start()
+    bpthread = threading.Thread(target=run)
+    exchangethread = threading.Thread(target=bp.exchange.start)
+    bpthread.start()
+    exchangethread.start()
+
+    # app.run(port=8081)

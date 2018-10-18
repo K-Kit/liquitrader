@@ -124,8 +124,8 @@ class GenericExchange:
 
 
     # ----
-    def restart(self):
-        self.stop()
+    async def restart(self):
+        await self.stop()
 
         self._loop = asyncio.get_event_loop()
         self._init_client_connection()

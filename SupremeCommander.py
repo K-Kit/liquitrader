@@ -37,8 +37,7 @@ indicators = {
         'BBANDS': {'name': 'BBANDS', 'candle_period': 0},
         'MFI2': {'name': 'MFI', 'candle_period': 32},
         'BBANDS2': {'name': 'BBANDS', 'candle_period': 14},
-
-    }
+}
 
 # statistics is a dict with key: symbol, values: indicators
 statistics = {}

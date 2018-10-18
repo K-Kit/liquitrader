@@ -72,6 +72,7 @@ class GenericExchange:
         self._ticker_upkeep_call_schedule = 1  # Call ticker_upkeep() every 1s
         self._candle_upkeep_call_schedule = 60  # Call candle_upkeep() every 60s
         self._quote_change_upkeep_call_schedule = 60  # Call quote_change_upkeep() every 60s
+        self._balance_upkeep_call_schedule = 65
 
         self.quote_change_info = {'1h': 0, '4h': 0, '24h': 0, '6h': 0, '12h': 0}
 
@@ -84,6 +85,9 @@ class GenericExchange:
         # initialize synchronous client
 
         self._client = self._exchange_class({
+            'options': {
+                'adjustForTimeDifference': True,  # ←---- resolves the timestamp
+            },
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
@@ -93,6 +97,9 @@ class GenericExchange:
 
         # initialize async client
         self._client_async = self._exchange_class_async({
+            'options': {
+                'adjustForTimeDifference': True,  # ←---- resolves the timestamp
+            },
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
@@ -112,6 +119,7 @@ class GenericExchange:
         self._loop.create_task(self._candle_upkeep())
         self._loop.create_task(self._ticker_upkeep())
         self._loop.create_task(self._quote_change_upkeep())
+        self._loop.create_task(self._balances_upkeep())
         self._loop.run_forever()
 
 
@@ -154,7 +162,7 @@ class GenericExchange:
 
                 # if we already have average data, calculate from existing
                 if symbol in self.pairs and self.pairs[symbol]['total_cost'] is not None:
-                    if amount != self.pairs[symbol]['total']:
+                    if amount != self.pairs[symbol]['amount']:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
                         self.pairs[symbol].update(balances[key])
@@ -163,6 +171,8 @@ class GenericExchange:
                         if new_average_data is None:
                             self.pairs[symbol]['total_cost'] = None
                             self.pairs[symbol]['avg_price'] = None
+
+                            self.pairs[symbol]['amount'] = None
                         else:
                             self.pairs[symbol].update(new_average_data)
 
@@ -204,6 +214,7 @@ class GenericExchange:
             pairs[pair]['total'] = 0
             pairs[pair]['total_cost'] = None
             pairs[pair]['avg_price'] = None
+            pairs[pair]['dca_level'] = 0
             pairs[pair]['last_order_time'] = 0
             pairs[pair]['trades'] = []
             pairs[pair]['last_id'] = 0
@@ -215,7 +226,16 @@ class GenericExchange:
 
     # ----
     def place_order(self, symbol, order_type, side, amount, price):
-        return self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
+        bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
+        print(symbol, amount, self.pairs[symbol]['total'])
+        order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
+        print(order)
+        if bought_price is not None: order['bought_price'] = bought_price
+        if 'total' in self.pairs[symbol]:
+            self.pairs[symbol]['total'] += order['filled'] if side == 'buy' else - order['filled']
+        # temp - will manually calc avg instead of calling update
+        self.update_balances()
+        return order
 
     # ----
     def get_depth(self, symbol, side):
@@ -306,8 +326,18 @@ class GenericExchange:
             self.quote_change_info['6h'] = get_change_between_candles(self.quote_candles, 6)
             self.quote_change_info['12h'] = get_change_between_candles(self.quote_candles, 12)
             self.quote_change_info['24h'] = get_change_between_candles(self.quote_candles, 24)
-            print(self.quote_change_info)
             await asyncio.sleep(self._quote_change_upkeep_call_schedule)
+
+    # --
+    async def _balances_upkeep(self):
+        """
+        update candle history during runtime - see binance klines socket handler
+        candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
+        """
+
+        while 1:
+            self.update_balances()
+            await asyncio.sleep(self._balance_upkeep_call_schedule)
 
     # ----
     async def _ticker_upkeep(self):
@@ -328,6 +358,14 @@ class GenericExchange:
                     self.pairs[symbol].update(ticker_info)
 
             await asyncio.sleep(self._ticker_upkeep_call_schedule)
+
+    def get_min_cost(self, symbol):
+        return self.pairs[symbol]['limits']['cost']['min']
+
+    def reload_single_candle_history(self, symbol):
+        for period in self._candle_timeframes:
+            candlesticks = self._client.fetchOHLCV(symbol, timeframe=period, limit=300)
+            self.candles[symbol][period] = candles_to_df(candlesticks)
 
 
 if __name__ == '__main__':

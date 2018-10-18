@@ -1,3 +1,5 @@
+import pandas as pd
+
 def get_percent_change(current:float, bought:float):
     if bought is None or bought == 0: return 0
     return (current-bought)/bought*100
@@ -25,6 +27,35 @@ def is_blacklisted(pair, blacklist):
 
 def is_whitelisted(pair, whitelist):
     return pair in whitelist or 'ALL' in whitelist or 'all' in whitelist
+
+
+def get_average_market_change(pairs):
+    try:
+        return pd.DataFrame.from_dict(pairs, orient='index').percentage.mean()
+    except Exception as ex:
+        print(ex)
+        return 0
+
+
+def in_max_spread(close, fill_price, max_spread):
+    if max_spread == 0: max_spread = 1
+    return abs((close - fill_price) / fill_price) <= max_spread
+
+
+def in_range(change, min, max):
+    above_min = above_min_change(change, min)
+    below_max = below_max_change(change, max)
+    if min == 0:
+        return below_max
+    elif max == 0:
+        return above_min
+    elif min == 0 and max == 0:
+        return True
+    else:
+        return below_max and above_min
+
+def get_current_pending_value(pairs, balance):
+    return pd.DataFrame.from_dict(pairs, orient='index').total_cost.sum() + balance
 
 
 if __name__ == '__main__':

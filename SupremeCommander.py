@@ -257,8 +257,8 @@ def handle_possible_dca_buys(possible_buys):
 
 
 # this is just here temporarily for personal use
-def get_percent_change(pairs):
-    df = pd.DataFrame.from_dict(pairs, orient='index')
+def get_percent_change(_pairs):
+    df = pd.DataFrame.from_dict(_pairs, orient='index')
     df['current_value'] = df['total'] * df['close']
     df['change'] = (df['current_value'] - df['total_cost']) / df['total_cost'] * 100
     return df['change'].dropna()

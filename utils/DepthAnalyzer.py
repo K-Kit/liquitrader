@@ -7,10 +7,10 @@ def get_amount(order):
 
 
 class PossibleTradeInfo:
-    def __init__(self, price, amount, cost):
+    def __init__(self, price, amount, average):
         self.price = price
         self.amount = amount
-        self.average_price = cost/amount
+        self.average_price = average
 
 def process_depth(orderbook, target_amount, min_trade):
     """
@@ -30,11 +30,13 @@ def process_depth(orderbook, target_amount, min_trade):
         cost += get_price(order) * get_amount(order)
         if above_min_trade is None and cost > min_trade:
             qty = amount if amount <= target_amount else target_amount
-            above_min_trade = PossibleTradeInfo(get_price(order), qty, cost)
+            average = cost/amount
+            above_min_trade = PossibleTradeInfo(get_price(order), qty, average)
         
         if amount >= target_amount and cost > min_trade:
             qty = amount if amount <= target_amount else target_amount
-            can_fill = PossibleTradeInfo(get_price(order), qty, cost)
+            average = cost / amount
+            can_fill = PossibleTradeInfo(get_price(order), qty, average)
             return can_fill, above_min_trade
         
     return can_fill, above_min_trade

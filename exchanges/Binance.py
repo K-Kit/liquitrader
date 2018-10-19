@@ -15,8 +15,6 @@ def gen_socket_list(pairs: dict, timeframes: list):
     tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
     return candles, depth, tickers
 
-
-
 # TODO check last socket update time and restart if needed
 
 class BinanceExchange(GenericExchange):

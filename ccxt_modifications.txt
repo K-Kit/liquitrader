@@ -1,0 +1,11 @@
+TO FIX .close() WARNING:
+   in ccxt\async_support\base\exchange.py:
+
+   1) add "self.asyncio_loop.create_task(self.session.close())" to bottom of __init__
+
+   2) replace __del__ with:
+       def __del__(self):
+           if self.asyncio_loop.is_running():
+               task = self.asyncio_loop.create_task(self.session.close())
+           else:
+               self.asyncio_loop.run_until_complete(self.session.close())

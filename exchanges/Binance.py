@@ -95,6 +95,7 @@ class BinanceExchange(GenericExchange):
         if symbol in self.pairs:
             try:
                 self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
+
             except Exception as ex:
                 print("binance.handle_candle_socket", ex, msg)
                 self.reload_single_candle_history(symbol)
@@ -110,6 +111,7 @@ class BinanceExchange(GenericExchange):
             self.pairs[symbol]['close'] = float(msg['c'])
             self.pairs[symbol]['quoteVolume'] = float(msg['q'])
             self.pairs[symbol]['percentage'] = float(msg['P'])
+
         elif symbol == self._quote_currency + '/USDT':
             self.quote_change = float(msg['P'])
             self.quote_price = float(msg['c'])
@@ -152,13 +154,13 @@ class BinanceExchange(GenericExchange):
 
 
     # ----
-    def initialize(self):
+    async def initialize(self):
         # this may want to be split up
         self._init_client_connection()
         self._client.load_markets()
-        self.init_socket_manager(self._access_keys['public'],self._access_keys['secret'])
+        self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
 
-        super().initialize()
+        await super().initialize()
 
         time.sleep(1)
 
@@ -193,6 +195,7 @@ class BinanceExchange(GenericExchange):
     # ----
     def stop(self):
         self.socket_manager.close()
+        self._loop.run_until_complete(super().stop)
 
     # ----
     def parse_stream_name(self, stream_name):
@@ -212,6 +215,6 @@ class BinanceExchange(GenericExchange):
 if __name__ == '__main__':
     from dev_keys_binance import keys
     ex = BinanceExchange('binance', 'ETH', {'public': keys.public, 'secret': keys.secret}, ['5m'])
-    ex.initialize()
+    asyncio.get_event_loop().run_until_complete(ex.initialize())
     ex.update_balances()
     ex.start()

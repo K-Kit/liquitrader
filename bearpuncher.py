@@ -1,3 +1,4 @@
+import asyncio
 import json
 import time
 import traceback
@@ -85,16 +86,26 @@ class Bearpuncher:
 
     def initialize_exchange(self):
         if self.config.general_settings['exchange'].lower() == 'binance' and self.config.general_settings['paper_trading']:
-            self.exchange = PaperBinance.PaperBinance('binance', self.config.general_settings['market'].upper(), self.config.general_settings['starting_balance'],
-                                                 {'public': keys.public, 'secret': keys.secret}, self.timeframes)
+            self.exchange = PaperBinance.PaperBinance('binance',
+                                                      self.config.general_settings['market'].upper(),
+                                                      self.config.general_settings['starting_balance'],
+                                                      {'public': keys.public, 'secret': keys.secret},
+                                                      self.timeframes)
+
             # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
         elif self.config.general_settings['exchange'].lower() == 'binance':
-            self.exchange = Binance.BinanceExchange('binance', self.config.general_settings['market'].upper(),
-                                                 {'public': keys.public, 'secret': keys.secret}, self.timeframes)
+            self.exchange = Binance.BinanceExchange('binance',
+                                                    self.config.general_settings['market'].upper(),
+                                                    {'public': keys.public, 'secret': keys.secret},
+                                                    self.timeframes)
+
         else:
-            self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(), self.config.general_settings['market'].upper(),
-                                                 {'public': keys.public, 'secret': keys.secret}, self.timeframes)
-        self.exchange.initialize()
+            self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(),
+                                                            self.config.general_settings['market'].upper(),
+                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            self.timeframes)
+
+        asyncio.get_event_loop().run_until_complete(self.exchange.initialize())
 
     # return total current value (pairs + balance)
     def get_tcv(self):

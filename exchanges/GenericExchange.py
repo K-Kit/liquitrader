@@ -3,6 +3,8 @@ import typing
 import itertools
 import time
 
+import requests
+
 import ccxt
 import ccxt.async_support as ccxt_async
 
@@ -11,8 +13,17 @@ from utils.AverageCalcs import calc_average_price_from_hist, calculate_from_exis
 
 # TODO async update balances every min
 
-
 # DEFAULT_WALLET_VALUES = [('free',0),( 'used',0),('total',0),('current_value',0),( 'trades',None),( 'last_id',0), ('current_average', None) ]
+
+# ADD THIS TO ccxt/async_support/base/exchange.py:
+"""
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.asyncio_loop.run_until_complete(self.close())
+"""
 
 class GenericExchange:
     """
@@ -92,7 +103,8 @@ class GenericExchange:
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': True,
-            'parseOrderToPrecision': True
+            'parseOrderToPrecision': True,
+            'session': requests.Session()
         })
 
         # initialize async client
@@ -103,13 +115,19 @@ class GenericExchange:
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
-            'enableRateLimit': False
+            'asyncio_loop': self._loop,
+            'enableRateLimit': False,
+            'session': requests.Session()
         })
+
+        #asyncio.ensure_future(self._client_async.close(), loop=self._loop)
 
     # ----
     async def initialize(self):
         # Mandatory to call this before any other calls are made to Bittrex
-        await self._client_async.load_markets()
+        async with self._client_async as client:
+            await client.load_markets()
+
         self._initialize_pairs()
         await self.load_all_candle_histories(num_candles=500)
 
@@ -123,18 +141,19 @@ class GenericExchange:
 
     # ----
     async def restart(self):
-        await self.stop()
+        self.stop()
 
         self._loop = asyncio.get_event_loop()
         self._init_client_connection()
-        self._loop.run_until_complete(self._client_async.load_markets())
+
+        async with self._client_async as client:
+            await client.load_markets()
 
         self.start()
 
     # ----
-    async def stop(self):
+    def stop(self):
         self._loop.close()
-        await self._client_async.close()
 
     # ----
     def update_balances(self):
@@ -147,6 +166,7 @@ class GenericExchange:
         """
 
         balances = self._client.fetchBalance()
+
         for key in balances:
             if key == self._quote_currency:
                 self.balance = balances[key]['total']
@@ -204,11 +224,13 @@ class GenericExchange:
     # ----
     def _initialize_pairs(self):
         # TODO: Make async?
+
         pairs = {
                     x['symbol']: x
                     for x in self._client.fetchMarkets()
                     if x['active'] and x['quote'] == self._quote_currency.upper()
                 }
+
         candles = {}
         for pair in pairs:
             # assign default values for pairs
@@ -230,7 +252,10 @@ class GenericExchange:
     def place_order(self, symbol, order_type, side, amount, price):
         bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
         print(symbol, amount, self.pairs[symbol]['total'])
-        order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
+
+        order = self._client.create_order(symbol, order_type, side,
+                                          self._client.amount_to_precision(symbol, amount),
+                                          self._client.price_to_precision(symbol, price))
         print(order)
 
         if bought_price is not None:
@@ -253,9 +278,12 @@ class GenericExchange:
         :param side: buy/sell
         :return: list: bids/asks
         """
+
         pair = self.pairs[symbol]
+
         if time.time() - pair['last_depth_check'] > 0.5:
             depth = self._client.fetch_order_book(symbol)
+
             pair['last_depth_check'] = time.time()
             return depth['asks'] if side.upper() == 'BUY' else depth['bids']
 
@@ -277,13 +305,14 @@ class GenericExchange:
 
         # Map the arguments to the fetchOHLCV using a lambda function to make
         # providing keyword args easier
-        tasks = itertools.starmap(lambda s, t: self._client_async.fetchOHLCV(s, timeframe=t, limit=num_candles), args)
+        async with self._client_async as client:
+            tasks = itertools.starmap(lambda s, t: client.fetchOHLCV(s, timeframe=t, limit=num_candles), args)
 
-        # Wraps futures into a single coroutine
-        task_group = asyncio.gather(*tasks)
+            # Wraps futures into a single coroutine
+            task_group = asyncio.gather(*tasks)
 
-        # Wait for all tasks to finish (executed asynchronously)
-        await task_group
+            # Wait for all tasks to finish (executed asynchronously)
+            await task_group
 
         return args, task_group.result()
 
@@ -313,8 +342,6 @@ class GenericExchange:
 
             await asyncio.sleep(self._candle_upkeep_call_schedule)
 
-
-
     # --
     async def _quote_change_upkeep(self):
         """
@@ -326,7 +353,8 @@ class GenericExchange:
             if 'USD' in self._quote_currency:
                 return
 
-            quote_candles = await self._client_async.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
+            async with self._client_async as client:
+                quote_candles = await client.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
 
             self.quote_candles = candles_to_df(quote_candles)
             self.quote_price = self.quote_candles.iloc[-1]['close']
@@ -359,7 +387,8 @@ class GenericExchange:
         """
 
         while 1:
-            tickers = await self._client_async.fetchTickers()
+            async with self._client_async as client:
+                tickers = await client.fetchTickers()
 
             for ticker_info in tickers.values():
                 symbol = ticker_info['symbol']

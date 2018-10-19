@@ -8,13 +8,13 @@ from binance.websockets import BinanceSocketManager
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
+
 def gen_socket_list(pairs: dict, timeframes: list):
     # creates list of socket streams to subscribe to
     candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
     depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]
     tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
     return candles, depth, tickers
-
 
 
 # TODO check last socket update time and restart if needed
@@ -145,7 +145,9 @@ class BinanceExchange(GenericExchange):
             return pair['asks'] if side.upper() == 'BUY' else pair['bids']
 
         elif time.time() - pair['last_depth_check'] > 0.5:
-            depth = self._client.fetch_order_book(symbol)
+            with self._client as client:
+                depth = client.fetch_order_book(symbol)
+
             pair['last_depth_check'] = time.time()
             return depth['asks'] if side.upper() == 'BUY' else depth['bids']
 
@@ -157,7 +159,9 @@ class BinanceExchange(GenericExchange):
     async def initialize(self):
         # this may want to be split up
         self._init_client_connection()
+
         self._client.load_markets()
+
         self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
 
         await super().initialize()
@@ -188,6 +192,7 @@ class BinanceExchange(GenericExchange):
         Checks to see if sockets are dead and restarts them as necessary
         Makes calls to upkeep methods
         """
+
         self._loop.create_task(self._quote_change_upkeep())
         self._loop.create_task(self._balances_upkeep())
         self._loop.run_forever()
@@ -195,7 +200,7 @@ class BinanceExchange(GenericExchange):
     # ----
     def stop(self):
         self.socket_manager.close()
-        self._loop.run_until_complete(super().stop)
+        self._loop.run_until_complete(super().stop())
 
     # ----
     def parse_stream_name(self, stream_name):

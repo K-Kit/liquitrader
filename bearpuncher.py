@@ -44,7 +44,6 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
 FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
                              'Amount', '24h Change']
 
-
 class Bearpuncher:
     """
     Needs:
@@ -105,17 +104,24 @@ class Bearpuncher:
                                                             {'public': keys.public, 'secret': keys.secret},
                                                             self.timeframes)
 
-        asyncio.get_event_loop().run_until_complete(self.exchange.initialize())
+        #asyncio.get_event_loop().run_until_complete(self.exchange.initialize())
+        event_loop = asyncio.get_event_loop()
+        asyncio.ensure_future(self.exchange.initialize(), loop=event_loop)
 
     # return total current value (pairs + balance)
     def get_tcv(self):
         pending = 0
         self.owned = []
+
         for pair, value in self.exchange.pairs.items():
-            if 'total' not in value or 'close' not in value: continue
+            if 'total' not in value or 'close' not in value:
+                continue
+
             pending += value['close'] * value['total']
+
             if value['close'] * value['total'] > 0:
                 self.owned.append(pair)
+
         return pending + self.exchange.balance
 
     def load_strategies(self):
@@ -430,15 +436,23 @@ def main():
             except Exception as ex:
                 print('err in run: {}'.format(traceback.format_exc()))
 
+            except KeyboardInterrupt:
+                print('Exiting Bearpuncher...')
+                break
+
+        BP_ENGINE.exchange.stop()
+
     import threading
     import FlaskApp
 
-    guithread = threading.Thread(target=lambda: FlaskApp.app.run('0.0.0.0', 80))
     bpthread = threading.Thread(target=run)
     exchangethread = threading.Thread(target=BP_ENGINE.exchange.start)
+    guithread = threading.Thread(target=lambda: FlaskApp.app.run('0.0.0.0', 80))
 
     bpthread.start()
     exchangethread.start()
     guithread.start()
+
+    input("Bearpuncher is now running, press enter to exit > ")
 
     # app.run(port=8081)

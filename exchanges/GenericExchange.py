@@ -107,12 +107,11 @@ class GenericExchange:
         })
 
     # ----
-    def initialize(self):
+    async def initialize(self):
         # Mandatory to call this before any other calls are made to Bittrex
-        self._loop.run_until_complete(self._client_async.load_markets())
+        await self._client_async.load_markets()
         self._initialize_pairs()
-        asyncio.get_event_loop().run_until_complete(
-            self.load_all_candle_histories(num_candles=500))
+        await self.load_all_candle_histories(num_candles=500)
 
     # ----
     def start(self):
@@ -121,7 +120,6 @@ class GenericExchange:
         self._loop.create_task(self._quote_change_upkeep())
         self._loop.create_task(self._balances_upkeep())
         self._loop.run_forever()
-
 
     # ----
     async def restart(self):
@@ -168,11 +166,12 @@ class GenericExchange:
                         self.pairs[symbol].update(balances[key])
                         # update with new average data
                         new_average_data = calculate_from_existing(trades,amount, self.pairs[symbol])
+
                         if new_average_data is None:
                             self.pairs[symbol]['total_cost'] = None
                             self.pairs[symbol]['avg_price'] = None
-
                             self.pairs[symbol]['amount'] = None
+
                         else:
                             self.pairs[symbol].update(new_average_data)
 
@@ -186,6 +185,7 @@ class GenericExchange:
                     trades = self._client.fetchMyTrades(symbol)
                     # calculate average data
                     average_data = calc_average_price_from_hist(trades, amount)
+
                     if average_data is None:
                         # if we cant calculate teh avg, print out some datas to help with debugging
                         print('could not calculate average for: {}'.format(symbol))
@@ -193,8 +193,10 @@ class GenericExchange:
                         print(self.pairs[symbol]['precision'])
                         print(amount)
                         continue
+
                     self.pairs[symbol].update(average_data)
                     self.pairs[symbol].update(balances[key])
+
                 self.pairs[symbol]['amount'] = amount
 
 
@@ -230,11 +232,16 @@ class GenericExchange:
         print(symbol, amount, self.pairs[symbol]['total'])
         order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
         print(order)
-        if bought_price is not None: order['bought_price'] = bought_price
+
+        if bought_price is not None:
+            order['bought_price'] = bought_price
+
         if 'total' in self.pairs[symbol]:
             self.pairs[symbol]['total'] += order['filled'] if side == 'buy' else - order['filled']
+
         # temp - will manually calc avg instead of calling update
         self.update_balances()
+
         return order
 
     # ----
@@ -318,7 +325,9 @@ class GenericExchange:
         while 1:
             if 'USD' in self._quote_currency:
                 return
+
             quote_candles = await self._client_async.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
+
             self.quote_candles = candles_to_df(quote_candles)
             self.quote_price = self.quote_candles.iloc[-1]['close']
             self.quote_change_info['1h'] = get_change_between_candles(self.quote_candles, 1)
@@ -326,6 +335,7 @@ class GenericExchange:
             self.quote_change_info['6h'] = get_change_between_candles(self.quote_candles, 6)
             self.quote_change_info['12h'] = get_change_between_candles(self.quote_candles, 12)
             self.quote_change_info['24h'] = get_change_between_candles(self.quote_candles, 24)
+
             await asyncio.sleep(self._quote_change_upkeep_call_schedule)
 
     # --

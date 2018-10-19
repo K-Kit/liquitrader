@@ -79,7 +79,6 @@ class GenericExchange:
         # Connect to exchange
         self._init_client_connection()
 
-
     # ----
     def _init_client_connection(self):
         # initialize synchronous client
@@ -103,7 +102,8 @@ class GenericExchange:
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
-            'enableRateLimit': False
+            'enableRateLimit': False,
+            'asyncio_loop': self._loop
         })
 
     # ----

@@ -42,7 +42,7 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
 
 
 FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
-                             'Amount', '24h Change']
+                            'Amount', '24h Change']
 
 class Bearpuncher:
     """
@@ -419,6 +419,10 @@ def main():
     BP_ENGINE.load_strategies()
 
     def run():
+        while BP_ENGINE.exchange.balance is None:
+            time.sleep(1)
+            print('No balance yet...')
+
         while True:
             try:
                 BP_ENGINE.do_technical_analysis()

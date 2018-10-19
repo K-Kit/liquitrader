@@ -3,6 +3,7 @@ import typing
 import itertools
 import time
 
+import aiohttp
 import requests
 
 import ccxt
@@ -90,6 +91,8 @@ class GenericExchange:
         # Connect to exchange
         self._init_client_connection()
 
+        self.update_balances()
+
 
     # ----
     def _init_client_connection(self):
@@ -103,8 +106,7 @@ class GenericExchange:
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': True,
-            'parseOrderToPrecision': True,
-            'session': requests.Session()
+            'parseOrderToPrecision': True
         })
 
         # initialize async client
@@ -115,9 +117,8 @@ class GenericExchange:
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
-            'asyncio_loop': self._loop,
             'enableRateLimit': False,
-            'session': requests.Session()
+            'asyncio_loop': self._loop
         })
 
         #asyncio.ensure_future(self._client_async.close(), loop=self._loop)
@@ -219,7 +220,7 @@ class GenericExchange:
 
                 self.pairs[symbol]['amount'] = amount
 
-
+        return balances
 
     # ----
     def _initialize_pairs(self):
@@ -353,8 +354,8 @@ class GenericExchange:
             if 'USD' in self._quote_currency:
                 return
 
-            async with self._client_async as client:
-                quote_candles = await client.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
+            #async with self._client_async as client:
+            quote_candles = await self._client_async.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
 
             self.quote_candles = candles_to_df(quote_candles)
             self.quote_price = self.quote_candles.iloc[-1]['close']

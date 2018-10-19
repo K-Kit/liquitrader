@@ -161,12 +161,11 @@ class BinanceExchange(GenericExchange):
         self._init_client_connection()
 
         self._client.load_markets()
+        await super().initialize()
 
         self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
 
-        await super().initialize()
-
-        time.sleep(1)
+        await asyncio.sleep(1)
 
         # generate list of stream names to start in multiplex socket
         candle_sockets, depth_sockets, ticker_sockets = gen_socket_list(self.pairs, self._candle_timeframes)

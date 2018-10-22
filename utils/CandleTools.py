@@ -3,17 +3,25 @@ import pandas as pd
 
 def candles_to_df(candle_list):
     candles = pd.DataFrame(candle_list, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-    return candles.set_index(pd.to_datetime(candles.timestamp.values, unit='ms').values)
+    candles.set_index('timestamp', inplace=True)
+
+    return candles
 
 
 def candle_tic_to_df(candle):
+    # candle format: [timestamp, open, high, low, close, volume]
+
     # take in candlestick WebSocket tic data, return dataframe in form of candlestick dataframe to merge into main candle dframe
     if len(candle) < 6:
         with open('boolean_index_error.text', 'a') as f:
             print(str(candle), file=f)
 
+    candle[0] = int(candle[0])
     df = pd.DataFrame([candle], columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-    return df.set_index(pd.to_datetime(df.timestamp.values, unit='ms').values)
+    df.set_index('timestamp', inplace=True)
+
+    return df
+
 
 def get_change_between_candles(candles, n):
     """

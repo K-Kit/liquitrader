@@ -85,16 +85,28 @@ class BinanceExchange(GenericExchange):
     # ----
     def handle_candle_socket(self, msg, symbol, candle_period):
         # update candlestick data for appropriate candle_period
-        if 'e' in msg and msg['e'] == 'error':
+        if msg.get('e', None) == 'error':
             print('implement socket error handling', msg)
             return
 
         candle = candle_tic_to_df([msg['t'], msg['o'], msg['h'], msg['l'], msg['c'], msg['v']])
         if symbol in self.pairs:
             try:
-                self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
+                #print(self.candles[symbol][candle_period].loc[candle.index[0]])
+
+                try:
+                    # ValueError raised when the timestamp already exists in the dataframe
+                    self.candles[symbol][candle_period].loc[candle.index[0]].append(candle, verify_integrity=True)
+
+                except ValueError:
+                    self.candles[symbol][candle_period].loc[candle.index[0]].update(candle)
+
+                # self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
 
             except Exception as ex:
+                with open('boolean_index_error.txt', 'a') as f:
+                    print(str(msg) + '    ' + str(ex) + '    ', file=f)
+
                 print("binance.handle_candle_socket", ex, msg)
                 self.reload_single_candle_history(symbol)
 

@@ -92,16 +92,14 @@ class BinanceExchange(GenericExchange):
         candle = candle_tic_to_df([msg['t'], msg['o'], msg['h'], msg['l'], msg['c'], msg['v']])
         if symbol in self.pairs:
             try:
-                #print(self.candles[symbol][candle_period].loc[candle.index[0]])
+                # self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
 
                 try:
                     # ValueError raised when the timestamp already exists in the dataframe
-                    self.candles[symbol][candle_period].loc[candle.index[0]].append(candle, verify_integrity=True)
+                    self.candles[symbol][candle_period].append(candle, verify_integrity=True)
 
                 except ValueError:
-                    self.candles[symbol][candle_period].loc[candle.index[0]].update(candle)
-
-                # self.candles[symbol][candle_period].loc[candle.index[0]] = candle.iloc[0]
+                    self.candles[symbol][candle_period].update(candle)
 
             except Exception as ex:
                 with open('boolean_index_error.txt', 'a') as f:

@@ -60,6 +60,5 @@ def test_orderbook():
     assert isinstance(second_bid[0], float), 'orderbook float conversion err'
 
 
-
 if __name__ == '__main__':
-    pytest.main()
+    pytest.main([__file__])

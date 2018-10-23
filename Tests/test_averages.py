@@ -1,8 +1,9 @@
 import pytest
 import sys
-sys.path.append('.')
 
+#sys.path.append('.')
 sys.path.append('..')
+
 from utils.AverageCalcs import *
 
 # this can be moved to tests later, however the other tests make a
@@ -68,7 +69,8 @@ def test_hist_average_alias():
     assert new_avg_data['avg_price'] == 0.4
     assert new_avg_data['last_id'] == 2
 
+
 if __name__ == '__main__':
-    test_partial_sell()
-    pytest.main()
+    # test_partial_sell()
+    pytest.main([__file__])
 

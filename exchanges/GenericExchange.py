@@ -160,7 +160,7 @@ class GenericExchange:
 
                 # if we already have average data, calculate from existing
                 if symbol in self.pairs and self.pairs[symbol]['total_cost'] is not None:
-                    if amount != self.pairs[symbol]['amount']:
+                    if amount != self.pairs[symbol]['total']:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
                         self.pairs[symbol].update(balances[key])
@@ -199,8 +199,6 @@ class GenericExchange:
 
                 self.pairs[symbol]['amount'] = amount
 
-
-
     # ----
     def _initialize_pairs(self):
         # TODO: Make async?
@@ -214,7 +212,7 @@ class GenericExchange:
             # assign default values for pairs
             candles[pair] = {}
             pairs[pair]['total'] = 0
-            pairs[pair]['total_cost'] = None
+            pairs[pair]['total_cost'] = 0
             pairs[pair]['avg_price'] = None
             pairs[pair]['dca_level'] = 0
             pairs[pair]['last_order_time'] = 0
@@ -236,11 +234,32 @@ class GenericExchange:
         if bought_price is not None:
             order['bought_price'] = bought_price
 
-        if 'total' in self.pairs[symbol]:
-            self.pairs[symbol]['total'] += order['filled'] if side == 'buy' else - order['filled']
+        if 'total' not in self.pairs[symbol]:
+            self.pairs[symbol]['total'] = 0
+        filled = order['filled']
 
+        # fee will only be currency
+        if self.pairs[symbol]['base'] == order['fee']['currency']:
+            filled -= order['fee']['cost']
+
+        # increment or decrement 'total' (quantity owned)
+        self.pairs[symbol]['total'] += filled if side == 'buy' else - filled
+
+        # increment or decrement total cost
+        self.pairs[symbol]['total_cost'] += order['cost'] if side == 'buy' else - order['cost']
+
+        # recalculate average price from total cost and amount
+        try:
+            self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
+        except ZeroDivisionError:
+            self.pairs[symbol]['avg_price'] = None
+
+        # update quote balance
+        self.balance += order['cost'] if side == 'buy' else - order['cost']
+        # update last order time
+        self.pairs[symbol]['last_order_time'] = time.time()
         # temp - will manually calc avg instead of calling update
-        self.update_balances()
+        # self.update_balances()
 
         return order
 

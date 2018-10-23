@@ -44,4 +44,4 @@
 #     assert indicators['MFI_CHANGE_OVER_3_5m'] == array[-1] - array[-4]
 #
 # if __name__ == '__main__':
-#     pytest.main()
+#     pytest.main([__file__])

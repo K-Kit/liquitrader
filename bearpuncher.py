@@ -44,6 +44,11 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
 FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
                              'Amount', '24h Change']
 
+class User:
+    balance = 5
+
+user = User()
+
 
 class Bearpuncher:
     """

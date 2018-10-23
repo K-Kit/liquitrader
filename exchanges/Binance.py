@@ -52,7 +52,6 @@ class BinanceExchange(GenericExchange):
 
         # so we dont have to mess with foat/str precision per pair
         self._client.options['parseOrderToPrecision'] = True
-        self._client.options['recvWindow'] = 10000000
 
     # ----
     def init_socket_manager(self, public, secret):

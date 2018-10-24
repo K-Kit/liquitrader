@@ -2,12 +2,8 @@ import asyncio
 import json
 import time
 import traceback
-from functools import reduce
-import datetime
 
-import pandas as pd
-
-from Config import Config
+from config import Config
 from exchanges import Binance
 from exchanges import GenericExchange
 from utils.DepthAnalyzer import *
@@ -18,7 +14,7 @@ from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
-from conditions.condition_tools import get_buy_value, percentToFloat
+from conditions.condition_tools import percentToFloat
 
 # test keys, trading disabled
 from dev_keys_binance import keys
@@ -402,6 +398,7 @@ class Bearpuncher:
         return self.get_daily_profit_data().cumsum()
     #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
 
+
 # ----
 def main():
     global BP_ENGINE
@@ -431,9 +428,9 @@ def main():
                 print('err in run: {}'.format(traceback.format_exc()))
 
     import threading
-    import FlaskApp
+    import webserver
 
-    guithread = threading.Thread(target=lambda: FlaskApp.app.run('0.0.0.0', 80))
+    guithread = threading.Thread(target=lambda: webserver.app.run('0.0.0.0', 80))
     bpthread = threading.Thread(target=run)
     exchangethread = threading.Thread(target=BP_ENGINE.exchange.start)
 

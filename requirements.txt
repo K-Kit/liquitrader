@@ -1,0 +1,4 @@
+cryptography
+ccxt
+requests
+requests.certs

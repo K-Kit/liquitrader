@@ -1,4 +1,4 @@
-from bearpuncher import *
+from liquitrader import *
 
 from flask import Flask
 from flask import jsonify

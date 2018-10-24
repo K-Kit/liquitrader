@@ -96,7 +96,7 @@ class BinanceExchange(GenericExchange):
 
                 try:
                     # ValueError raised when the timestamp already exists in the dataframe
-                    self.candles[symbol][candle_period].append(candle, sort=True, ignore_index=True, verify_integrity=True)
+                    self.candles[symbol][candle_period].append(candle, sort=True, verify_integrity=True)
 
                 except ValueError:
                     self.candles[symbol][candle_period].update(candle)

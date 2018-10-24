@@ -1,11 +1,23 @@
+from buildtools import cython_setup, build_runner
+
+TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'webserver']
+CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
+cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
+
+
+# Dynamically generate runner.py
+print('Signing files...')
+# Find all .pyd files here, as well as main.js
+build_runner.build_runner(to_sign=[])
+print('')
+
+
 import os
 import sys
 import shutil
 import requests.certs
 import py_compile
 import datetime
-
-import buildtools.build_runner
 
 
 # ----
@@ -14,12 +26,11 @@ BUILD_LIQUITRADER = True
 BUILD_UPDATER = True
 # ----
 
-
 BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
 
-sys.path.extend([
-    './analyzers', './conditions', './config', './exchanges', './pairs', './utils', './webserver'
-])
+TARGET_DIRECTORIES = ['./' + package for package in TARGET_PACKAGES]
+sys.path.extend(TARGET_DIRECTORIES)
+
 
 PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
 
@@ -28,7 +39,8 @@ os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
 
 from cx_Freeze import setup, Executable
 
-# Dependencies are automatically detected, but it might need fine tuning.
+
+# Dependencies are automatically detected, but it might need fine tuning || LOL BULLSHIT
 build_options = {
     'build_exe': {
         'build_exe': BUILD_PATH,
@@ -51,7 +63,7 @@ build_options = {
                           ('version.txt', 'version.txt')
                           ],
 
-        'packages': ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'webserver',  # LiquiTrader internal packages
+        'packages': TARGET_PACKAGES + [  # LiquiTrader internal packages
                      'os', 'asyncio', 'configparser', 'datetime', 'io', 'json',
                      'pkg_resources._vendor',
                      'cffi', '_cffi_backend',
@@ -59,7 +71,8 @@ build_options = {
                      'appdirs',
                      'cheroot',
                      'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
-                     'flask_compress',
+                     'flask_compress', 'flask_sslify',
+                     'OpenSSL',
                      'arrow',
                      'jinja2',
                      'sqlalchemy',
@@ -72,7 +85,7 @@ build_options = {
                      'json_minify',
                      'packaging',
                      'logger',
-                     'binance',
+                     'ccxt', 'binance',
                      'talib',
                      'zope', 'zope.interface',
                      'regex', 'idna', 'dateparser',
@@ -89,22 +102,18 @@ build_options = {
 }
 
 if sys.platform == 'win32':
-    executables = [Executable('liquitrader.py', icon='dependencies/liquitrader.ico')]
+    executables = [Executable('runner.py', icon='dependencies/liquitrader.ico')]
     build_options['build_exe']['packages'].append('win32api')
 
 else:
-    executables = [Executable('liquitrader.py')]
+    executables = [Executable('runner.py')]
+
 
 # Re-build .pyc files that git destroys
 os.makedirs('dependencies/python/py_built', exist_ok=True)
 for source_file in ('_regex_core.py', '_strptime.py'):
     output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
     py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
-
-
-# Dynamically generate runner.py
-# Find all .pyd files here, as well as main.js
-buildtools.build_runner.build_runner(to_sign=[])
 
 
 if BUILD_LIQUITRADER:
@@ -139,6 +148,10 @@ if BUILD_UPDATER:
               }
           }
           )
+
+
+cython_setup.cleanup_pyd(CYTHON_TARGET_DIRECTORIES)
+
 
 try:
     os.remove(BUILD_PATH + 'webserver/static/main.js.map')

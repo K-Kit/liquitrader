@@ -19,7 +19,7 @@ from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import get_buy_value, percentToFloat
-from FlaskApp import *
+
 
 # test keys, trading disabled
 from dev_keys_binance import keys
@@ -413,6 +413,11 @@ def main():
     global BP_ENGINE
 
     BP_ENGINE = Bearpuncher()
+
+    import FlaskApp
+    # FlaskApp couldnt access BP engine
+    FlaskApp.BP_ENGINE = BP_ENGINE
+
     BP_ENGINE.initialize_config()
     BP_ENGINE.load_trade_history()
     BP_ENGINE.initialize_exchange()
@@ -441,7 +446,7 @@ def main():
 
 
 
-    guithread = threading.Thread(target=lambda: app.run('0.0.0.0', 80))
+    guithread = threading.Thread(target=lambda: FlaskApp.app.run('0.0.0.0', 80))
     bpthread = threading.Thread(target=run)
     exchangethread = threading.Thread(target=BP_ENGINE.exchange.start)
 

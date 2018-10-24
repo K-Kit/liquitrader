@@ -6,7 +6,7 @@ from flask import jsonify
 app = Flask(__name__)
 
 global BP_ENGINE
-
+BP_ENGINE = None
 
 @app.route("/")
 def gethello():

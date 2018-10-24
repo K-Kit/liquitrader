@@ -1,5 +1,5 @@
 {
-  "min_buy_balance": "50%",
+  "min_buy_balance": "40%",
   "dca_min_buy_balance": "30%",
   "max_pairs": 8,
   "blacklist": ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],

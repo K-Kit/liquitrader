@@ -19,6 +19,7 @@ from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import get_buy_value, percentToFloat
+from FlaskApp import *
 
 # test keys, trading disabled
 from dev_keys_binance import keys
@@ -346,7 +347,7 @@ class Bearpuncher:
 
         if 'total_cost' in df:
             df['current_value'] = df.close * df.total
-            df['gain'] = (df.current_value - df.total_cost) / df.total_cost * 100
+            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100
 
         if friendly:
             df = df[DEFAULT_COLUMNS] if basic else df
@@ -436,9 +437,11 @@ def main():
                 print('err in run: {}'.format(traceback.format_exc()))
 
     import threading
-    import FlaskApp
 
-    guithread = threading.Thread(target=lambda: FlaskApp.app.run('0.0.0.0', 80))
+
+
+
+    guithread = threading.Thread(target=lambda: app.run('0.0.0.0', 80))
     bpthread = threading.Thread(target=run)
     exchangethread = threading.Thread(target=BP_ENGINE.exchange.start)
 
@@ -446,4 +449,30 @@ def main():
     exchangethread.start()
     guithread.start()
 
+
     # app.run(port=8081)
+if __name__ == '__main__':
+
+    def get_pc():
+        df = BP_ENGINE.pairs_to_df()
+        df[df['total'] > 0]
+        return df
+    main()
+
+    # df['% Change'].dropna()
+    # Out[8]:
+    # CLOAK / ETH - 104.763070
+    # DGD / ETH
+    # 0.329280
+    # EDO / ETH - 0.100000
+    # FUN / ETH - 0.691351
+    # GTO / ETH - 2.135282
+    # ICX / ETH - 0.563066
+    # IOTA / ETH - 0.338263
+    # REQ / ETH
+    # 0.049041
+    # SNM / ETH
+    # 0.588560
+    # STORJ / ETH - 0.997334
+    # TRX / ETH - 2.530675
+    # Name: % Change, dtype: float64

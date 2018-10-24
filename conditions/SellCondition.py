@@ -12,7 +12,7 @@ class SellCondition(Condition):
         bought_price = total_cost/amount
         return bought_price * (1 + (self.sell_value/100))
 
-    def evaluate(self, pair: dict, indicators: dict, balance: float=None):
+    def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
         """
         evaluate single pair against conditions
         if not in pairs_trailing and conditions = true : add to dict, set floor/ceiling at price -> return true
@@ -28,7 +28,8 @@ class SellCondition(Condition):
         price = float(pair['close'])
         trail_to = None
         current_value = get_current_value(price, pair['total'])
-        percent_change = get_percent_change(current_value, pair['total_cost'])
+        percent_change = get_percent_change(current_value, pair['total_cost']) - fee
+        pair['percent_change'] = percent_change
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
         # check percent change, if above trigger return none

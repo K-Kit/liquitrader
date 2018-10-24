@@ -159,8 +159,8 @@ class GenericExchange:
                     continue
 
                 # if we already have average data, calculate from existing
-                if symbol in self.pairs and self.pairs[symbol]['total_cost'] is not None:
-                    if amount != self.pairs[symbol]['total']:
+                if symbol in self.pairs and self.pairs[symbol]['total_cost'] > 0:
+                    if amount != self.pairs[symbol]['amount']:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
                         self.pairs[symbol].update(balances[key])
@@ -212,6 +212,7 @@ class GenericExchange:
             # assign default values for pairs
             candles[pair] = {}
             pairs[pair]['total'] = 0
+            pairs[pair]['amount'] = 0
             pairs[pair]['total_cost'] = 0
             pairs[pair]['avg_price'] = None
             pairs[pair]['dca_level'] = 0

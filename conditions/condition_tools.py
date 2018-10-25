@@ -1,12 +1,11 @@
 import talib as ta
 from talib import abstract
 import pandas as pd
+
 from talib.abstract import *
 import operator as py_operators
 import numpy
 # a op b
-
-
 
 
 # note change over will no longer be usable in cross
@@ -54,7 +53,6 @@ def ind_dict_to_full_name(indicator: dict):
         return "_".join([indicator['value'], str(indicator['candle_period']), indicator['timeframe']])
     else:
         return "_".join([indicator['value'], indicator['timeframe']])
-    return
 
 
 def translate(operand: dict, inputs):
@@ -166,14 +164,14 @@ def evaluate_condition(cond, pair, indicators, is_buy = True):
     
 
 
-if __name__ == '__main__':
-    # test operands
-    from examples import *
-
-    print(evaluate_condition(condition_1, pair1, indicators1))
-    print(evaluate_condition(condition_2, pair1, indicators1))
-    print(evaluate_condition(condition_3, pair1, indicators1))
-    print(evaluate_condition(condition_4, pair1, indicators1))
-    print(evaluate_condition(condition_5, pair1, indicators1))
-    print(evaluate_condition(condition_6, pair1, indicators1))
+# if __name__ == '__main__':
+#     # test operands
+#     from examples import *
+#
+#     print(evaluate_condition(condition_1, pair1, indicators1))
+#     print(evaluate_condition(condition_2, pair1, indicators1))
+#     print(evaluate_condition(condition_3, pair1, indicators1))
+#     print(evaluate_condition(condition_4, pair1, indicators1))
+#     print(evaluate_condition(condition_5, pair1, indicators1))
+#     print(evaluate_condition(condition_6, pair1, indicators1))
 

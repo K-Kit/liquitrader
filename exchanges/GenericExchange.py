@@ -150,9 +150,11 @@ class GenericExchange:
         for key in balances:
             if key == self._quote_currency:
                 self.balance = balances[key]['total']
+                continue
 
             symbol = key + '/' + self._quote_currency
-
+            if key == "VET":
+                print(key)
             if symbol in self.pairs:
                 amount = balances[key]['total']
                 if amount == 0:
@@ -197,6 +199,7 @@ class GenericExchange:
                     self.pairs[symbol].update(average_data)
                     self.pairs[symbol].update(balances[key])
 
+                self.pairs[symbol]['total'] = amount
                 self.pairs[symbol]['amount'] = amount
 
     # ----

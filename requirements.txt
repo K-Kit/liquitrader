@@ -1,3 +1,4 @@
+cython
 cryptography
 ccxt
 requests

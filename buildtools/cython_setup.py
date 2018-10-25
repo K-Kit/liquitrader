@@ -20,13 +20,20 @@ def run_cython(source_directories):
                                                exclude=[
                                                         '{}/__init__.py'.format(direct),
                                                         'runner.py',
-                                                        'cython_setup.py',
-                                                        'setup.py'
+                                                        'setup.py',
+                                                        'dev_keys_binance.py',
+                                                        'buildtools',
+                                                        'buildtools/cython_setup.py',
+                                                        'buildtools/build_runner.py',
+                                                        'buildtools/signature_tools.py',
+                                                        'tests',
+                                                        'conditions/examples.py',
+                                                        'conditions/test_conditions.py',
                                                     ],
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
-                                               nthreads=4
+                                               #nthreads=4
                                                )
         )
 

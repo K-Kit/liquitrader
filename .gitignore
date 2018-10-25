@@ -108,3 +108,4 @@ tradehistory.json
 sell_log
 market
 buy_log
+runner.py

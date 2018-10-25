@@ -89,7 +89,7 @@ class GenericExchange:
             },
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 50000,
+            'timeout': 500000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
@@ -101,7 +101,7 @@ class GenericExchange:
             },
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 50000,
+            'timeout': 500000,
             'enableRateLimit': False,
             'asyncio_loop': self._loop
         })
@@ -153,21 +153,19 @@ class GenericExchange:
                 continue
 
             symbol = key + '/' + self._quote_currency
-            if key == "VET":
-                print(key)
             if symbol in self.pairs:
                 amount = balances[key]['total']
                 if amount == 0:
                     continue
 
                 # if we already have average data, calculate from existing
-                if symbol in self.pairs and self.pairs[symbol]['total_cost'] > 0:
-                    if amount != self.pairs[symbol]['amount']:
+                if symbol in self.pairs and self.pairs[symbol]['total_cost'] != 0:
+                    if amount != self.pairs[symbol]['total']:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
                         self.pairs[symbol].update(balances[key])
                         # update with new average data
-                        new_average_data = calculate_from_existing(trades,amount, self.pairs[symbol])
+                        new_average_data = calc_average_price_from_hist(trades, amount)
 
                         if new_average_data is None:
                             self.pairs[symbol]['total_cost'] = None
@@ -251,6 +249,10 @@ class GenericExchange:
 
         # increment or decrement total cost
         self.pairs[symbol]['total_cost'] += order['cost'] if side == 'buy' else - order['cost']
+
+        # if we sell at a profit reset total cost to 0
+        if self.pairs[symbol]['total_cost'] < 0:
+            self.pairs[symbol]['total_cost'] = 0
 
         # recalculate average price from total cost and amount
         try:

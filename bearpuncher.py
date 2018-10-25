@@ -349,7 +349,7 @@ class Bearpuncher:
             pair_data = json.load(f)
         for pair in self.exchange.pairs:
             if pair in pair_data:
-                if self.exchange.pairs[pair]['avg_price'] is None:
+                if self.exchange.pairs[pair]['total_cost'] is None:
                     self.exchange.pairs[pair].update(pair_data[pair])
                 else:
                     self.exchange.pairs[pair]['dca_level'] = pair_data[pair]['dca_level']
@@ -438,7 +438,10 @@ def main():
     FlaskApp.BP_ENGINE = BP_ENGINE
 
     BP_ENGINE.initialize_config()
-    BP_ENGINE.load_trade_history()
+    try:
+        BP_ENGINE.load_trade_history()
+    except:
+        pass
     BP_ENGINE.initialize_exchange()
     BP_ENGINE.load_pairs_history()
     BP_ENGINE.load_strategies()

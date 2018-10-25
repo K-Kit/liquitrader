@@ -8,9 +8,9 @@ class SellCondition(Condition):
         super().__init__(condition_config)
         self.sell_value = condition_config['sell_value']
 
-    def get_lowest_sell_price(self, total_cost, amount):
+    def get_lowest_sell_price(self, total_cost, amount, fee):
         bought_price = total_cost/amount
-        return bought_price * (1 + (self.sell_value/100))
+        return bought_price * (1 + ((self.sell_value + fee) / 100))
 
     def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
         """
@@ -50,7 +50,7 @@ class SellCondition(Condition):
             return None
 
         if price <= trail_to and not trail_to is None:
-            return self.get_lowest_sell_price(pair['total_cost'], pair['total'])
+            return self.get_lowest_sell_price(pair['total_cost'], pair['total'], fee)
 
 
 if __name__ == '__main__':

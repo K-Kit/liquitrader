@@ -333,9 +333,28 @@ class Bearpuncher:
                 continue
 
     def save_trade_history(self):
+        self.save_pairs_history()
         fp = 'tradehistory.json'
         with open(fp, 'w') as f:
             json.dump(self.trade_history, f)
+
+    def save_pairs_history(self):
+        fp = 'pair_data.json'
+        with open(fp, 'w') as f:
+            json.dump(self.exchange.pairs, f)
+
+    def load_pairs_history(self):
+        fp = 'pair_data.json'
+        with open(fp, 'r') as f:
+            pair_data = json.load(f)
+        for pair in self.exchange.pairs:
+            if pair in pair_data:
+                if self.exchange.pairs[pair]['avg_price'] is None:
+                    self.exchange.pairs[pair].update(pair_data[pair])
+                else:
+                    self.exchange.pairs[pair]['dca_level'] = pair_data[pair]['dca_level']
+                    self.exchange.pairs[pair]['last_order_time'] = pair_data[pair]['last_order_time']
+
 
     def load_trade_history(self):
         fp = 'tradehistory.json'
@@ -421,6 +440,7 @@ def main():
     BP_ENGINE.initialize_config()
     BP_ENGINE.load_trade_history()
     BP_ENGINE.initialize_exchange()
+    BP_ENGINE.load_pairs_history()
     BP_ENGINE.load_strategies()
 
     def run():

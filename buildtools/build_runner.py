@@ -1,3 +1,5 @@
+from cryptography.hazmat.primitives import serialization
+
 import buildtools.signature_tools
 
 
@@ -14,10 +16,8 @@ if __name__ == '__main__':
 
     class VerifyTool:
 
-        def __init__(self, private_key_string):
-            private_key = serialization.load_pem_private_key(bytes(private_key_string, encoding='utf-8'),
-                                                             default_backend())
-            self.public_key = private_key.public_key()
+        def __init__(self, public_key_bytes):
+            self.public_key = serialization.load_pem_public_key(public_key_bytes, default_backend())
 
         # ----
         def verify_file(self, filename, signature_b64):
@@ -27,11 +27,11 @@ if __name__ == '__main__':
             hasher = hashes.Hash(hash_alg, default_backend())
 
             # Load the contents of the file to be signed.
-            with open(filename, 'rb') as file_to_check:
-                chunk = file_to_check.read(1024)
-                while chunk != '':
+            with open('./lib/' + filename, 'rb') as file_to_check:
+                chunk = file_to_check.read(2048)
+                while chunk != b'':
                     hasher.update(chunk)
-                    chunk = file_to_check.read(1024)
+                    chunk = file_to_check.read(2048)
 
             digest = hasher.finalize()
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
                 return True
 
-            except cryptography.exceptions.InvalidSignature as e:
+            except cryptography.exceptions.InvalidSignature:
                 return False
 
         # ----
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     verifier = VerifyTool({public_key_string})
 
-    if not verifier.verify_files({signature_dict}):
+    if not verifier.verify_files({signature_tuples}):
         sys.stdout.writeline('LiquiTrader file signature verification failed!')
         sys.stdout.writeline('LiquiTrader has been illegitimately modified and must be reinstalled.')
         sys.stdout.writeline('We recommend downloading it manually from our website in case your updater has been compromised.')
@@ -71,18 +71,19 @@ if __name__ == '__main__':
     # ~~~
     import liquitrader
     liquitrader.main()
-
 """
 
 
 def build_runner(to_sign):
-    with open('liquitrader.pem') as signature_file:
-        private_key = signature_file.read()
-
     signer = buildtools.signature_tools.SignTool()
-    file_signature_dict = signer.sign_files(to_sign)
+    file_signature_tuples = signer.sign_files(to_sign)
+
+    public_key_bytes = signer.public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
 
     with open('runner.py', 'w') as runner_file:
-        print(runner_template.format(private_key_string=private_key,
-                                     signature_dict=file_signature_dict),
+        print(runner_template.format(public_key_string=public_key_bytes,
+                                     signature_tuples=file_signature_tuples),
               file=runner_file)

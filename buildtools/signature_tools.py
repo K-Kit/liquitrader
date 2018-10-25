@@ -1,13 +1,43 @@
+import os
+import time
+import shutil
 import base64
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, utils
+from cryptography.hazmat.primitives.asymmetric import padding, utils, rsa
+
+
+def generate_private_key(filename='./buildtools/liquitrader.pem'):
+    if os.path.exists(filename):
+        if input('This will overwrite (and backup) the existing private key!\n'
+                 'Are you sure you want to do this? ') != 'y':
+            return
+
+        if input('Really? ') != 'y':
+            return
+
+        shutil.copy(filename, f'{filename}.bak.{time.time()}')
+
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=4096,
+        backend=default_backend()
+    )
+
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    with open(filename, 'wb') as pem_out:
+        pem_out.write(pem)
 
 
 class SignTool:
 
-    def __init__(self, private_key_filename='liquitrader.pem'):
+    def __init__(self, private_key_filename='./buildtools/liquitrader.pem'):
         self.private_key_filename = private_key_filename
         self.private_key = None
         self.public_key = None
@@ -28,15 +58,19 @@ class SignTool:
 
     # ----
     def get_file_signature(self, filename):
+        if not os.path.exists(filename):
+            print(f'{filename} does not exist')
+            return None
+
         hash_alg = hashes.SHA256()
         hasher = hashes.Hash(hash_alg, default_backend())
 
         # Load the contents of the file to be signed.
         with open(filename, 'rb') as f:
-            chunk = f.read(1024)
-            while chunk != '':
+            chunk = f.read(2048)
+            while chunk != b'':
                 hasher.update(chunk)
-                chunk = f.read(1024)
+                chunk = f.read(2048)
 
         digest = hasher.finalize()
 
@@ -54,4 +88,13 @@ class SignTool:
 
     # ----
     def sign_files(self, files):
-        return {filename: self.get_file_signature(filename) for filename in files}
+        output = []
+
+        for filename in files:
+            print(f'Generating signature for {filename}')
+            signature = self.get_file_signature(filename)
+
+            if signature is not None:
+                output.append((filename.split(os.path.sep)[-1], signature))
+
+        return output

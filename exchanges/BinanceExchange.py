@@ -3,8 +3,14 @@ import json
 import time
 
 from exchanges.GenericExchange import *
-from binance.client import Client
-from binance.websockets import BinanceSocketManager
+import binance
+from binance import client, websockets
+
+Client = binance.client.Client
+BinanceSocketManager = binance.websockets.BinanceSocketManager
+
+#from binance.client import Client
+#from binance.websockets import BinanceSocketManager
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 

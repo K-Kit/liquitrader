@@ -2,6 +2,8 @@ import asyncio
 import typing
 import itertools
 import time
+import os
+import sys
 
 import ccxt
 import ccxt.async_support as ccxt_async
@@ -83,10 +85,12 @@ class GenericExchange:
     def _init_client_connection(self):
         # initialize synchronous client
 
+        options = {
+            'adjustForTimeDifference': True,  # ←---- resolves the timestamp
+        }
+
         self._client = self._exchange_class({
-            'options': {
-                'adjustForTimeDifference': True,  # ←---- resolves the timestamp
-            },
+            'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
@@ -94,17 +98,20 @@ class GenericExchange:
             'parseOrderToPrecision': True
         })
 
-        # initialize async client
-        self._client_async = self._exchange_class_async({
-            'options': {
-                'adjustForTimeDifference': True,  # ←---- resolves the timestamp
-            },
+        async_params = {
+            'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': False,
             'asyncio_loop': self._loop
-        })
+        }
+
+        if hasattr(sys, 'frozen'):
+            async_params['cafile'] = os.path.join(os.path.dirname(sys.executable), 'lib', 'cacert.pem')
+
+        # initialize async client
+        self._client_async = self._exchange_class_async(async_params)
 
     # ----
     async def initialize(self):

@@ -1,10 +1,12 @@
 import asyncio
+import os
+import sys
 import json
 import time
 import traceback
 
 from config import Config
-from exchanges import Binance
+from exchanges import BinanceExchange
 from exchanges import GenericExchange
 from utils.DepthAnalyzer import *
 
@@ -16,8 +18,11 @@ from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import percentToFloat
 
-# test keys, trading disabled
-from dev_keys_binance import keys
+
+from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+if hasattr(sys, 'frozen'):
+    os.environ["REQUESTS_CA_BUNDLE"] = os.path.join(os.path.dirname(sys.executable), 'lib', 'cacert.pem')
 
 DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost', 'current_value', 'dca_level', 'total', 'percentage']
 
@@ -41,7 +46,7 @@ FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
                              'Amount', '24h Change']
 
 
-class Bearpuncher:
+class LiquiTrader:
     """
     Needs:
         - self.exchange
@@ -90,10 +95,10 @@ class Bearpuncher:
 
             # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
         elif self.config.general_settings['exchange'].lower() == 'binance':
-            self.exchange = Binance.BinanceExchange('binance',
-                                                    self.config.general_settings['market'].upper(),
-                                                    {'public': keys.public, 'secret': keys.secret},
-                                                    self.timeframes)
+            self.exchange = BinanceExchange.BinanceExchange('binance',
+                                                            self.config.general_settings['market'].upper(),
+                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            self.timeframes)
 
         else:
             self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(),
@@ -403,7 +408,7 @@ class Bearpuncher:
 def main():
     global BP_ENGINE
 
-    BP_ENGINE = Bearpuncher()
+    BP_ENGINE = LiquiTrader()
     BP_ENGINE.initialize_config()
     BP_ENGINE.load_trade_history()
     BP_ENGINE.initialize_exchange()
@@ -428,7 +433,7 @@ def main():
                 print('err in run: {}'.format(traceback.format_exc()))
 
     import threading
-    import webserver
+    from webserver import webserver
 
     guithread = threading.Thread(target=lambda: webserver.app.run('0.0.0.0', 80))
     bpthread = threading.Thread(target=run)
@@ -437,5 +442,16 @@ def main():
     bpthread.start()
     exchangethread.start()
     guithread.start()
+
+    while True:
+        try:
+            input()
+
+        except KeyboardInterrupt:
+            print('See ya later, alligator!\n')
+            bpthread._stop()
+            exchangethread._stop()
+            guithread._stop()
+            return
 
     # app.run(port=8081)

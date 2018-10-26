@@ -95,6 +95,6 @@ class SignTool:
             signature = self.get_file_signature(filename)
 
             if signature is not None:
-                output.append((filename.split(os.path.sep)[-1], signature))
+                output.append((os.path.sep.join(filename.split(os.path.sep)[-2:]), signature))
 
         return output

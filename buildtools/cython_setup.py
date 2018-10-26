@@ -1,4 +1,5 @@
 import time
+import shutil
 
 def run_cython(source_directories):
     import Cython.Build
@@ -36,7 +37,8 @@ def run_cython(source_directories):
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
-                                               nthreads=1
+                                               nthreads=1,
+
                                                )
         )
 

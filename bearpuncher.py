@@ -449,6 +449,7 @@ def main():
     def run():
         while True:
             try:
+                # timed @ 1.1 seconds 128ms stdev
                 BP_ENGINE.do_technical_analysis()
                 
                 if BP_ENGINE.global_buy_checks():
@@ -459,7 +460,6 @@ def main():
 
                 possible_sells = BP_ENGINE.get_possible_sells(BP_ENGINE.exchange.pairs, BP_ENGINE.sell_strategies)
                 BP_ENGINE.handle_possible_sells(possible_sells)
-                time.sleep(1)
 
             except Exception as ex:
                 print('err in run: {}'.format(traceback.format_exc()))

@@ -7,6 +7,7 @@ runner_template = """\
 if __name__ == '__main__':
     import base64
     import sys
+    import os
 
     import cryptography.exceptions
     from cryptography.hazmat.backends import default_backend
@@ -21,11 +22,15 @@ if __name__ == '__main__':
 
         # ----
         def verify_file(self, filename, signature_b64):
+            if not os.path.exists(f'./lib/{{filename}}'):
+                print(f'Warning: {{filename}} does not exist. This may cause LiquiTrader to fail to run.')
+                return True
+                
             signature = base64.b64decode(signature_b64)
 
             hash_alg = hashes.SHA256()
             hasher = hashes.Hash(hash_alg, default_backend())
-
+            
             # Load the contents of the file to be signed.
             with open('./lib/' + filename, 'rb') as file_to_check:
                 chunk = file_to_check.read(2048)

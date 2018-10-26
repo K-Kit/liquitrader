@@ -4,7 +4,7 @@ sys.path.append('..')
 import pytest
 import pandas.core.frame
 
-from exchanges import Binance
+from exchanges import BinanceExchange
 
 # test keys, trading disabled
 class keys:
@@ -12,7 +12,7 @@ class keys:
     secret = '4AuwPy6mVarrUqqECbyZSU9GrfOrInt6MIHdqvxHZWMaCXEjbSGGjBEuKmpCwPtb'
 
 timeframes=['5m', '15m', '30m']
-ex = Binance.BinanceExchange('binance','USDT' , {'public': keys.public, 'secret': keys.secret},timeframes)
+ex = BinanceExchange.BinanceExchange('binance', 'USDT', {'public': keys.public, 'secret': keys.secret}, timeframes)
 # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
 ex.initialize()
 

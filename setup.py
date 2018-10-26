@@ -10,8 +10,7 @@ from buildtools import cython_setup, build_runner, signature_tools
 if __name__ == '__main__':
     TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'webserver']
     CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
-    #cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
-
+    cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
 
     # Dynamically generate runner.py
     print('Signing files...')
@@ -26,7 +25,7 @@ if __name__ == '__main__':
     print('')
 
     import requests.certs
-    import py_compile
+    #import py_compile
 
 
     # ----
@@ -53,22 +52,33 @@ if __name__ == '__main__':
     build_options = {
         'build_exe': {
             'build_exe': BUILD_PATH,
-            'namespace_packages': ['zope'],
+            'namespace_packages': ['zope', 'numpy', 'binance'],
 
             # Remove package paths from tracebacks
             # 'replace_paths': [('*', '/')],
 
-            "includes": ['numpy', 'pandas', 'cryptography'],
+            "includes": [
+                'numpy',
+                'pandas',
+                'cryptography',
+                'binance',
+            ],
             'bin_includes': ['openblas', 'libgfortran', 'libffi'],
 
             'include_files': [('dependencies/vc_redist_installer.exe', 'setup/vc_redist_installer.exe'),
                               ('dependencies/vc_redist_installer.exe.config', 'setup/vc_redist_installer.exe.config'),
-                              ('dependencies/python/py_built/_strptime.pyc', 'lib/_strptime.pyc'),
-                              ('dependencies/python/py_built/_regex_core.pyc', 'lib/_regex_core.pyc'),
+                              #('dependencies/python/py_built/_strptime.pyc', 'lib/_strptime.pyc'),
+                              #('dependencies/python/py_built/_regex_core.pyc', 'lib/_regex_core.pyc'),
                               ('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
                               ('tos.txt', 'tos.txt'),
-                              ('version.txt', 'version.txt')
+                              ('version.txt', 'version.txt'),
+                              ('config/BuyStrategies.json', 'config/BuyStrategies.json'),
+                              ('config/DCABuyStrategies.json', 'config/DCABuyStrategies.json'),
+                              ('config/GeneralSettings.json', 'config/GeneralSettings.json'),
+                              ('config/GlobalTradeConditions.json', 'config/GlobalTradeConditions.json'),
+                              ('config/PairSpecificSettings.json', 'config/PairSpecificSettings.json'),
+                              ('config/SellStrategies.json', 'config/SellStrategies.json')
                               ],
 
             'packages': TARGET_PACKAGES + [  # LiquiTrader internal packages
@@ -93,21 +103,56 @@ if __name__ == '__main__':
                          'json_minify',
                          'packaging',
                          'logger',
-                         'ccxt', 'binance',
+                         'ccxt',
+                         'binance',
                          'talib',
                          'zope', 'zope.interface',
                          'regex', 'idna', 'dateparser',
                          'lxml', 'lxml._elementpath', 'lxml.etree', 'gzip', 'psutil', 'encodings'
                          ],
 
-            'excludes': ['tkinter'],
+            'excludes': [
+                         'tkinter',
+                         'conditions.test_conditions', # 'dev_keys_binance', !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+                         ],
 
             'zip_include_packages': '*',
-            'zip_exclude_packages': ['flask_bootstrap'],
+            'zip_exclude_packages': ['flask_bootstrap', 'binance'],
 
             'include_msvcr': True,
         }
     }
+
+    """
+    'cheroot.test', 'cheroot.testing',
+                         'cython', 'pyximport',
+                         'pandas.conftest', 'pandas.tests', 'pandas.testing', 'pandas.util._test_decorators',
+                            'pandas.util._tester', 'pandas.util.testing',
+                         'psutil.tests',
+                         'numpy.conftest', 'numpy.tests', 'numpy.testing', 'numpy.distutils.tests',  # 'numpy.core.tests.',
+                            'numpy.f2py.tests', 'numpy.lib.tests', 'numpy.linalg.tests', 'numpy.ma.tests', 'numpy.matrixlib.tests',
+                            'numpy.polynomial.tests',
+                         'nose',
+                         'sqlalchemy.testing',
+                         'talib.test_abstract', 'talib.test_data', 'talib.test_func', 'talib.test_pandas', 'talib.test_stream',
+                         'zope.annotation.tests', 'zope.browserpage.tests', 'zope.browserresource.tests',
+                            'zope.cachedescriptors.tests', 'zope.component.tests', 'zope.configuration.tests',
+                            'zope.container.tests', 'zope.contentprovider.tests', 'zope.contenttype.tests',
+                            'zope.deferredimport.tests', 'zope.deprecation.tests', 'zope.dottedname.tests',
+                            'zope.event.tests', 'zope.exceptions.tests', 'zope.globalrequest.tests',
+                            'zope.i18n.locales.tests', 'zope.i18n.testing', 'zope.i18n.tests', 'zope.i18nmessageid.tests',
+                            'zope.interface.common.tests', 'zope.interface.tests', 'zope.lifecycleevent.tests',
+                            'zope.location.tests', 'zope.pagetemplate.tests', 'zope.processlifetime.tests',
+                            'zope.proxy.tests', 'zope.ptresource.tests', 'zope.publisher.tests', 'zope.schema.tests',
+                            'zope.security.tests', 'zope.sequencesort.tests', 'zope.site.tests', 'zope.size.tests',
+                            'zope.structuredtext.tests', 'zope.tal.tests', 'zope.tales.tests', 'zope.testbrowser.tests',
+                            'zope.testing', 'zope.traversing.tests', 'zope.viewlet.tests',
+                            
+        'tkinter', 'unittest', 'mock', 'pytest', 'pdb', 'doctest', 'cProfile', 'profile',
+                            'distutils', 'setuptools',
+    """
 
     if sys.platform == 'win32':
         executables = [Executable('runner.py',
@@ -124,10 +169,10 @@ if __name__ == '__main__':
 
 
     # Re-build .pyc files that git destroys
-    os.makedirs('dependencies/python/py_built', exist_ok=True)
-    for source_file in ('_regex_core.py', '_strptime.py'):
-        output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
-        py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
+    #os.makedirs('dependencies/python/py_built', exist_ok=True)
+    #for source_file in ('_regex_core.py', '_strptime.py'):
+    #    output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
+    #    py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
 
 
     if BUILD_LIQUITRADER:
@@ -150,8 +195,8 @@ if __name__ == '__main__':
                       'build_exe': BUILD_PATH + 'updater/',
                       'packages': ['ctypes', '_ctypes', 'requests', 'idna', 'idna.idnadata', 'psutil'],
                       'include_files': [(requests.certs.where(), 'lib/cacert.pem')],
-                      'zip_include_packages': '*',
-                      'zip_exclude_packages': [],
+                      #'zip_include_packages': '*',
+                      #'zip_exclude_packages': [],
 
                       'excludes': ['tkinter'],
 
@@ -162,8 +207,6 @@ if __name__ == '__main__':
                   }
               }
               )
-
-    cython_setup.cleanup_pyd(TARGET_DIRECTORIES)
 
     try:
         os.remove(BUILD_PATH + 'webserver/static/main.js.map')

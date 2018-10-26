@@ -1,9 +1,9 @@
 from bearpuncher import *
 
-from flask import Flask
-from flask import jsonify
+import flask
+from flask import jsonify, request
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
 global BP_ENGINE
 BP_ENGINE = None
@@ -63,3 +63,26 @@ def get_dashboard_data():
     }
 
     return data
+
+
+@app.route('/update_config', methods=['POST'])
+def update_config():
+    data = request.data.decode()
+    # data
+    dataDict = json.loads(data)
+    BP_ENGINE.config.update_config(data['section'], data['data'])
+    return data
+
+
+@app.route("/config")
+def get_config():
+    cfg = vars(BP_ENGINE.config)
+    return jsonify(str(cfg))
+
+
+
+if __name__ == '__main__':
+    import bearpuncher
+    BP_ENGINE = bearpuncher.Bearpuncher()
+    BP_ENGINE.initialize_config()
+    app.run('0.0.0.0', 80, debug=True)

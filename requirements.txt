@@ -1,5 +1,6 @@
 cython
 cryptography
 ccxt
+binance
 requests
 requests.certs

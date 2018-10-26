@@ -2389,7 +2389,7 @@ class CallGroup(RegexBase):
 
         self._key = self.__class__, self.group
 
-    def remove_captures(self):
+    def remove_captures(self, pattern=''):
         raise error("group reference not allowed", pattern, self.position)
 
     def _compile(self, reverse, fuzzy):
@@ -2650,6 +2650,8 @@ class Fuzzy(RegexBase):
         else:
             constraints["cost"] = {"d": 1, "i": 1, "s": 1, "max":
               constraints["e"][1]}
+
+        self.constraints = constraints  # LPJ 10/25
 
     def fix_groups(self, pattern, reverse, fuzzy):
         self.subpattern.fix_groups(pattern, reverse, True)
@@ -2945,8 +2947,8 @@ class Group(RegexBase):
 
     def dump(self, indent, reverse):
         group = self.group
-        if group < 0:
-            group = private_groups[group]
+        #if group < 0:
+        #    group = self.private_groups[group]
         print("{}GROUP {}".format(INDENT * indent, group))
         self.subpattern.dump(indent + 1, reverse)
 
@@ -3291,7 +3293,7 @@ class RefGroup(RegexBase):
 
         self._key = self.__class__, self.group, self.case_flags
 
-    def remove_captures(self):
+    def remove_captures(self, pattern=''):
         raise error("group reference not allowed", pattern, self.position)
 
     def _compile(self, reverse, fuzzy):
@@ -3544,7 +3546,7 @@ class SetBase(RegexBase):
           zerowidth).optimise(self.info, False)
 
     def get_firstset(self, reverse):
-        return set([self])
+        return {self, }
 
     def has_simple_start(self):
         return True

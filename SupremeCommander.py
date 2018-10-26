@@ -8,7 +8,7 @@ from functools import reduce
 
 import pandas as pd
 
-from exchanges import Binance
+from exchanges import BinanceExchange
 from utils.DepthAnalyzer import *
 
 from exchanges import PaperBinance

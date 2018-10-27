@@ -49,7 +49,10 @@ class DCABuyCondition(Condition):
 
         # get current value, then use to calc percent change
         current_value = get_current_value(price, pair['total'])
-        percent_change = get_percent_change(current_value, pair['total_cost'])
+
+        total_cost = pair['total_cost']
+        total_cost = -1.0 if total_cost is None else total_cost
+        percent_change = get_percent_change(current_value, total_cost)
 
         # check percent change, if above trigger return none
         above_trigger = percent_change > self.get_dca_trigger(dca_level)
@@ -65,7 +68,7 @@ class DCABuyCondition(Condition):
             current_marker = self.pairs_trailing[symbol]['trail_from']
             marker = price if price < current_marker else current_marker
             trail_to = marker * (1 + (self.trailing_value/100))
-            self.pairs_trailing[symbol] = {'trail_from':marker, 'trail_to':trail_to }
+            self.pairs_trailing[symbol] = {'trail_from': marker, 'trail_to':trail_to }
 
         # if its not trailing, add to trailing pairs, set trail_to
         elif res:

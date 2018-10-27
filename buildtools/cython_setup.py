@@ -1,5 +1,5 @@
 import time
-import shutil
+
 
 def run_cython(source_directories):
     import Cython.Build
@@ -33,12 +33,13 @@ def run_cython(source_directories):
                                                         'tests',
                                                         'conditions/examples.py',
                                                         'conditions/test_conditions.py',
+                                                        'SupremeCommander.py'
                                                     ],
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
                                                nthreads=1,
-
+                                               annotate=False
                                                )
         )
 

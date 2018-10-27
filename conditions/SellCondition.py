@@ -28,7 +28,9 @@ class SellCondition(Condition):
         price = float(pair['close'])
         trail_to = None
         current_value = get_current_value(price, pair['total'])
-        percent_change = get_percent_change(current_value, pair['total_cost'])
+        total_cost = pair['total_cost']
+        total_cost = -1.0 if total_cost is None else total_cost
+        percent_change = get_percent_change(current_value, total_cost)
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
         # check percent change, if above trigger return none

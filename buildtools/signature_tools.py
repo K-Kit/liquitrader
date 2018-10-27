@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import shutil
 import base64
@@ -95,6 +96,19 @@ class SignTool:
             signature = self.get_file_signature(filename)
 
             if signature is not None:
-                output.append((os.path.sep.join(filename.split(os.path.sep)[-2:]), signature))
+                filename = filename.replace(f'./liquitrader{os.path.sep}', '')
+
+                if filename.startswith('liquitrader.'):
+                    output.append((filename, signature))
+                    continue
+
+                # Create module.file.[pyd/so] filename structure
+                path_parts = filename.split(os.path.sep)
+                module_parts = filename.replace(os.path.sep, '.').split('.')
+
+                fname = '.'.join(module_parts[:-2] + [module_parts[-1]])  # strip cp36-win_amd64.pyd, etc.
+                # final_name = f'{path_parts[-2]}.{fname}' if path_parts[-2] != 'liquitrader' else fname
+
+                output.append((fname, signature))
 
         return output

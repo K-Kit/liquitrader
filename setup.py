@@ -4,7 +4,9 @@ import shutil
 import datetime
 import glob
 
-from buildtools import cython_setup, build_runner, signature_tools
+import requests.certs
+
+from buildtools import cython_setup, build_runner, signature_tools, monkey_patcher
 
 
 if __name__ == '__main__':
@@ -17,16 +19,28 @@ if __name__ == '__main__':
     if not os.path.exists('./buildtools/liquitrader.pem'):
         signature_tools.generate_private_key()
 
-    to_sign = glob.glob('./*.pyd')
-    to_sign.extend(glob.glob('./**/*.pyd', recursive=True))
+    lib_ext = 'pyd' if sys.platform == 'win32' else 'so'
+    to_sign = glob.glob(f'./liquitrader/**/*.{lib_ext}', recursive=True)
     to_sign.append('webserver/static/main.js')
 
     build_runner.build_runner(to_sign=to_sign)
     print('')
 
-    import requests.certs
-    #import py_compile
+    internal_lib_copy_dests = []
+    for src_dir, dirs, files in os.walk('./liquitrader'):
+        dst_dir = src_dir.replace('liquitrader', '', 1)
 
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+
+        for file_ in files:
+            src_file = os.path.join(src_dir, file_)
+            dst_file = os.path.join(dst_dir, file_)
+            if os.path.exists(dst_file):
+                os.remove(dst_file)
+            shutil.copy(src_file, dst_dir)
+
+            internal_lib_copy_dests.append(dst_file)
 
     # ----
     # TOGGLE WHAT GETS BUILT HERE
@@ -39,14 +53,7 @@ if __name__ == '__main__':
     TARGET_DIRECTORIES = ['./' + package for package in TARGET_PACKAGES]
     sys.path.extend(TARGET_DIRECTORIES)
 
-
-    PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
-
-    os.environ['TCL_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tcl8.6')
-    os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
-
     from cx_Freeze import setup, Executable
-
 
     # Dependencies are automatically detected, but it might need fine tuning || LOL BULLSHIT
     build_options = {
@@ -62,13 +69,12 @@ if __name__ == '__main__':
                 'pandas',
                 'cryptography',
                 'binance',
+                'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
             'bin_includes': ['openblas', 'libgfortran', 'libffi'],
 
             'include_files': [('dependencies/vc_redist_installer.exe', 'setup/vc_redist_installer.exe'),
                               ('dependencies/vc_redist_installer.exe.config', 'setup/vc_redist_installer.exe.config'),
-                              #('dependencies/python/py_built/_strptime.pyc', 'lib/_strptime.pyc'),
-                              #('dependencies/python/py_built/_regex_core.pyc', 'lib/_regex_core.pyc'),
                               ('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
                               ('tos.txt', 'tos.txt'),
@@ -112,10 +118,8 @@ if __name__ == '__main__':
                          ],
 
             'excludes': [
-                         'tkinter',
+                         'tkinter', 'pbd', 'cProfile', 'profile', 'Cython',
                          'conditions.test_conditions', # 'dev_keys_binance', !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
                          ],
 
             'zip_include_packages': '*',
@@ -167,13 +171,8 @@ if __name__ == '__main__':
                                   icon='dependencies/liquitrader.ico')
                        ]
 
-
-    # Re-build .pyc files that git destroys
-    #os.makedirs('dependencies/python/py_built', exist_ok=True)
-    #for source_file in ('_regex_core.py', '_strptime.py'):
-    #    output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
-    #    py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
-
+    # Write library monkey-patches to site-packages
+    monkey_patcher.do_patches()
 
     if BUILD_LIQUITRADER:
         print('\n=====\nBuilding LiquiTrader...\n')
@@ -207,6 +206,10 @@ if __name__ == '__main__':
                   }
               }
               )
+
+    # Clean up copied .pyd/.so
+    for file in internal_lib_copy_dests:
+        os.remove(file)
 
     try:
         os.remove(BUILD_PATH + 'webserver/static/main.js.map')

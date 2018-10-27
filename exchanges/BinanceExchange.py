@@ -14,7 +14,7 @@ BinanceSocketManager = binance.websockets.BinanceSocketManager
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
-def gen_socket_list(pairs: dict, timeframes: list):
+def gen_socket_list(pairs: dict, timeframes: set):
     # creates list of socket streams to subscribe to
     candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
     depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]

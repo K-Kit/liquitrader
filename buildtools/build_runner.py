@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
         # ----
         def verify_file(self, filename, signature_b64):
-            if not os.path.exists(f'./lib/{{filename}}'):
-                print(f'Warning: {{filename}} does not exist. This may cause LiquiTrader to fail to run.')
+            if not os.path.exists(f'lib/{{filename}}'):
+                print(f'Warning: lib/{{filename}} does not exist. This may cause LiquiTrader to fail to run.')
                 return True
                 
             signature = base64.b64decode(signature_b64)
@@ -32,7 +32,7 @@ if __name__ == '__main__':
             hasher = hashes.Hash(hash_alg, default_backend())
             
             # Load the contents of the file to be signed.
-            with open('./lib/' + filename, 'rb') as file_to_check:
+            with open('lib/' + filename, 'rb') as file_to_check:
                 chunk = file_to_check.read(2048)
                 while chunk != b'':
                     hasher.update(chunk)
@@ -65,9 +65,9 @@ if __name__ == '__main__':
     verifier = VerifyTool({public_key_string})
 
     if not verifier.verify_files({signature_tuples}):
-        sys.stdout.writeline('LiquiTrader file signature verification failed!')
-        sys.stdout.writeline('LiquiTrader has been illegitimately modified and must be reinstalled.')
-        sys.stdout.writeline('We recommend downloading it manually from our website in case your updater has been compromised.')
+        sys.stdout.write('LiquiTrader file signature verification failed!\\n')
+        sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\\n')
+        sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\\n\\n')
         sys.stdout.flush()
 
         sys.exit(1)

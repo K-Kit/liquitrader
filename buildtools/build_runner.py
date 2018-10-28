@@ -79,7 +79,7 @@ if __name__ == '__main__':
 """
 
 
-def build_runner(to_sign):
+def build_verifier(to_sign):
     signer = buildtools.signature_tools.SignTool()
     file_signature_tuples = signer.sign_files(to_sign)
 
@@ -88,7 +88,7 @@ def build_runner(to_sign):
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-    with open('runner.py', 'w') as runner_file:
+    with open('verifier.py', 'w') as runner_file:
         print(runner_template.format(public_key_string=public_key_bytes,
                                      signature_tuples=file_signature_tuples),
               file=runner_file)

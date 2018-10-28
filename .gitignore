@@ -109,3 +109,5 @@ sell_log
 market
 buy_log
 runner.py
+verifier.py
+verifier.py

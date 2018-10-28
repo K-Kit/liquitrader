@@ -1,40 +1,53 @@
+import sys
 import time
 
+from distutils.core import setup
 
-def run_cython(source_directories):
-    import Cython.Build
-    import Cython.Compiler.Options
+import Cython.Build
+import Cython.Compiler.Options
 
+
+def run_cython(source_directories=None, source_file=None):
     Cython.Compiler.Options.docstrings = False
     Cython.Compiler.Options.emit_code_comments = False
-    
-    import sys
+
     old_sys_argv = sys.argv[:]
     sys.argv = [sys.argv[0]] + ['build_ext', '--inplace']
 
     operating_system = 'windows' if sys.platform == 'win32' else 'linux'
 
-    from distutils.core import setup
-
     start = time.time()
-    for direct in source_directories:
+    if source_directories is not None:
+        for direct in source_directories:
+            setup(
+                ext_modules=Cython.Build.cythonize('{}/*.py'.format(direct),
+                                                   build_dir=f'./build/cython/{operating_system}/',
+                                                   exclude=[
+                                                            '{}/__init__.py'.format(direct),
+                                                            'runner.py',
+                                                            'setup.py',
+                                                            'dev_keys_binance.py',
+                                                            'buildtools',
+                                                            #'buildtools/cython_setup.py',
+                                                            #'buildtools/build_runner.py',
+                                                            #'buildtools/signature_tools.py',
+                                                            'tests',
+                                                            'conditions/examples.py',
+                                                            'conditions/test_conditions.py',
+                                                            'SupremeCommander.py'
+                                                        ],
+                                                   compiler_directives={
+                                                       'language_level': '3'
+                                                   },
+                                                   nthreads=1,
+                                                   annotate=False
+                                                   )
+            )
+
+    elif source_file is not None:
         setup(
-            ext_modules=Cython.Build.cythonize('{}/*.py'.format(direct),
+            ext_modules=Cython.Build.cythonize(source_file,
                                                build_dir=f'./build/cython/{operating_system}/',
-                                               exclude=[
-                                                        '{}/__init__.py'.format(direct),
-                                                        'runner.py',
-                                                        'setup.py',
-                                                        'dev_keys_binance.py',
-                                                        'buildtools',
-                                                        'buildtools/cython_setup.py',
-                                                        'buildtools/build_runner.py',
-                                                        'buildtools/signature_tools.py',
-                                                        'tests',
-                                                        'conditions/examples.py',
-                                                        'conditions/test_conditions.py',
-                                                        'SupremeCommander.py'
-                                                    ],
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
@@ -42,6 +55,9 @@ def run_cython(source_directories):
                                                annotate=False
                                                )
         )
+
+    else:
+        raise Exception('No file or directory provided to cython_setup.run_cython()')
 
     print(f'Cython build complete in {time.time() - start}')
 

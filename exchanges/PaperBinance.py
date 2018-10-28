@@ -74,21 +74,47 @@ class PaperBinance(BinanceExchange):
         pass
 
     def place_order(self, symbol, order_type, side, amount, price):
-        price = self.pairs[symbol]['close']
-        order = create_paper_order(symbol, order_type, side, amount, price, self._quote_currency)
-        if 'trades' in self.pairs[symbol]:
-            self.pairs[symbol]['trades'].append(order)
-        else:
-            self.pairs[symbol]['trades'] = [order]
-            self.pairs[symbol]['total'] = 0
-        trades = self.pairs[symbol]['trades']
-        self.pairs[symbol]['total'] += amount if side == 'buy' else -amount
-        self.balance -= amount*price if side == 'buy' else -amount*price
-        average_data = calc_average_price_from_hist(trades, self.pairs[symbol]['total'])\
-            if self.pairs[symbol]['avg_price'] is None else calculate_from_existing(trades, self.pairs[symbol]['total'], self.pairs[symbol])
+        # self.pairs
+        # self._quote_currency (for papertrading)
+        # self.balance
 
-        self.pairs[symbol].update(average_data)
+        bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
+        print(symbol, amount, self.pairs[symbol]['total'])
+
+        order = create_paper_order(symbol, order_type, side, amount, price, self._quote_currency)
+        print(order)
+
+        if bought_price is not None:
+            order['bought_price'] = bought_price
+
+        if 'total' not in self.pairs[symbol]:
+            self.pairs[symbol]['total'] = 0
+        filled = order['filled']
+
+        # fee will only be currency
+        if self.pairs[symbol]['base'] == order['fee']['currency']:
+            filled -= order['fee']['cost']
+
+        # increment or decriment 'total' (quantity owned)
+        self.pairs[symbol]['total'] += filled if side == 'buy' else - filled
+
+        # increment or decriment total cost
+        self.pairs[symbol]['total_cost'] += order['cost'] if side == 'buy' else - order['cost']
+
+        # recalculate average price from total cost and amount
+        try:
+            self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
+        except ZeroDivisionError:
+            self.pairs[symbol]['avg_price'] = None
+
+        # update quote balance
+        self.balance -= order['cost'] if side == 'buy' else - order['cost']
+
+        # update last order time
         self.pairs[symbol]['last_order_time'] = time.time()
+        # temp - will manually calc avg instead of calling update
+        # self.update_balances()
+
         return order
 
 if __name__ == '__main__':

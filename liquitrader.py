@@ -42,8 +42,8 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
                   }
 
 
-FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
-                             'Amount', '24h Change']
+FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
+                           'Amount', '24h Change']
 
 class User:
     balance = 5
@@ -430,6 +430,28 @@ class LiquiTrader:
 
 # ----
 def main():
+    def err_msg():
+        sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
+        sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+        sys.stdout.flush()
+
+    if hasattr(sys, 'frozen') or not os.path.isfile('.gitignore'):
+        vfile = 'lib/verifier.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/verifier.cpython-36m-x86_64-linux-gnu.so'
+
+        # Check that verifier exists and that it is of a reasonable size
+        if (not os.path.isfile(vfile)) or os.stat(vfile).st_size < 260000:
+            print(str(os.stat(vfile).st_size))
+            err_msg()
+            sys.exit(1)
+
+        start = time.time()
+        import verifier
+        verifier.verify()
+
+        if (time.time() - start) < .05:
+            err_msg()
+            sys.exit(1)
+
     from webserver import webserver
 
     global BP_ENGINE
@@ -495,7 +517,6 @@ def main():
     # app.run(port=8081)
 
 if __name__ == '__main__':
-
     def get_pc():
         df = BP_ENGINE.pairs_to_df()
         df[df['total'] > 0]

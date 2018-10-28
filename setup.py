@@ -6,26 +6,23 @@ import glob
 
 import requests.certs
 
-from buildtools import cython_setup, build_runner, signature_tools, monkey_patcher
+from buildtools import cython_setup, build_verifier, signature_tools, monkey_patcher
 
 
 if __name__ == '__main__':
+    # ----
+    # TOGGLE WHAT GETS BUILT HERE
+    BUILD_LIQUITRADER = True
+    BUILD_UPDATER = False
+    # ----
+
+    # Write out placeholder verifier
+    with open('verifier.py', 'w') as f:
+        f.write('def verify(): pass\n')
+
     TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'webserver']
     CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
     cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
-
-    # Dynamically generate verifier.py
-    print('Signing files...')
-    if not os.path.exists('./buildtools/liquitrader.pem'):
-        signature_tools.generate_private_key()
-
-    lib_ext = 'pyd' if sys.platform == 'win32' else 'so'
-    to_sign = glob.glob(f'./liquitrader/**/*.{lib_ext}', recursive=True)
-    to_sign.append('webserver/static/main.js')
-    build_runner.build_verifier(to_sign=to_sign)
-
-
-    print('')
 
     internal_lib_copy_dests = []
     for src_dir, dirs, files in os.walk('./liquitrader'):
@@ -42,12 +39,6 @@ if __name__ == '__main__':
             shutil.copy(src_file, dst_dir)
 
             internal_lib_copy_dests.append(dst_file)
-
-    # ----
-    # TOGGLE WHAT GETS BUILT HERE
-    BUILD_LIQUITRADER = True
-    BUILD_UPDATER = False
-    # ----
 
     BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
 
@@ -70,6 +61,7 @@ if __name__ == '__main__':
                 'pandas',
                 'cryptography',
                 'binance',
+                'TimeSyncWin', 'verifier',
                 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
             'bin_includes': ['openblas', 'libgfortran', 'libffi'],
@@ -124,7 +116,7 @@ if __name__ == '__main__':
                          ],
 
             'zip_include_packages': '*',
-            'zip_exclude_packages': ['flask_bootstrap', 'binance'],
+            'zip_exclude_packages': ['flask_bootstrap'],
 
             'include_msvcr': True,
         }
@@ -212,6 +204,9 @@ if __name__ == '__main__':
     for file in internal_lib_copy_dests:
         os.remove(file)
 
+    if sys.platform == 'win32':
+        shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
+
     try:
         os.remove(BUILD_PATH + 'webserver/static/main.js.map')
     except FileNotFoundError:
@@ -245,8 +240,46 @@ if __name__ == '__main__':
         else:
             print('\nWARNING: COULD NOT FIND TALIB BINARY\n')
 
+    # ----
+    # Dynamically generate verifier.py and build into package
+
+    print('Signing files...')
+    if not os.path.exists('./buildtools/liquitrader.pem'):
+        signature_tools.generate_private_key()
+
+    opsys = 'win' if sys.platform == 'win32' else 'linux'
+    exe_ext = '.exe' if opsys == 'win' else ''
+
+    exclude = ['verifier']
+    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
+    to_sign = []
+    for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
+        bad = False
+
+        for ext in exclude_ext:
+            if file.endswith(ext):
+                bad = True
+                break
+
+        for exclu in exclude:
+            if bad or exclu in file:
+                bad = True
+                break
+
+        if not bad:
+            to_sign.append(file)
+
+    build_verifier.build_verifier(to_sign=to_sign)
+    cython_setup.run_cython(source_file='verifier.py')
+
+    new_verifier = glob.glob(f'./liquitrader/verifier*')[0]
+    verifier_fname = new_verifier.replace(os.path.sep, '/').split('/')[-1]
+    shutil.copyfile(new_verifier, f'./build/liquitrader_{opsys}/lib/{verifier_fname}')
+
+    # ----
     what_built = 'LiquiTrader' if BUILD_LIQUITRADER else ''
     what_built += ' and ' if BUILD_LIQUITRADER and BUILD_UPDATER else ''
     what_built += 'Updater' if BUILD_UPDATER else ''
 
-    print(f'\nBuild of {what_built} completed at {datetime.datetime.now().strftime("%I:%M%p on %m/%d (%A)")}')
+    if what_built:
+        print(f'\nBuild of {what_built} completed at {datetime.datetime.now().strftime("%I:%M%p on %m/%d (%A)")}')

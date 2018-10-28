@@ -4,8 +4,8 @@ def get_percent_change(current:float, bought:float):
     if bought is None or bought == 0: return 0
     return (current-bought)/bought*100
 
-def get_current_value(price:float, amount:float):
-    return price*amount
+def get_current_value(price:float, amount:float, fee=0.075):
+    return price*amount*(1 - (fee / 100))
 
 # returns false the trade would not exceed min buy balance (buy on false)
 def exceeds_min_balance(balance, min_buy_balance, price, amount):

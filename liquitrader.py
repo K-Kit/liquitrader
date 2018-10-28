@@ -45,6 +45,11 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
 FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
                              'Amount', '24h Change']
 
+class User:
+    balance = 5
+
+user = User()
+
 
 class LiquiTrader:
     """
@@ -328,9 +333,28 @@ class LiquiTrader:
                 continue
 
     def save_trade_history(self):
+        self.save_pairs_history()
         fp = 'tradehistory.json'
         with open(fp, 'w') as f:
             json.dump(self.trade_history, f)
+
+    def save_pairs_history(self):
+        fp = 'pair_data.json'
+        with open(fp, 'w') as f:
+            json.dump(self.exchange.pairs, f)
+
+    def load_pairs_history(self):
+        fp = 'pair_data.json'
+        with open(fp, 'r') as f:
+            pair_data = json.load(f)
+        for pair in self.exchange.pairs:
+            if pair in pair_data:
+                if self.exchange.pairs[pair]['total_cost'] is None:
+                    self.exchange.pairs[pair].update(pair_data[pair])
+                else:
+                    self.exchange.pairs[pair]['dca_level'] = pair_data[pair]['dca_level']
+                    self.exchange.pairs[pair]['last_order_time'] = pair_data[pair]['last_order_time']
+
 
     def load_trade_history(self):
         fp = 'tradehistory.json'
@@ -342,7 +366,7 @@ class LiquiTrader:
 
         if 'total_cost' in df:
             df['current_value'] = df.close * df.total
-            df['gain'] = (df.current_value - df.total_cost) / df.total_cost * 100
+            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100
 
         if friendly:
             df = df[DEFAULT_COLUMNS] if basic else df
@@ -406,17 +430,32 @@ class LiquiTrader:
 
 # ----
 def main():
-    global BP_ENGINE
+    from webserver import webserver
 
+    global BP_ENGINE
     BP_ENGINE = LiquiTrader()
     BP_ENGINE.initialize_config()
-    BP_ENGINE.load_trade_history()
+
+    webserver.BP_ENGINE = BP_ENGINE
+
+    try:
+        BP_ENGINE.load_trade_history()
+    except:
+        pass
+
     BP_ENGINE.initialize_exchange()
+
+    try:
+        BP_ENGINE.load_pairs_history()
+    except FileNotFoundError:
+        print('No trade history found')
+
     BP_ENGINE.load_strategies()
 
     def run():
         while True:
             try:
+                # timed @ 1.1 seconds 128ms stdev
                 BP_ENGINE.do_technical_analysis()
                 
                 if BP_ENGINE.global_buy_checks():
@@ -427,13 +466,11 @@ def main():
 
                 possible_sells = BP_ENGINE.get_possible_sells(BP_ENGINE.exchange.pairs, BP_ENGINE.sell_strategies)
                 BP_ENGINE.handle_possible_sells(possible_sells)
-                time.sleep(1)
 
             except Exception as ex:
                 print('err in run: {}'.format(traceback.format_exc()))
 
     import threading
-    from webserver import webserver
 
     guithread = threading.Thread(target=lambda: webserver.app.run('0.0.0.0', 80))
     bpthread = threading.Thread(target=run)
@@ -454,4 +491,31 @@ def main():
             guithread._stop()
             return
 
+
     # app.run(port=8081)
+
+if __name__ == '__main__':
+
+    def get_pc():
+        df = BP_ENGINE.pairs_to_df()
+        df[df['total'] > 0]
+        return df
+    main()
+
+    # df['% Change'].dropna()
+    # Out[8]:
+    # CLOAK / ETH - 104.763070
+    # DGD / ETH
+    # 0.329280
+    # EDO / ETH - 0.100000
+    # FUN / ETH - 0.691351
+    # GTO / ETH - 2.135282
+    # ICX / ETH - 0.563066
+    # IOTA / ETH - 0.338263
+    # REQ / ETH
+    # 0.049041
+    # SNM / ETH
+    # 0.588560
+    # STORJ / ETH - 0.997334
+    # TRX / ETH - 2.530675
+    # Name: % Change, dtype: float64

@@ -8,11 +8,11 @@ class SellCondition(Condition):
         super().__init__(condition_config)
         self.sell_value = condition_config['sell_value']
 
-    def get_lowest_sell_price(self, total_cost, amount):
+    def get_lowest_sell_price(self, total_cost, amount, fee):
         bought_price = total_cost/amount
-        return bought_price * (1 + (self.sell_value/100))
+        return bought_price * (1 + ((self.sell_value + fee) / 100))
 
-    def evaluate(self, pair: dict, indicators: dict, balance: float=None):
+    def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
         """
         evaluate single pair against conditions
         if not in pairs_trailing and conditions = true : add to dict, set floor/ceiling at price -> return true
@@ -30,7 +30,8 @@ class SellCondition(Condition):
         current_value = get_current_value(price, pair['total'])
         total_cost = pair['total_cost']
         total_cost = -1.0 if total_cost is None else total_cost
-        percent_change = get_percent_change(current_value, total_cost)
+        percent_change = get_percent_change(current_value, total_cost) - fee
+        pair['percent_change'] = percent_change
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
         # check percent change, if above trigger return none
@@ -51,11 +52,11 @@ class SellCondition(Condition):
             return None
 
         if price <= trail_to and not trail_to is None:
-            return self.get_lowest_sell_price(pair['total_cost'], pair['total'])
+            return self.get_lowest_sell_price(pair['total_cost'], pair['total'], fee)
 
 
 if __name__ == '__main__':
-    from examples import *
+    from conditions.examples import *
     strategy = {}
     # 1 and 3 are true with the test data
     strategy['conditions'] = [condition_1]

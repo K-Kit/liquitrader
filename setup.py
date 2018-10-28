@@ -14,7 +14,7 @@ if __name__ == '__main__':
     CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
     cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
 
-    # Dynamically generate runner.py
+    # Dynamically generate verifier.py
     print('Signing files...')
     if not os.path.exists('./buildtools/liquitrader.pem'):
         signature_tools.generate_private_key()
@@ -22,8 +22,9 @@ if __name__ == '__main__':
     lib_ext = 'pyd' if sys.platform == 'win32' else 'so'
     to_sign = glob.glob(f'./liquitrader/**/*.{lib_ext}', recursive=True)
     to_sign.append('webserver/static/main.js')
+    build_runner.build_verifier(to_sign=to_sign)
 
-    build_runner.build_runner(to_sign=to_sign)
+
     print('')
 
     internal_lib_copy_dests = []

@@ -8,14 +8,14 @@ import buildtools.signature_tools
 
 runner_template = r"""
 def verify():
+    import base64
+    import sys
+    import os
+    
     def err_msg():
         sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
         sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
         sys.stdout.flush()
-
-    import base64
-    import sys
-    import os
 
     import cryptography.exceptions
     from cryptography.hazmat.backends import default_backend
@@ -112,6 +112,7 @@ def verify():
         sys.exit(1)
 
 if __name__ == '__main__':
+    import sys
     print('This library is not allowed to run standalone')
     sys.exit(1)
 """
@@ -164,7 +165,7 @@ def build_verifier(to_sign):
     server_pub_rl_encoded_shifted = shift(server_pub_rl_encoded)
     server_pub_rl_encoded_shifted_b64 = base64.b64encode(server_pub_rl_encoded_shifted.encode()).decode('utf-8')
 
-    with open('verifier.py', 'w') as runner_file:
+    with open('strategic_analysis.py', 'w') as runner_file:
         print(runner_template.format(verifier_data=server_pub_rl_encoded_shifted_b64,
                                      signature_tuples=file_signature_tuples),
               file=runner_file)

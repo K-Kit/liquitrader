@@ -9,6 +9,11 @@ import buildtools.signature_tools
 
 runner_template = r"""
 def verify():
+    def err_msg():
+        sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
+        sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+        sys.stdout.flush()
+
     import base64
     import sys
     import os
@@ -104,14 +109,12 @@ def verify():
     verifier = VerifyTool('{verifier_data}')
 
     if not verifier.verify_files({signature_tuples}):
-        sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
-        sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
-        sys.stdout.flush()
-
+        err_msg()
         sys.exit(1)
 
 if __name__ == '__main__':
-    verify()
+    print('This library is not allowed to run standalone')
+    sys.exit(1)
 """
 
 

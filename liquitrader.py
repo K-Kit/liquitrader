@@ -373,12 +373,14 @@ class LiquiTrader:
 
     # ----
     def do_technical_analysis(self):
+        candles = self.exchange.candles
+
         for pair in self.exchange.pairs:
             if self.indicators is None:
                 raise TypeError('(do_technical_analysis) LiquiTrader.indicators cannot be None')
 
             try:
-                self.statistics[pair] = run_ta(self.exchange.candles[pair], self.indicators)
+                self.statistics[pair] = run_ta(candles[pair], self.indicators)
 
             except Exception as ex:
                 print('err in do ta', pair, ex)

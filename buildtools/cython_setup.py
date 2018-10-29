@@ -59,7 +59,7 @@ def run_cython(source_directories=None, source_file=None):
 
     sys.argv = old_sys_argv
 
-    
+
 def cleanup_pyd(source_directories):
     import glob
     import os

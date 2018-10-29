@@ -7,6 +7,23 @@ app = flask.Flask(__name__)
 
 LT_TRADER = None
 
+
+def run(shutdown_handler):
+    shutdown_handler.add_task()
+    app.run('0.0.0.0', 80)
+
+
+def stop(shutdown_handler):
+    app_stop_func = flask.request.environ.get('werkzeug.server.shutdown')
+
+    if app_stop_func is not None:
+        app_stop_func()
+    else:
+        print('Failed to shutdown GUI')
+
+    shutdown_handler.remove_task()
+
+
 @app.route("/")
 def gethello():
     return "hello"

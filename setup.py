@@ -17,10 +17,10 @@ if __name__ == '__main__':
     # ----
 
     # Write out placeholder verifier
-    with open('verifier.py', 'w') as f:
+    with open('strategic_analysis.py', 'w') as f:
         f.write('def verify(): pass\n')
 
-    TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'webserver']
+    TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
     CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
     cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
                 'pandas',
                 'cryptography',
                 'binance',
-                'TimeSyncWin', 'verifier',
+                'TimeSyncWin', 'strategic_analysis',
                 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
             'bin_includes': ['openblas', 'libgfortran', 'libffi'],
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     opsys = 'win' if sys.platform == 'win32' else 'linux'
     exe_ext = '.exe' if opsys == 'win' else ''
 
-    exclude = ['verifier']
+    exclude = ['strategic_analysis']
     exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
     to_sign = []
     for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
@@ -270,9 +270,9 @@ if __name__ == '__main__':
             to_sign.append(file)
 
     build_verifier.build_verifier(to_sign=to_sign)
-    cython_setup.run_cython(source_file='verifier.py')
+    cython_setup.run_cython(source_file='strategic_analysis.py')
 
-    new_verifier = glob.glob(f'./liquitrader/verifier*')[0]
+    new_verifier = glob.glob(f'./liquitrader/strategic_analysis*')[0]
     verifier_fname = new_verifier.replace(os.path.sep, '/').split('/')[-1]
     shutil.copyfile(new_verifier, f'./build/liquitrader_{opsys}/lib/{verifier_fname}')
 

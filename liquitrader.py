@@ -5,8 +5,9 @@ import json
 import time
 import traceback
 import threading
+import functools
 
-import verifier
+import strategic_analysis
 
 from config import Config
 from exchanges import BinanceExchange
@@ -56,6 +57,35 @@ class User:
 user = User()
 
 
+class ShutdownHandler:
+
+    def __init__(self):
+        self._counter = 0
+        self._shutdown_in_progress = threading.Event()
+
+    def add_task(self):
+        self._counter += 1
+
+    def remove_task(self):
+        self._counter -= 1
+
+    def start_shutdown(self):
+        self._shutdown_in_progress.set()
+
+    def is_complete(self):
+        return self._counter == 0
+
+    def running_or_complete(self):
+        return self._shutdown_in_progress.is_set() or self.is_complete()
+
+    def nop_on_shutdown(self, func):
+        @functools.wraps(func)
+        def nopper(*args, **kwargs):
+            return None if self.running_or_complete() else func(*args, **kwargs)
+
+        return nopper
+
+
 class LiquiTrader:
     """
     Needs:
@@ -77,7 +107,9 @@ class LiquiTrader:
         - update strategies
     """
 
-    def __init__(self):
+    def __init__(self, shutdown_handler):
+        self.shutdown_handler = shutdown_handler
+
         self.exchange = None
         self.statistics = {}
         self.config = None
@@ -120,6 +152,16 @@ class LiquiTrader:
                                                             self.timeframes)
 
         asyncio.get_event_loop().run_until_complete(self.exchange.initialize())
+
+    # ----
+    def run_exchange(self):
+        self.shutdown_handler.add_task()
+        self.exchange.start()
+
+    # ----
+    def stop_exchange(self):
+        self.exchange.stop()
+        self.shutdown_handler.remove_task()
 
     # ----
     # return total current value (pairs + balance)
@@ -508,16 +550,17 @@ def main():
 
     print('Starting LiquiTrader...\n')
 
-    if hasattr(sys, 'frozen') or not os.path.isfile('.gitignore'):
+    import sys
+    if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         vfile = 'lib/verifier.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/verifier.cpython-36m-x86_64-linux-gnu.so'
 
         # Check that verifier exists and that it is of a reasonable size
-        if (not os.path.isfile(vfile)) or os.stat(vfile).st_size < 260000:
+        if (not os.path.isfile(vfile)) or os.stat(vfile).st_size < 280000:
             err_msg()
             sys.exit(1)
 
         start = time.time()
-        verifier.verify()
+        strategic_analysis.verify()
 
         # Check that verifier took a reasonable amount of time to execute (make NOPing harder)
         if (time.time() - start) < .05:
@@ -526,11 +569,10 @@ def main():
 
     from gui import gui_server
 
-    shutdown_in_progress_event = threading.Event()
-    shutdown_complete_event = threading.Event()
+    shutdown_handler = ShutdownHandler()
 
     global LT_TRADER
-    LT_TRADER = LiquiTrader()
+    LT_TRADER = LiquiTrader(shutdown_handler)
     LT_TRADER.initialize_config()
 
     gui_server.LT_TRADER = LT_TRADER
@@ -549,7 +591,9 @@ def main():
 
     LT_TRADER.load_strategies()
 
-    def run(_shutdown_event, _shutdown_complete_event):
+    def run(_shutdown_handler):
+        _shutdown_handler.add_task()
+
         # Alleviate method lookup overhead
         global_buy_checks = LT_TRADER.global_buy_checks
         do_technical_analysis = LT_TRADER.do_technical_analysis
@@ -561,7 +605,7 @@ def main():
 
         exchange = LT_TRADER.exchange
 
-        while not _shutdown_event.is_set():
+        while not _shutdown_handler.running_or_complete():
             try:
                 # timed @ 1.1 seconds 128ms stdev
                 do_technical_analysis()
@@ -578,13 +622,11 @@ def main():
             except Exception as ex:
                 print('err in run: {}'.format(traceback.format_exc()))
 
-    lt_thread = threading.Thread(target=lambda: run(shutdown_in_progress_event,
-                                                    shutdown_complete_event))
-    gui_thread = threading.Thread(target=lambda: gui_server.app.run('0.0.0.0', 80))
-    exchange_thread = threading.Thread(target=lambda: LT_TRADER.exchange.start(shutdown_in_progress_event,
-                                                                               shutdown_complete_event))
+    trader_thread = threading.Thread(target=lambda: run(shutdown_handler))
+    gui_thread = threading.Thread(target=lambda: gui_server.run(shutdown_handler))
+    exchange_thread = threading.Thread(target=LT_TRADER.run_exchange)
 
-    lt_thread.start()
+    trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
 
@@ -595,18 +637,20 @@ def main():
         except KeyboardInterrupt:
             print('\nClosing LiquiTrader...\n')
 
-            shutdown_in_progress_event.set()  # Set shutdown flag
-            gui_server.app.stop()  # Gracefully shut down webserver
+            shutdown_handler.start_shutdown()  # Set shutdown flag
+
+            LT_TRADER.stop_exchange()
+            gui_server.stop(shutdown_handler)  # Gracefully shut down webserver
 
             # Wait for transactions / critical actions to finish
-            if not shutdown_complete_event.is_set():
+            if not shutdown_handler.is_complete():
                 print('Waiting for transactions to complete...')
 
-                while not shutdown_complete_event.is_set():
+                while not shutdown_handler.is_complete():
                     time.sleep(.5)
 
             print('\nThanks for using LiquiTrader!\n')
-            return
+            sys.exit(0)
 
 
 if __name__ == '__main__':

@@ -67,6 +67,9 @@ class GenericExchange:
         self._client = None
         self._client_async = None
 
+        self.quote_price = 0
+        self.quote_change = 0
+
         self._loop = asyncio.get_event_loop()
 
         self._ticker_upkeep_call_schedule = 1  # Call ticker_upkeep() every 1s
@@ -155,8 +158,6 @@ class GenericExchange:
             symbol = key + '/' + self._quote_currency
             if symbol in self.pairs:
                 amount = balances[key]['total']
-                if amount == 0:
-                    continue
 
                 # if we already have average data, calculate from existing
                 if symbol in self.pairs and self.pairs[symbol]['total_cost'] != 0:

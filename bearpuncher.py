@@ -19,7 +19,7 @@ from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import get_buy_value, percentToFloat
-
+from utils.FormattingTools import prettify_dataframe
 
 # test keys, trading disabled
 from dev_keys_binance import keys
@@ -361,14 +361,15 @@ class Bearpuncher:
         with open(fp, 'r') as f:
             self.trade_history = json.load(f)
 
-    def pairs_to_df(self, basic = True, friendly = False):
+    def pairs_to_df(self, basic = True, friendly = False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
 
         if 'total_cost' in df:
-            df['current_value'] = df.close * df.total
-            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100
+            df['current_value'] = df.close * df.total * (1-(fee/100))
+            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
 
         if friendly:
+            df = prettify_dataframe(df, self.exchange.quote_price)
             df = df[DEFAULT_COLUMNS] if basic else df
             df.rename(columns=COLUMN_ALIASES,
                       inplace=True)
@@ -429,7 +430,7 @@ class Bearpuncher:
 
 # ----
 def main():
-    global BP_ENGINE
+    global BP_ENGINE, FlaskApp, guithread, bpthread, exchangethread
 
     BP_ENGINE = Bearpuncher()
 
@@ -440,8 +441,8 @@ def main():
     BP_ENGINE.initialize_config()
     try:
         BP_ENGINE.load_trade_history()
-    except:
-        pass
+    except Exception as ex:
+        print(ex)
     BP_ENGINE.initialize_exchange()
     BP_ENGINE.load_pairs_history()
     BP_ENGINE.load_strategies()
@@ -486,21 +487,3 @@ if __name__ == '__main__':
         df[df['total'] > 0]
         return df
     main()
-
-    # df['% Change'].dropna()
-    # Out[8]:
-    # CLOAK / ETH - 104.763070
-    # DGD / ETH
-    # 0.329280
-    # EDO / ETH - 0.100000
-    # FUN / ETH - 0.691351
-    # GTO / ETH - 2.135282
-    # ICX / ETH - 0.563066
-    # IOTA / ETH - 0.338263
-    # REQ / ETH
-    # 0.049041
-    # SNM / ETH
-    # 0.588560
-    # STORJ / ETH - 0.997334
-    # TRX / ETH - 2.530675
-    # Name: % Change, dtype: float64

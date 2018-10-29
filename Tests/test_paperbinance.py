@@ -55,23 +55,6 @@ def test_sell_order():
     assert instance.pairs['ADA/ETH']['total'] == 0
     assert instance.pairs['ADA/ETH']['avg_price'] is None
 
-def test_dca_buys():
-    instance = get_paper_instance()
-
-    instance.place_order(amount=1, order_type='limit', price=2, side='buy', symbol='ADA/ETH')
-    assert instance.pairs['ADA/ETH']['total'] == 1
-    assert instance.pairs['ADA/ETH']['avg_price'] == 2 * 1.0005
-
-    instance.place_order(amount=1, order_type='limit', price=1, side='buy', symbol='ADA/ETH')
-    assert instance.pairs['ADA/ETH']['total'] == 2
-    assert instance.pairs['ADA/ETH']['avg_price'] == 1.5 * 1.0005
-    assert instance.pairs['ADA/ETH']['total_cost'] == 3 * 1.0005
-
-    instance.place_order(amount=2, order_type='limit', price=1, side='buy', symbol='ADA/ETH')
-    assert instance.pairs['ADA/ETH']['total'] == 4
-    assert instance.pairs['ADA/ETH']['avg_price'] == 1.25 * 1.0005
-    assert instance.pairs['ADA/ETH']['total_cost'] == 5 * 1.0005
-
 # ========
 if __name__ == '__main__':
     pytest.main([__file__])

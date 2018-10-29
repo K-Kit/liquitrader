@@ -1,6 +1,5 @@
 import random
 import base64
-import time
 
 from cryptography.hazmat.primitives import serialization
 

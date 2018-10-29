@@ -524,7 +524,7 @@ def main():
             err_msg()
             sys.exit(1)
 
-    from webserver import webserver
+    from gui import gui_server
 
     shutdown_in_progress_event = threading.Event()
     shutdown_complete_event = threading.Event()
@@ -533,7 +533,7 @@ def main():
     LT_TRADER = LiquiTrader()
     LT_TRADER.initialize_config()
 
-    webserver.LT_TRADER = LT_TRADER
+    gui_server.LT_TRADER = LT_TRADER
 
     try:
         LT_TRADER.load_trade_history()
@@ -580,7 +580,7 @@ def main():
 
     lt_thread = threading.Thread(target=lambda: run(shutdown_in_progress_event,
                                                     shutdown_complete_event))
-    gui_thread = threading.Thread(target=lambda: webserver.app.run('0.0.0.0', 80))
+    gui_thread = threading.Thread(target=lambda: gui_server.app.run('0.0.0.0', 80))
     exchange_thread = threading.Thread(target=lambda: LT_TRADER.exchange.start(shutdown_in_progress_event,
                                                                                shutdown_complete_event))
 
@@ -596,7 +596,7 @@ def main():
             print('\nClosing LiquiTrader...\n')
 
             shutdown_in_progress_event.set()  # Set shutdown flag
-            webserver.app.stop()  # Gracefully shut down webserver
+            gui_server.app.stop()  # Gracefully shut down webserver
 
             # Wait for transactions / critical actions to finish
             if not shutdown_complete_event.is_set():

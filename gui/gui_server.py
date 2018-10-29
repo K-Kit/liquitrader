@@ -1,9 +1,9 @@
 from liquitrader import *
 
-from flask import Flask
+import flask
 from flask import jsonify
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
 LT_TRADER = None
 

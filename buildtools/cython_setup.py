@@ -28,9 +28,6 @@ def run_cython(source_directories=None, source_file=None):
                                                             'setup.py',
                                                             'dev_keys_binance.py',
                                                             'buildtools',
-                                                            #'buildtools/cython_setup.py',
-                                                            #'buildtools/build_runner.py',
-                                                            #'buildtools/signature_tools.py',
                                                             'tests',
                                                             'conditions/examples.py',
                                                             'conditions/test_conditions.py',
@@ -39,7 +36,6 @@ def run_cython(source_directories=None, source_file=None):
                                                    compiler_directives={
                                                        'language_level': '3'
                                                    },
-                                                   nthreads=1,
                                                    annotate=False
                                                    )
             )

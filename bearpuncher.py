@@ -444,7 +444,10 @@ def main():
     except Exception as ex:
         print(ex)
     BP_ENGINE.initialize_exchange()
-    BP_ENGINE.load_pairs_history()
+    try:
+        BP_ENGINE.load_pairs_history()
+    except:
+        pass
     BP_ENGINE.load_strategies()
 
     def run():

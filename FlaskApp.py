@@ -37,9 +37,7 @@ def get_buy_log_frame():
     df = pd.DataFrame(BP_ENGINE.trade_history)
     if 'price' not in df:
         return '[]'
-    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-    df['net_gain'] = (df.price - df.bought_price) * df.filled
-    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
     df[df.side == 'buy'][cols].to_json(orient='records', path_or_buf='buy_log')
 
     return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))

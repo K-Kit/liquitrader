@@ -12,6 +12,7 @@ import strategic_analysis
 from config import Config
 from exchanges import BinanceExchange
 from exchanges import GenericExchange
+from exchanges import GenericPaper
 from utils.DepthAnalyzer import *
 
 from exchanges import PaperBinance
@@ -20,9 +21,11 @@ from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
-from conditions.condition_tools import percentToFloat
 
 from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+from conditions.condition_tools import get_buy_value, percentToFloat
+from utils.FormattingTools import prettify_dataframe
 
 if hasattr(sys, 'frozen'):
     os.environ["REQUESTS_CA_BUNDLE"] = os.path.join(os.path.dirname(sys.executable), 'lib', 'cacert.pem')
@@ -144,6 +147,12 @@ class LiquiTrader:
                                                             {'public': keys.public, 'secret': keys.secret},
                                                             self.timeframes)
 
+        elif self.config.general_settings['paper_trading']:
+            self.exchange = GenericPaper.PaperGeneric(self.config.general_settings['exchange'].lower(),
+                                                            self.config.general_settings['market'].upper(),
+                                                            self.config.general_settings['starting_balance'],
+                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            self.timeframes)
         else:
             self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(),
                                                             self.config.general_settings['market'].upper(),
@@ -463,7 +472,8 @@ class LiquiTrader:
             if pair in pair_data:
                 exch_pair = exchange_pairs[pair]
 
-                if exch_pair['total_cost'] is None:
+                # TODO @Kyle :: was the 'or' removed?
+                if exch_pair['total_cost'] is None or self.config.general_settings['paper_trading']:
                     exch_pair.update(pair_data[pair])
                 else:
                     exch_pair['dca_level'] = pair_data[pair]['dca_level']
@@ -475,15 +485,16 @@ class LiquiTrader:
         with open(fp, 'r') as f:
             self.trade_history = json.load(f)
 
-    # ----
-    def pairs_to_df(self, basic=True, friendly=False):
+    def pairs_to_df(self, basic=True, friendly=False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
-
+        df.last_order_time = pd.DatetimeIndex(pd.to_datetime(df.last_order_time, unit='s')).tz_localize(
+            'UTC').tz_convert('US/Eastern')
         if 'total_cost' in df:
-            df['current_value'] = df.close * df.total
-            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100
+            df['current_value'] = df.close * df.total * (1-(fee/100))
+            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
 
         if friendly:
+            df = prettify_dataframe(df, self.exchange.quote_price)
             df = df[DEFAULT_COLUMNS] if basic else df
             df.rename(columns=COLUMN_ALIASES,
                       inplace=True)
@@ -562,6 +573,8 @@ def main():
     if sys.executable is None:
         setattr(sys, 'frozen', True)
 
+    global gui_thread, trader_thread, exchange_thread
+
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
 
@@ -586,40 +599,42 @@ def main():
 
     shutdown_handler = ShutdownHandler()
 
-    global LT_TRADER
-    LT_TRADER = LiquiTrader(shutdown_handler)
-    LT_TRADER.initialize_config()
+    global LT_ENGINE
+    LT_ENGINE = LiquiTrader(shutdown_handler)
+    LT_ENGINE.initialize_config()
 
-    gui_server.LT_TRADER = LT_TRADER
+    gui_server.LT_TRADER = LT_ENGINE
 
     try:
-        LT_TRADER.load_trade_history()
+        LT_ENGINE.load_trade_history()
     except FileNotFoundError:
         print('No trade history found')
 
-    LT_TRADER.initialize_exchange()
+    LT_ENGINE.initialize_exchange()
 
     try:
-        LT_TRADER.load_pairs_history()
+        LT_ENGINE.load_pairs_history()
     except FileNotFoundError:
         print('No pairs history found')
 
-    LT_TRADER.load_strategies()
+    LT_ENGINE.load_strategies()
 
     # ----
     def run_trader(_shutdown_handler):
         _shutdown_handler.add_task()
 
         # Alleviate method lookup overhead
-        global_buy_checks = LT_TRADER.global_buy_checks
-        do_technical_analysis = LT_TRADER.do_technical_analysis
-        get_possible_buys = LT_TRADER.get_possible_buys
-        handle_possible_buys = LT_TRADER.handle_possible_buys
-        handle_possible_dca_buys = LT_TRADER.handle_possible_dca_buys
-        get_possible_sells = LT_TRADER.get_possible_sells
-        handle_possible_sells = LT_TRADER.handle_possible_sells
+        global_buy_checks = LT_ENGINE.global_buy_checks
+        do_technical_analysis = LT_ENGINE.do_technical_analysis
+        get_possible_buys = LT_ENGINE.get_possible_buys
+        handle_possible_buys = LT_ENGINE.handle_possible_buys
+        handle_possible_dca_buys = LT_ENGINE.handle_possible_dca_buys
+        get_possible_sells = LT_ENGINE.get_possible_sells
+        handle_possible_sells = LT_ENGINE.handle_possible_sells
 
-        exchange = LT_TRADER.exchange
+        exchange = LT_ENGINE.exchange
+
+        LT_ENGINE.load_trade_history()
 
         while not _shutdown_handler.running_or_complete():
             try:
@@ -627,12 +642,12 @@ def main():
                 do_technical_analysis()
 
                 if global_buy_checks():
-                    possible_buys = get_possible_buys(exchange.pairs, LT_TRADER.buy_strategies)
+                    possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
                     handle_possible_buys(possible_buys)
-                    possible_dca_buys = get_possible_buys(exchange.pairs, LT_TRADER.dca_buy_strategies)
+                    possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
                     handle_possible_dca_buys(possible_dca_buys)
 
-                possible_sells = get_possible_sells(exchange.pairs, LT_TRADER.sell_strategies)
+                possible_sells = get_possible_sells(exchange.pairs, LT_ENGINE.sell_strategies)
                 handle_possible_sells(possible_sells)
 
             except Exception as ex:
@@ -643,7 +658,7 @@ def main():
     # ----
     trader_thread = threading.Thread(target=lambda: run_trader(shutdown_handler))
     gui_thread = threading.Thread(target=lambda: gui_server.run(shutdown_handler))
-    exchange_thread = threading.Thread(target=LT_TRADER.run_exchange)
+    exchange_thread = threading.Thread(target=LT_ENGINE.run_exchange)
 
     trader_thread.start()
     gui_thread.start()
@@ -663,7 +678,7 @@ def main():
 
             print('Stopping exchange connections')
             try:
-                LT_TRADER.stop_exchange()
+                LT_ENGINE.stop_exchange()
 
             # Catch Twisted connection lost bullshit
             except Exception as _ex:
@@ -694,26 +709,8 @@ def main():
 
 if __name__ == '__main__':
     def get_pc():
-        df = LT_TRADER.pairs_to_df()
+        df = LT_ENGINE.pairs_to_df()
         df[df['total'] > 0]
         return df
 
     main()
-
-    # df['% Change'].dropna()
-    # Out[8]:
-    # CLOAK / ETH - 104.763070
-    # DGD / ETH
-    # 0.329280
-    # EDO / ETH - 0.100000
-    # FUN / ETH - 0.691351
-    # GTO / ETH - 2.135282
-    # ICX / ETH - 0.563066
-    # IOTA / ETH - 0.338263
-    # REQ / ETH
-    # 0.049041
-    # SNM / ETH
-    # 0.588560
-    # STORJ / ETH - 0.997334
-    # TRX / ETH - 2.530675
-    # Name: % Change, dtype: float64

@@ -26,6 +26,8 @@ def calc_average(trades, total_cost, total_amount, end_amount, last_buy_id=None)
     for trade in reversed(trades):
         cost = trade['cost'] if trade['side'] == 'buy' else -trade['cost']
         amount = trade['amount'] if trade['side'] == 'buy' else -trade['amount']
+        if trade['symbol'].split('/')[0] == trade['fee']['currency']:
+            amount -= trade['fee']['cost']
         # store last buy ID for calc from last ID to handle manual set bought price
         if trade['side'] == 'buy':
             if last_buy_id is None or int(trade['id']) > last_buy_id:
@@ -36,8 +38,6 @@ def calc_average(trades, total_cost, total_amount, end_amount, last_buy_id=None)
         if total_amount <= end_amount * 1.02 and total_amount >= end_amount * 0.98:
             avg_price = total_cost / total_amount
             return {'total_cost': total_cost, 'amount': end_amount, 'avg_price': avg_price, 'last_id': last_buy_id}
-
-
     return None
 
 def calc_average_price_from_hist(trades, amount_owned):

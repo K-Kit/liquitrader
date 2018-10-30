@@ -3,6 +3,8 @@ from liquitrader import *
 import flask
 from flask import jsonify
 
+import requests
+
 app = flask.Flask(__name__)
 
 LT_TRADER = None
@@ -14,14 +16,22 @@ def run(shutdown_handler):
 
 
 def stop(shutdown_handler):
+    # TODO: SHUTDOWN CHEROOT HERE
+    requests.get('http://localhost/shutdown')
+    shutdown_handler.remove_task()
+
+
+@app.route("/shutdown")
+def shutdown():
     app_stop_func = flask.request.environ.get('werkzeug.server.shutdown')
 
     if app_stop_func is not None:
         app_stop_func()
+        return flask.Response(status=200)
+
     else:
         print('Failed to shutdown GUI')
-
-    shutdown_handler.remove_task()
+        return flask.Response(status=500)
 
 
 @app.route("/")

@@ -23,55 +23,65 @@ class Config:
         self.timeframes = set()
         self.indicators = {}
 
+    # ----
     def load_buy_strategies(self):
         with open(BUY_STRATEGY_PATH, 'r') as f:
             self.buy_strategies = json.load(f)
         return self.buy_strategies
 
+    # ----
     def load_dca_buy_strategies(self):
         with open(DCA_STRATEGY_PATH, 'r') as f:
             self.dca_buy_strategies = json.load(f)
         return self.dca_buy_strategies
 
+    # ----
     def load_sell_strategies(self):
         with open(SELL_STRATEGIES_PATH, 'r') as f:
             self.sell_strategies = json.load(f)
         return self.sell_strategies
 
+    # ----
     def load_general_settings(self):
         with open(GENERAL_SETTINGS_PATH, 'r') as f:
             self.general_settings = json.load(f)
 
+    # ----
     def load_global_trade_conditions(self):
         with open(GLOBAL_TRADE_CONDITION_PATH, 'r') as f:
             self.global_trade_conditions = json.load(f)
-            
-    
+
+    # ----
     def update_buy_strategies(self, json_data):
         with open(BUY_STRATEGY_PATH, 'w') as f:
             json.dump(json_data, f)
             self.buy_strategies = json.loads(json_data)
 
+    # ----
     def update_dca_buy_strategies(self, json_data):
         with open(DCA_STRATEGY_PATH, 'w') as f:
             json.dump(json_data, f)
             self.dca_buy_strategies = json.loads(json_data)
 
+    # ----
     def update_sell_strategies(self, json_data):
         with open(SELL_STRATEGIES_PATH, 'w') as f:
             json.dump(json_data, f)
             self.sell_strategies = json.loads(json_data)
 
+    # ----
     def update_general_settings(self, json_data):
         with open(GENERAL_SETTINGS_PATH, 'w') as f:
             json.dump(json_data, f)
             self.general_settings = json.loads(json_data)
 
+    # ----
     def update_global_trade_conditions(self, json_data):
         with open(GLOBAL_TRADE_CONDITION_PATH, 'w') as f:
             json.dump(json_data, f)
             self.global_trade_conditions = json.loads(json_data)
 
+    # ----
     def parse_indicators_from_strategy(self, strategies):
         for strategy in strategies:
             for condition in strategy['conditions']:
@@ -86,6 +96,7 @@ class Config:
                             self.timeframes.add(part['timeframe'])
         return self.indicators
 
+    # ----
     def load_all_strategies(self):
         self.parse_indicators_from_strategy(self.load_buy_strategies())
 
@@ -95,9 +106,11 @@ class Config:
 
         return self.indicators
 
+    # ----
     def get_indicators(self):
         return list(self.load_all_strategies().values())
 
+    # ----
     def update_config(self, section, data):
         config_update_cases = {
             "buy_strategies": self.update_buy_strategies,
@@ -111,9 +124,8 @@ class Config:
 
 
 if __name__ == '__main__':
-
     config = Config()
-    strategies  = config.load_buy_strategies()
+    strategies = config.load_buy_strategies()
     indicators = config.parse_indicators_from_strategy(strategies)
 
 

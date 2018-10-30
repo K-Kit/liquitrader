@@ -552,10 +552,10 @@ def main():
 
     import sys
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
-        vfile = 'lib/verifier.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/verifier.cpython-36m-x86_64-linux-gnu.so'
+        vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
 
         # Check that verifier exists and that it is of a reasonable size
-        if (not os.path.isfile(vfile)) or os.stat(vfile).st_size < 280000:
+        if (not os.path.isfile(vfile)) or os.stat(vfile).st_size < 288768:
             err_msg()
             sys.exit(1)
 
@@ -563,7 +563,7 @@ def main():
         strategic_analysis.verify()
 
         # Check that verifier took a reasonable amount of time to execute (make NOPing harder)
-        if (time.time() - start) < .05:
+        if (time.time() - start) < .03:
             err_msg()
             sys.exit(1)
 

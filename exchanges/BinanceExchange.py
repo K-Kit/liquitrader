@@ -1,10 +1,15 @@
 import asyncio
 import json
 import time
+import traceback
 
 from exchanges.GenericExchange import *
+
 import binance
 from binance import client, websockets
+
+import twisted
+
 
 Client = binance.client.Client
 BinanceSocketManager = binance.websockets.BinanceSocketManager
@@ -63,6 +68,7 @@ class BinanceExchange(GenericExchange):
     # ----
     def init_socket_manager(self, public, secret):
         self.socket_manager = BinanceSocketManager(Client(public, secret))
+        self.socket_manager.setDaemon(True)
         self.socket_manager.start()
 
     # ----
@@ -198,8 +204,24 @@ class BinanceExchange(GenericExchange):
 
     # ----
     def stop(self):
-        self.socket_manager.close()
-        self._loop.run_until_complete(super().stop)
+        from twisted.internet import reactor
+
+        # Kill Binance library's Twisted server
+        reactor.callFromThread(lambda: reactor.stop())
+
+        for p in reactor.getDelayedCalls():
+            if p.active():
+                p.cancel()
+
+        try:
+            # Close websocket connections
+            self.socket_manager.close()
+
+        except Exception as _ex:
+            print(str(_ex))
+
+        new_loop = asyncio.new_event_loop()
+        new_loop.run_until_complete(super().stop())
 
     # ----
     def parse_stream_name(self, stream_name):

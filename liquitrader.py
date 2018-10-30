@@ -22,7 +22,6 @@ from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import percentToFloat
 
-
 from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if hasattr(sys, 'frozen'):
@@ -156,7 +155,17 @@ class LiquiTrader:
     # ----
     def run_exchange(self):
         self.shutdown_handler.add_task()
-        self.exchange.start()
+
+        try:
+            self.exchange.start()
+
+        # Catch Twisted connection lost bullshit
+        except Exception as _ex:
+            exception_data = traceback.format_exc()
+            if 'connectionLost' in exception_data:
+                pass
+            else:
+                raise _ex
 
     # ----
     def stop_exchange(self):
@@ -550,12 +559,18 @@ def main():
 
     print('Starting LiquiTrader...\n')
 
-    import sys
+    if sys.executable is None:
+        setattr(sys, 'frozen', True)
+
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
 
-        # Check that verifier exists and that it is of a reasonable size
-        if (not os.path.isfile(vfile)) or os.stat(vfile).st_size < 288768:
+        # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
+        # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
+        if ((not vfile.startswith('lib/strategic_analysis')) or
+                (not os.path.isfile(vfile)) or
+                os.stat(vfile).st_size < 287000):
+
             err_msg()
             sys.exit(1)
 
@@ -591,7 +606,8 @@ def main():
 
     LT_TRADER.load_strategies()
 
-    def run(_shutdown_handler):
+    # ----
+    def run_trader(_shutdown_handler):
         _shutdown_handler.add_task()
 
         # Alleviate method lookup overhead
@@ -622,7 +638,10 @@ def main():
             except Exception as ex:
                 print('err in run: {}'.format(traceback.format_exc()))
 
-    trader_thread = threading.Thread(target=lambda: run(shutdown_handler))
+        _shutdown_handler.remove_task()
+
+    # ----
+    trader_thread = threading.Thread(target=lambda: run_trader(shutdown_handler))
     gui_thread = threading.Thread(target=lambda: gui_server.run(shutdown_handler))
     exchange_thread = threading.Thread(target=LT_TRADER.run_exchange)
 
@@ -639,15 +658,35 @@ def main():
 
             shutdown_handler.start_shutdown()  # Set shutdown flag
 
-            LT_TRADER.stop_exchange()
+            print('Stopping GUI server')
             gui_server.stop(shutdown_handler)  # Gracefully shut down webserver
+
+            print('Stopping exchange connections')
+            try:
+                LT_TRADER.stop_exchange()
+
+            # Catch Twisted connection lost bullshit
+            except Exception as _ex:
+                exception_data = traceback.format_exc()
+                if 'connectionLost' in exception_data:
+                    pass
+                else:
+                    raise _ex
 
             # Wait for transactions / critical actions to finish
             if not shutdown_handler.is_complete():
-                print('Waiting for transactions to complete...')
+                counter = 1
 
-                while not shutdown_handler.is_complete():
-                    time.sleep(.5)
+                while counter <= 10 and (not shutdown_handler.is_complete()):
+                    print(f'\rWaiting for transactions to complete... ({counter}/10)...', end='')
+                    time.sleep(1)
+                    counter += 1
+
+            # Force-kill the threads to prevent zombies
+            for thread in (trader_thread, gui_thread, exchange_thread):
+                if thread.is_alive():
+                    thread._tstate_lock.release()
+                    thread._stop()
 
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)

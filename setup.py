@@ -51,19 +51,18 @@ if __name__ == '__main__':
     build_options = {
         'build_exe': {
             'build_exe': BUILD_PATH,
-            'namespace_packages': ['zope', 'numpy', 'binance'],
+            'namespace_packages': ['zope', 'binance'],
 
             # Remove package paths from tracebacks
             # 'replace_paths': [('*', '/')],
 
             "includes": [
-                'numpy',
-                'pandas',
                 'cryptography',
                 'binance',
                 'TimeSyncWin', 'strategic_analysis',
                 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
+
             'bin_includes': ['openblas', 'libgfortran', 'libffi'],
 
             'include_files': [('dependencies/vc_redist_installer.exe', 'setup/vc_redist_installer.exe'),
@@ -97,7 +96,7 @@ if __name__ == '__main__':
                          'onetimepass',
                          'wtforms',
                          'requests',
-                         'numpy',
+                         'numpy', 'numpy.core.numeric',
                          'pandas',
                          'json_minify',
                          'packaging',
@@ -111,7 +110,8 @@ if __name__ == '__main__':
                          ],
 
             'excludes': [
-                         'tkinter', 'pbd', 'cProfile', 'profile', 'Cython',
+                         'tkinter', 'cProfile', 'profile', 'pdb', 'pydoc', 'doctest',
+                         'Cython',
                          'conditions.test_conditions', # 'dev_keys_binance', !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                          ],
 
@@ -119,6 +119,7 @@ if __name__ == '__main__':
             'zip_exclude_packages': ['flask_bootstrap'],
 
             'include_msvcr': True,
+            'optimize': 2,
         }
     }
 

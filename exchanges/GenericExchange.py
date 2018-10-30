@@ -69,6 +69,9 @@ class GenericExchange:
         self._client = None
         self._client_async = None
 
+        self.quote_price = 0
+        self.quote_change = 0
+
         self._loop = asyncio.get_event_loop()
 
         self._ticker_upkeep_call_schedule = 1  # Call ticker_upkeep() every 1s
@@ -93,7 +96,7 @@ class GenericExchange:
             'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 500000,
+            'timeout': 20000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
@@ -102,7 +105,7 @@ class GenericExchange:
             'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 500000,
+            'timeout': 20000,
             'enableRateLimit': False,
             'asyncio_loop': self._loop
         }
@@ -161,8 +164,6 @@ class GenericExchange:
             symbol = key + '/' + self._quote_currency
             if symbol in self.pairs:
                 amount = balances[key]['total']
-                if amount == 0:
-                    continue
 
                 # if we already have average data, calculate from existing
                 if symbol in self.pairs and self.pairs[symbol]['total_cost'] != 0:
@@ -269,7 +270,7 @@ class GenericExchange:
         # update quote balance
         self.balance += order['cost'] if side == 'buy' else - order['cost']
         # update last order time
-        self.pairs[symbol]['last_order_time'] = time.time()
+        self.pairs[symbol]['last_order_time'] = int(time.time())
         # temp - will manually calc avg instead of calling update
         # self.update_balances()
 
@@ -319,7 +320,7 @@ class GenericExchange:
         return args, task_group.result()
 
     # --
-    async def load_all_candle_histories(self, num_candles=300):
+    async def load_all_candle_histories(self, num_candles=500):
         args, results = await self._get_candles(num_candles)
 
         # Build our results from the results returned by the task_group coroutine we awaited before

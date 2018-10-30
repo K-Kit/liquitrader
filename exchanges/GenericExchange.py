@@ -92,7 +92,7 @@ class GenericExchange:
             },
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 500000,
+            'timeout': 20000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
@@ -104,7 +104,7 @@ class GenericExchange:
             },
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 500000,
+            'timeout': 20000,
             'enableRateLimit': False,
             'asyncio_loop': self._loop
         })
@@ -264,7 +264,7 @@ class GenericExchange:
         # update quote balance
         self.balance += order['cost'] if side == 'buy' else - order['cost']
         # update last order time
-        self.pairs[symbol]['last_order_time'] = time.time()
+        self.pairs[symbol]['last_order_time'] = int(time.time())
         # temp - will manually calc avg instead of calling update
         # self.update_balances()
 
@@ -314,7 +314,7 @@ class GenericExchange:
         return args, task_group.result()
 
     # --
-    async def load_all_candle_histories(self, num_candles=300):
+    async def load_all_candle_histories(self, num_candles=500):
         args, results = await self._get_candles(num_candles)
 
         # Build our results from the results returned by the task_group coroutine we awaited before

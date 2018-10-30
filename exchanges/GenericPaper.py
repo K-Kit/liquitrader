@@ -1,5 +1,7 @@
 from exchanges.GenericExchange import *
 current_order_id = 0
+
+
 def create_paper_order(symbol, order_type, side, amount, price, _quote_currency):
     """
             {
@@ -111,7 +113,7 @@ class PaperGeneric(GenericExchange):
         self.balance -= order['cost'] if side == 'buy' else - order['cost']
 
         # update last order time
-        self.pairs[symbol]['last_order_time'] = time.time()
+        self.pairs[symbol]['last_order_time'] = int(time.time())
         # temp - will manually calc avg instead of calling update
         # self.update_balances()
 

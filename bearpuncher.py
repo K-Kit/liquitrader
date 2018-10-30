@@ -10,6 +10,7 @@ import pandas as pd
 from Config import Config
 from exchanges import Binance
 from exchanges import GenericExchange
+from exchanges import GenericPaper
 from utils.DepthAnalyzer import *
 
 from exchanges import PaperBinance
@@ -44,11 +45,6 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
 
 FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
                              'Amount', '24h Change']
-
-class User:
-    balance = 5
-
-user = User()
 
 
 class Bearpuncher:
@@ -105,6 +101,12 @@ class Bearpuncher:
                                                     {'public': keys.public, 'secret': keys.secret},
                                                     self.timeframes)
 
+        elif self.config.general_settings['paper_trading']:
+            self.exchange = GenericPaper.PaperGeneric(self.config.general_settings['exchange'].lower(),
+                                                            self.config.general_settings['market'].upper(),
+                                                            self.config.general_settings['starting_balance'],
+                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            self.timeframes)
         else:
             self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(),
                                                             self.config.general_settings['market'].upper(),

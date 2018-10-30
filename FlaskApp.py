@@ -75,7 +75,6 @@ def get_dashboard_data():
 def update_config():
     data = request.data.decode()
     # data
-    dataDict = json.loads(data)
     BP_ENGINE.config.update_config(data['section'], data['data'])
     return data
 

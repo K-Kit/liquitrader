@@ -1,5 +1,7 @@
-from exchanges.BinanceExchange import *
+from exchanges.GenericExchange import *
 current_order_id = 0
+
+
 def create_paper_order(symbol, order_type, side, amount, price, _quote_currency):
     """
             {
@@ -56,7 +58,7 @@ def create_paper_order(symbol, order_type, side, amount, price, _quote_currency)
 
     }
 
-class PaperBinance(BinanceExchange):
+class PaperGeneric(GenericExchange):
 
     def __init__(self,
                  exchange_id: str,
@@ -116,16 +118,3 @@ class PaperBinance(BinanceExchange):
         # self.update_balances()
 
         return order
-
-if __name__ == '__main__':
-    from dev_keys_binance import keys
-
-    ex = PaperBinance('binance', 'USDT', 10,  {'public': keys.public, 'secret': keys.secret}, ['5m'])
-    ex.initialize()
-
-    # print(create_paper_order("ADA/ETH", 'limit', 'buy', 100, 1, 'ETH'))
-    #
-    # print(create_paper_order("ADA/ETH", 'limit', 'buy', 100, 1, 'ETH'))
-    print(ex.place_order("ADA/USDT", 'limit', 'buy', 100, 1))
-    print(ex.place_order("ADA/USDT", 'limit', 'buy', 100, 2))
-    print(ex.place_order("ADA/USDT", 'limit', 'sell', 100, 1))

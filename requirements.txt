@@ -11,6 +11,7 @@ cython
 flask
 flask_bootstrap
 flask_compress
+flask_cors
 flask_login
 flask_otp
 flask_sqlalchemy
@@ -28,6 +29,7 @@ persistent
 pyasn1
 pyopenssl
 pyqrcode
+pytest
 python_binance
 
 requests

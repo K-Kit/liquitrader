@@ -10,6 +10,7 @@ PAIR_SPECIFIC_SETTINGS_PATH = 'config/PairSpecificSettings.json'
 SELL_STRATEGIES_PATH = 'config/SellStrategies.json'
 
 
+
 class Config:
 
     def __init__(self):
@@ -97,7 +98,16 @@ class Config:
     def get_indicators(self):
         return list(self.load_all_strategies().values())
 
-
+    def update_config(self, section, data):
+        config_update_cases = {
+            "buy_strategies": self.update_buy_strategies,
+            "sell_strategies": self.update_sell_strategies,
+            "dca_buy_strategies": self.update_dca_buy_strategies,
+            "general": self.update_general_settings,
+            "global_trade_conditions": self.update_global_trade_conditions,
+            "pair_specific": self.update_global_trade_conditions,
+        }
+        config_update_cases[section](data)
 
 
 if __name__ == '__main__':

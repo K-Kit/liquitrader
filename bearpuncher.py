@@ -351,7 +351,7 @@ class Bearpuncher:
             pair_data = json.load(f)
         for pair in self.exchange.pairs:
             if pair in pair_data:
-                if self.exchange.pairs[pair]['total_cost'] is None:
+                if self.exchange.pairs[pair]['total_cost'] is None or self.config.general_settings['paper_trading']:
                     self.exchange.pairs[pair].update(pair_data[pair])
                 else:
                     self.exchange.pairs[pair]['dca_level'] = pair_data[pair]['dca_level']
@@ -363,9 +363,10 @@ class Bearpuncher:
         with open(fp, 'r') as f:
             self.trade_history = json.load(f)
 
-    def pairs_to_df(self, basic = True, friendly = False, fee=0.075):
+    def pairs_to_df(self, basic=True, friendly=False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
-
+        df.last_order_time = pd.DatetimeIndex(pd.to_datetime(df.last_order_time, unit='s')).tz_localize(
+            'UTC').tz_convert('US/Eastern')
         if 'total_cost' in df:
             df['current_value'] = df.close * df.total * (1-(fee/100))
             df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee

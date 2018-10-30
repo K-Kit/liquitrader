@@ -140,7 +140,6 @@ class GenericExchange:
 
     # ----
     async def stop(self):
-        self._loop.close()
         await self._client_async.close()
 
     # ----

@@ -35,4 +35,6 @@ requests.certs
 
 sqlalchemy
 
+twisted
+
 wtforms

@@ -14,7 +14,7 @@ def time_format(val):
 def eight_decimal_with_usd(value, quote_price=0):
     return "{} (${})".format(eight_decimal_format(value), round(quote_price*value, 2))
 
-COLUMN_FORMATS = {'last_order_time': None,
+COLUMN_FORMATS = {'last_order_time': str,
                  'symbol': None,
                  'avg_price': eight_decimal_format,
                  'close': eight_decimal_format,
@@ -23,7 +23,7 @@ COLUMN_FORMATS = {'last_order_time': None,
                  'total_cost': eight_decimal_with_usd,
                  'current_value': eight_decimal_with_usd,
                  'dca_level': None,
-                 'total': None,
+                 'total': partial(round, ndigits=2),
                  'percentage': two_decimal_format
                   }
 

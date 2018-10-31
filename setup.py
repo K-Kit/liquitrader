@@ -87,7 +87,7 @@ if __name__ == '__main__':
                          'appdirs',
                          'cheroot',
                          'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
-                         'flask_compress', 'flask_sslify',
+                            'flask_compress', 'flask_sslify', 'flask_cors',
                          'OpenSSL',
                          'arrow',
                          'jinja2',

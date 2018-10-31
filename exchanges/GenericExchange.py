@@ -43,6 +43,7 @@ class GenericExchange:
     def __init__(self,
                  exchange_id: str,
                  quote_currency: str,
+                 starting_balance: float,
                  access_keys: typing.Dict[typing.Union[str, str], typing.Union[str, str]],
                  candle_timeframes: typing.List[str]):
 
@@ -69,6 +70,7 @@ class GenericExchange:
         self._client = None
         self._client_async = None
 
+        self.balance = starting_balance
         self.quote_price = 0
         self.quote_change = 0
 
@@ -294,6 +296,16 @@ class GenericExchange:
         else:
             return None
 
+    async def safe_fetch_ohlcv(self, symbol, timeframe, limit):
+        counter = 0
+
+        while counter < 10:
+            try:
+                return await self._client_async.fetchOHLCV(symbol, timeframe=timeframe, limit=limit)
+
+            except Exception as ex:
+                print(f'Got {ex} during safe_fetch_ohlcv(), retrying ({counter}/10)')
+
     # ----
     async def _get_candles(self, num_candles=1):
         """
@@ -309,7 +321,7 @@ class GenericExchange:
 
         # Map the arguments to the fetchOHLCV using a lambda function to make
         # providing keyword args easier
-        tasks = itertools.starmap(lambda s, t: self._client_async.fetchOHLCV(s, timeframe=t, limit=num_candles), args)
+        tasks = itertools.starmap(lambda s, t: self.safe_fetch_ohlcv(s, t, num_candles), args)
 
         # Wraps futures into a single coroutine
         task_group = asyncio.gather(*tasks)

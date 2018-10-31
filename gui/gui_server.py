@@ -18,12 +18,13 @@ def run(shutdown_handler):
 
 def stop(shutdown_handler):
     # TODO: SHUTDOWN CHEROOT HERE
-    requests.get('http://localhost/shutdown')
+    _ = requests.get('http://localhost/shutdown')
     shutdown_handler.remove_task()
 
 
-@app.route("/shutdown")
+@app.route("/shutdown", methods=['GET'])
 def shutdown():
+    # TODO: This only works for Flask
     app_stop_func = flask.request.environ.get('werkzeug.server.shutdown')
 
     if app_stop_func is not None:

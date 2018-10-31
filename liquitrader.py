@@ -578,7 +578,7 @@ def main():
     if sys.executable is None:
         setattr(sys, 'frozen', True)
 
-    global gui_thread, trader_thread, exchange_thread
+    global gui_thread, trader_thread, exchange_thread, LT_ENGINE
 
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
@@ -604,7 +604,6 @@ def main():
 
     shutdown_handler = ShutdownHandler()
 
-    global LT_ENGINE
     LT_ENGINE = LiquiTrader(shutdown_handler)
     LT_ENGINE.initialize_config()
 
@@ -639,8 +638,6 @@ def main():
 
         exchange = LT_ENGINE.exchange
 
-        LT_ENGINE.load_trade_history()
-
         while not _shutdown_handler.running_or_complete():
             try:
                 # timed @ 1.1 seconds 128ms stdev
@@ -648,6 +645,7 @@ def main():
 
                 if global_buy_checks():
                     possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
+                    print(possible_buys)
                     handle_possible_buys(possible_buys)
                     possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
                     handle_possible_dca_buys(possible_dca_buys)
@@ -668,6 +666,7 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
+
 
     while True:
         try:
@@ -717,5 +716,4 @@ if __name__ == '__main__':
         df = LT_ENGINE.pairs_to_df()
         df[df['total'] > 0]
         return df
-
     main()

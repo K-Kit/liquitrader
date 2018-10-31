@@ -1,14 +1,16 @@
 import asyncio
+import os
+import sys
 import json
 import time
 import traceback
-from functools import reduce
-import datetime
+import threading
+import functools
 
-import pandas as pd
+import strategic_analysis
 
-from Config import Config
-from exchanges import Binance
+from config import Config
+from exchanges import BinanceExchange
 from exchanges import GenericExchange
 from exchanges import GenericPaper
 from utils.DepthAnalyzer import *
@@ -19,11 +21,14 @@ from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
+
+from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
-# test keys, trading disabled
-from dev_keys_binance import keys
+if hasattr(sys, 'frozen'):
+    os.environ["REQUESTS_CA_BUNDLE"] = os.path.join(os.path.dirname(sys.executable), 'lib', 'cacert.pem')
 
 DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost', 'current_value', 'dca_level', 'total', 'percentage']
 
@@ -43,11 +48,47 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
                   }
 
 
-FRIENDLY_MARKET_COLUMNS =  ['Symbol', 'Price', 'Volume',
-                             'Amount', '24h Change']
+FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
+                           'Amount', '24h Change']
 
 
-class Bearpuncher:
+class User:
+    balance = 5
+
+
+user = User()
+
+
+class ShutdownHandler:
+
+    def __init__(self):
+        self._counter = 0
+        self._shutdown_in_progress = threading.Event()
+
+    def add_task(self):
+        self._counter += 1
+
+    def remove_task(self):
+        self._counter -= 1
+
+    def start_shutdown(self):
+        self._shutdown_in_progress.set()
+
+    def is_complete(self):
+        return self._counter == 0
+
+    def running_or_complete(self):
+        return self._shutdown_in_progress.is_set() or self.is_complete()
+
+    def nop_on_shutdown(self, func):
+        @functools.wraps(func)
+        def nopper(*args, **kwargs):
+            return None if self.running_or_complete() else func(*args, **kwargs)
+
+        return nopper
+
+
+class LiquiTrader:
     """
     Needs:
         - self.exchange
@@ -67,7 +108,10 @@ class Bearpuncher:
         - update config
         - update strategies
     """
-    def __init__(self):
+
+    def __init__(self, shutdown_handler):
+        self.shutdown_handler = shutdown_handler
+
         self.exchange = None
         self.statistics = {}
         self.config = None
@@ -79,6 +123,7 @@ class Bearpuncher:
         self.timeframes = None
         self.owned = []
 
+    # ----
     def initialize_config(self):
         self.config = Config()
         self.config.load_general_settings()
@@ -86,6 +131,7 @@ class Bearpuncher:
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
+    # ----
     def initialize_exchange(self):
         if self.config.general_settings['exchange'].lower() == 'binance' and self.config.general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
@@ -96,10 +142,10 @@ class Bearpuncher:
 
             # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
         elif self.config.general_settings['exchange'].lower() == 'binance':
-            self.exchange = Binance.BinanceExchange('binance',
-                                                    self.config.general_settings['market'].upper(),
-                                                    {'public': keys.public, 'secret': keys.secret},
-                                                    self.timeframes)
+            self.exchange = BinanceExchange.BinanceExchange('binance',
+                                                            self.config.general_settings['market'].upper(),
+                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            self.timeframes)
 
         elif self.config.general_settings['paper_trading']:
             self.exchange = GenericPaper.PaperGeneric(self.config.general_settings['exchange'].lower(),
@@ -115,17 +161,44 @@ class Bearpuncher:
 
         asyncio.get_event_loop().run_until_complete(self.exchange.initialize())
 
+    # ----
+    def run_exchange(self):
+        self.shutdown_handler.add_task()
+
+        try:
+            self.exchange.start()
+
+        # Catch Twisted connection lost bullshit
+        except Exception as _ex:
+            exception_data = traceback.format_exc()
+            if 'connectionLost' in exception_data:
+                pass
+            else:
+                raise _ex
+
+    # ----
+    def stop_exchange(self):
+        self.exchange.stop()
+        self.shutdown_handler.remove_task()
+
+    # ----
     # return total current value (pairs + balance)
     def get_tcv(self):
         pending = 0
         self.owned = []
+
         for pair, value in self.exchange.pairs.items():
-            if 'total' not in value or 'close' not in value: continue
+            if 'total' not in value or 'close' not in value:
+                continue
+
             pending += value['close'] * value['total']
+
             if value['close'] * value['total'] > 0:
                 self.owned.append(pair)
+
         return pending + self.exchange.balance
 
+    # ----
     def load_strategies(self):
         # TODO get candle periods and indicators here or in load config
         # instantiate strategies
@@ -145,6 +218,7 @@ class Bearpuncher:
         self.sell_strategies = sell_strategies
         self.dca_buy_strategies = dca_buy_strategies
 
+    # ----
     def get_possible_buys(self, pairs, strategies):
         possible_trades = {}
         tcv = self.get_tcv()
@@ -165,6 +239,7 @@ class Bearpuncher:
 
             return possible_trades
 
+    # ----
     def get_possible_sells(self, pairs, strategies):
         possible_trades = {}
         for strategy in strategies:
@@ -178,6 +253,7 @@ class Bearpuncher:
 
             return possible_trades
 
+    # ----
     @staticmethod
     def check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, max_spread, dca=False):
         can_fill, minimum_fill = process_depth(orderbook, remaining_amount, min_cost)
@@ -191,52 +267,71 @@ class Bearpuncher:
         else:
             return None
 
+    # ----
     # check min balance, max pairs, quote change, market change, trading enabled, blacklist, whitelist, 24h change
     # todo add pair specific settings
     def handle_possible_buys(self, possible_buys):
+        # Alleviate lookup cost
+        exchange = self.exchange
+        config = self.config
+        exchange_pairs = exchange.pairs
+
         for pair in possible_buys:
-            if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair], self.exchange.balance, self.exchange.pairs[pair]['percentage'], self.config.global_trade_conditions['min_buy_balance']):
+            exch_pair = exchange_pairs[pair]
+
+            if self.pair_specific_buy_checks(pair, exch_pair['close'], possible_buys[pair],
+                                             exchange.balance, exch_pair['percentage'],
+                                             config.global_trade_conditions['min_buy_balance']):
+
                 # amount we'd like to own
                 target_amount = possible_buys[pair]
                 # difference between target and current owned quantity.
-                remaining_amount = target_amount - self.exchange.pairs[pair]['total']
+                remaining_amount = target_amount - exch_pair['total']
                 # lowest cost trade-able
-                min_cost = self.exchange.get_min_cost(pair)
-                current_price = self.exchange.pairs[pair]['close']
+                min_cost = exchange.get_min_cost(pair)
+                current_price = exch_pair['close']
     
                 # get orderbook, if time since last orderbook check is too soon, it will return none
-                orderbook = self.exchange.get_depth(pair, 'BUY')
+                orderbook = exchange.get_depth(pair, 'BUY')
                 if orderbook is None:
                     continue
     
                 # get viable trade, returns None if none available
-                price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost, self.config.global_trade_conditions['max_spread'])
+                price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost,
+                                                         config.global_trade_conditions['max_spread'])
     
                 # Check to see if amount remaining to buy is greater than min trade quantity for pair
                 if price_info is None or price_info.amount * price_info.average_price < min_cost:
                     continue
     
                 # place order
-                order = self.exchange.place_order(pair, 'limit', 'buy', price_info.amount, price_info.price)
+                order = exchange.place_order(pair, 'limit', 'buy', price_info.amount, price_info.price)
                 # store order in trade history
                 self.trade_history.append(order)
                 self.save_trade_history()
 
+    # ----
     def handle_possible_sells(self, possible_sells):
+        # Alleviate lookup cost
+        exchange = self.exchange
+        exchange_pairs = exchange.pairs
+        
         for pair in possible_sells:
-            
-            # lowest cost trade-able
-            min_cost = self.exchange.get_min_cost(pair)
-            if self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['close'] < min_cost: continue
-            
-            lowest_sell_price = possible_sells[pair]
-            current_price = self.exchange.pairs[pair]['close']
-            orderbook = self.exchange.get_depth(pair, 'sell')
+            exch_pair = exchange_pairs[pair]
 
+            # lowest cost trade-able
+            min_cost = exchange.get_min_cost(pair)
+            if exch_pair['total'] * exch_pair['close'] < min_cost:
+                continue
+
+            orderbook = exchange.get_depth(pair, 'sell')
             if orderbook is None:
                 continue
 
-            can_fill, minimum_fill = process_depth(orderbook, self.exchange.pairs[pair]['total'], min_cost)
+            lowest_sell_price = possible_sells[pair]
+            current_price = exch_pair['close']
+
+            can_fill, minimum_fill = process_depth(orderbook, exch_pair['total'], min_cost)
             if can_fill is not None and can_fill.price > lowest_sell_price:
                 price = can_fill
 
@@ -246,118 +341,150 @@ class Bearpuncher:
             else:
                 continue
 
-            current_value = self.exchange.pairs[pair]['total'] * price.average_price
+            current_value = exch_pair['total'] * price.average_price
+            
             # profits.append(
-            #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
-            order = self.exchange.place_order(pair, 'limit', 'sell', self.exchange.pairs[pair]['total'], price.price)
+            #     (current_value - exch_pair['total_cost']) / exch_pair['total_cost'] * 100)
+            order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], price.price)
             self.trade_history.append(order)
             self.save_trade_history()
 
+    # ----
     def handle_possible_dca_buys(self, possible_buys):
-        dca_timeout = self.config.global_trade_conditions['dca_timeout'] * 60
+        # Alleviate lookup cost
+        exchange = self.exchange
+        config = self.config
+        exchange_pairs = exchange.pairs
+        
+        dca_timeout = config.global_trade_conditions['dca_timeout'] * 60
         for pair in possible_buys:
+            exch_pair = exchange_pairs[pair]
+            
             # lowest cost trade-able
-            min_cost = self.exchange.get_min_cost(pair)
+            min_cost = exchange.get_min_cost(pair)
 
-            if (self.exchange.pairs[pair]['total'] * self.exchange.pairs[pair]['close'] < min_cost
-                    or time.time() - self.exchange.pairs[pair]['last_order_time'] < dca_timeout):
+            if (exch_pair['total'] * exch_pair['close'] < min_cost
+                    or time.time() - exch_pair['last_order_time'] < dca_timeout):
                 continue
 
-            if self.pair_specific_buy_checks(pair, self.exchange.pairs[pair]['close'], possible_buys[pair],
-                                             self.exchange.balance, self.exchange.pairs[pair]['percentage'],
-                                             self.config.global_trade_conditions['dca_min_buy_balance'], True):
+            if self.pair_specific_buy_checks(pair, exch_pair['close'], possible_buys[pair],
+                                             exchange.balance, exch_pair['percentage'],
+                                             config.global_trade_conditions['dca_min_buy_balance'], True):
 
-                current_price = self.exchange.pairs[pair]['close']
+                current_price = exch_pair['close']
 
                 # get orderbook, if time since last orderbook check is too soon, it will return none
-                orderbook = self.exchange.get_depth(pair, 'BUY')
+                orderbook = exchange.get_depth(pair, 'BUY')
                 if orderbook is None:
                     continue
 
                 # get viable trade, returns None if none available
                 price_info = self.check_for_viable_trade(current_price, orderbook, possible_buys[pair], min_cost,
-                                                    self.config.global_trade_conditions['max_spread'], True)
+                                                         config.global_trade_conditions['max_spread'], True)
 
                 # Check to see if amount remaining to buy is greater than min trade quantity for pair
                 if price_info is None or price_info.amount * price_info.average_price < min_cost:
                     continue
 
-                order = self.exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], self.exchange.pairs[pair]['close'])
-                self.exchange.pairs[pair]['dca_level'] += 1
+                order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exch_pair['close'])
+                exch_pair['dca_level'] += 1
                 self.trade_history.append(order)
                 self.save_trade_history()
 
+    # ----
     def pair_specific_buy_checks(self, pair, price, amount, balance, change, min_balance, dca=False):
+        # Alleviate lookup cost
+        global_trade_conditions = self.config.global_trade_conditions
+
         min_balance = min_balance if not isinstance(min_balance, str) \
             else percentToFloat(min_balance) * self.get_tcv()
 
         checks = [not exceeds_min_balance(balance, min_balance, price, amount),
-                  below_max_change(change, self.config.global_trade_conditions['max_change']),
-                  above_min_change(change, self.config.global_trade_conditions['min_change']),
-                  not is_blacklisted(pair, self.config.global_trade_conditions['blacklist']),
-                  is_whitelisted(pair, self.config.global_trade_conditions['whitelist'])
+                  below_max_change(change, global_trade_conditions['max_change']),
+                  above_min_change(change, global_trade_conditions['min_change']),
+                  not is_blacklisted(pair, global_trade_conditions['blacklist']),
+                  is_whitelisted(pair, global_trade_conditions['whitelist'])
                   ]
 
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
-            checks.append(below_max_pairs(len(self.owned), self.config.global_trade_conditions['max_pairs']))
+            checks.append(below_max_pairs(len(self.owned), global_trade_conditions['max_pairs']))
 
         return all(checks)
 
+    # ----
     def global_buy_checks(self):
-        check_24h_quote_change = in_range(self.exchange.quote_change_info['24h'],
-                                          self.config.global_trade_conditions['market_change']['min_24h_quote_change'],
-                                          self.config.global_trade_conditions['market_change']['max_24h_quote_change'])
+        # Alleviate lookup cost
+        quote_change_info = self.exchange.quote_change_info
+        market_change = self.config.global_trade_conditions['market_change']
 
-        check_1h_quote_change = in_range(self.exchange.quote_change_info['1h'],
-                                         self.config.global_trade_conditions['market_change']['min_1h_quote_change'],
-                                         self.config.global_trade_conditions['market_change']['max_1h_quote_change'])
+        check_24h_quote_change = in_range(quote_change_info['24h'],
+                                          market_change['min_24h_quote_change'],
+                                          market_change['max_24h_quote_change'])
+
+        check_1h_quote_change = in_range(quote_change_info['1h'],
+                                         market_change['min_1h_quote_change'],
+                                         market_change['max_1h_quote_change'])
 
         check_24h_market_change = in_range(get_average_market_change(self.exchange.pairs),
-                                           self.config.global_trade_conditions['market_change']['min_24h_market_change'],
-                                           self.config.global_trade_conditions['market_change']['max_24h_market_change'])
+                                           market_change['min_24h_market_change'],
+                                           market_change['max_24h_market_change'])
 
-        return all([
+        return all((
             check_1h_quote_change,
             check_24h_market_change,
             check_24h_quote_change
-        ])
+        ))
 
+    # ----
     def do_technical_analysis(self):
-        # todo raise error if indicators none
+        candles = self.exchange.candles
+
         for pair in self.exchange.pairs:
+            if self.indicators is None:
+                raise TypeError('(do_technical_analysis) LiquiTrader.indicators cannot be None')
+
             try:
-                self.statistics[pair] = run_ta(self.exchange.candles[pair], self.indicators)
+                self.statistics[pair] = run_ta(candles[pair], self.indicators)
 
             except Exception as ex:
                 print('err in do ta', pair, ex)
                 self.exchange.reload_single_candle_history(pair)
                 continue
 
+    # ----
     def save_trade_history(self):
         self.save_pairs_history()
         fp = 'tradehistory.json'
         with open(fp, 'w') as f:
             json.dump(self.trade_history, f)
 
+    # ----
     def save_pairs_history(self):
         fp = 'pair_data.json'
         with open(fp, 'w') as f:
             json.dump(self.exchange.pairs, f)
 
+    # ----
     def load_pairs_history(self):
         fp = 'pair_data.json'
+
         with open(fp, 'r') as f:
             pair_data = json.load(f)
-        for pair in self.exchange.pairs:
+
+        exchange_pairs = self.exchange.pairs
+        for pair in exchange_pairs:
             if pair in pair_data:
-                if self.exchange.pairs[pair]['total_cost'] is None or self.config.general_settings['paper_trading']:
-                    self.exchange.pairs[pair].update(pair_data[pair])
+                exch_pair = exchange_pairs[pair]
+
+                # TODO @Kyle :: was the 'or' removed?
+                if exch_pair['total_cost'] is None or self.config.general_settings['paper_trading']:
+                    exch_pair.update(pair_data[pair])
                 else:
-                    self.exchange.pairs[pair]['dca_level'] = pair_data[pair]['dca_level']
-                    self.exchange.pairs[pair]['last_order_time'] = pair_data[pair]['last_order_time']
+                    exch_pair['dca_level'] = pair_data[pair]['dca_level']
+                    exch_pair['last_order_time'] = pair_data[pair]['last_order_time']
 
-
+    # ----
     def load_trade_history(self):
         fp = 'tradehistory.json'
         with open(fp, 'r') as f:
@@ -381,6 +508,7 @@ class Bearpuncher:
         else:
             return df[DEFAULT_COLUMNS] if basic else df
 
+    # ----
     def get_pending_value(self):
         df = self.pairs_to_df()
 
@@ -389,9 +517,11 @@ class Bearpuncher:
         else:
             return 0
 
+    # ----
     def get_pair(self, symbol):
         return self.exchange.pairs[symbol]
 
+    # ----
     @staticmethod
     def calc_gains_on_df(df):
         df['total_cost'] = df.bought_price * df.filled
@@ -400,6 +530,7 @@ class Bearpuncher:
 
         return df
 
+    # ----
     def get_daily_profit_data(self):
         df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
         df = self.calc_gains_on_df(df)
@@ -411,12 +542,14 @@ class Bearpuncher:
 
         return df.resample('1d').sum()
 
+    # ----
     def get_pair_profit_data(self):
         df = pd.DataFrame(self.trade_history)
         df = self.calc_gains_on_df(df)
 
         return df.groupby('symbol').sum()[['total_cost', 'cost', 'amount', 'gain']]
 
+    # ----
     def get_total_profit(self):
         df = pd.DataFrame(self.trade_history)
         df = df[df.side == 'sell']
@@ -427,69 +560,160 @@ class Bearpuncher:
 
         return df.gain.sum()
 
+    # ----
     def get_cumulative_profit(self):
         return self.get_daily_profit_data().cumsum()
     #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
 
+
 # ----
 def main():
-    global BP_ENGINE, FlaskApp, guithread, bpthread, exchangethread
+    def err_msg():
+        sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
+        sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+        sys.stdout.flush()
 
-    BP_ENGINE = Bearpuncher()
+    print('Starting LiquiTrader...\n')
 
-    import FlaskApp
-    # FlaskApp couldnt access BP engine
-    FlaskApp.BP_ENGINE = BP_ENGINE
+    if sys.executable is None:
+        setattr(sys, 'frozen', True)
 
-    BP_ENGINE.initialize_config()
+    global gui_thread, trader_thread, exchange_thread, LT_ENGINE
+
+    if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
+        vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
+
+        # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
+        # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
+        if ((not vfile.startswith('lib/strategic_analysis')) or
+                (not os.path.isfile(vfile)) or
+                os.stat(vfile).st_size < 287000):
+
+            err_msg()
+            sys.exit(1)
+
+        start = time.time()
+        strategic_analysis.verify()
+
+        # Check that verifier took a reasonable amount of time to execute (make NOPing harder)
+        if (time.time() - start) < .03:
+            err_msg()
+            sys.exit(1)
+
+    from gui import gui_server
+
+    shutdown_handler = ShutdownHandler()
+
+    LT_ENGINE = LiquiTrader(shutdown_handler)
+    LT_ENGINE.initialize_config()
+
+    gui_server.LT_ENGINE = LT_ENGINE
+
     try:
-        BP_ENGINE.load_trade_history()
-    except Exception as ex:
-        print(ex)
-    BP_ENGINE.initialize_exchange()
-    try:
-        BP_ENGINE.load_pairs_history()
-    except:
-        pass
-    BP_ENGINE.load_strategies()
+        LT_ENGINE.load_trade_history()
+    except FileNotFoundError:
+        print('No trade history found')
 
-    def run():
-        while True:
+    LT_ENGINE.initialize_exchange()
+
+    try:
+        LT_ENGINE.load_pairs_history()
+    except FileNotFoundError:
+        print('No pairs history found')
+
+    LT_ENGINE.load_strategies()
+
+    # ----
+    def run_trader(_shutdown_handler):
+        _shutdown_handler.add_task()
+
+        # Alleviate method lookup overhead
+        global_buy_checks = LT_ENGINE.global_buy_checks
+        do_technical_analysis = LT_ENGINE.do_technical_analysis
+        get_possible_buys = LT_ENGINE.get_possible_buys
+        handle_possible_buys = LT_ENGINE.handle_possible_buys
+        handle_possible_dca_buys = LT_ENGINE.handle_possible_dca_buys
+        get_possible_sells = LT_ENGINE.get_possible_sells
+        handle_possible_sells = LT_ENGINE.handle_possible_sells
+
+        exchange = LT_ENGINE.exchange
+
+        while not _shutdown_handler.running_or_complete():
             try:
                 # timed @ 1.1 seconds 128ms stdev
-                BP_ENGINE.do_technical_analysis()
-                
-                if BP_ENGINE.global_buy_checks():
-                    possible_buys = BP_ENGINE.get_possible_buys(BP_ENGINE.exchange.pairs, BP_ENGINE.buy_strategies)
-                    BP_ENGINE.handle_possible_buys(possible_buys)
-                    possible_dca_buys = BP_ENGINE.get_possible_buys(BP_ENGINE.exchange.pairs, BP_ENGINE.dca_buy_strategies)
-                    BP_ENGINE.handle_possible_dca_buys(possible_dca_buys)
+                do_technical_analysis()
 
-                possible_sells = BP_ENGINE.get_possible_sells(BP_ENGINE.exchange.pairs, BP_ENGINE.sell_strategies)
-                BP_ENGINE.handle_possible_sells(possible_sells)
+                if global_buy_checks():
+                    possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
+                    print(possible_buys)
+                    handle_possible_buys(possible_buys)
+                    possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
+                    handle_possible_dca_buys(possible_dca_buys)
+
+                possible_sells = get_possible_sells(exchange.pairs, LT_ENGINE.sell_strategies)
+                handle_possible_sells(possible_sells)
 
             except Exception as ex:
                 print('err in run: {}'.format(traceback.format_exc()))
 
-    import threading
+        _shutdown_handler.remove_task()
+
+    # ----
+    trader_thread = threading.Thread(target=lambda: run_trader(shutdown_handler))
+    gui_thread = threading.Thread(target=lambda: gui_server.run(shutdown_handler))
+    exchange_thread = threading.Thread(target=LT_ENGINE.run_exchange)
+
+    trader_thread.start()
+    gui_thread.start()
+    exchange_thread.start()
 
 
+    while True:
+        try:
+            input()
+
+        except KeyboardInterrupt:
+            print('\nClosing LiquiTrader...\n')
+
+            shutdown_handler.start_shutdown()  # Set shutdown flag
+
+            print('Stopping GUI server')
+            gui_server.stop(shutdown_handler)  # Gracefully shut down webserver
+
+            print('Stopping exchange connections')
+            try:
+                LT_ENGINE.stop_exchange()
+
+            # Catch Twisted connection lost bullshit
+            except Exception as _ex:
+                exception_data = traceback.format_exc()
+                if 'connectionLost' in exception_data:
+                    pass
+                else:
+                    raise _ex
+
+            # Wait for transactions / critical actions to finish
+            if not shutdown_handler.is_complete():
+                counter = 1
+
+                while counter <= 10 and (not shutdown_handler.is_complete()):
+                    print(f'\rWaiting for transactions to complete... ({counter}/10)...', end='')
+                    time.sleep(1)
+                    counter += 1
+
+            # Force-kill the threads to prevent zombies
+            for thread in (trader_thread, gui_thread, exchange_thread):
+                if thread.is_alive():
+                    thread._tstate_lock.release()
+                    thread._stop()
+
+            print('\nThanks for using LiquiTrader!\n')
+            sys.exit(0)
 
 
-    guithread = threading.Thread(target=lambda: FlaskApp.app.run('0.0.0.0', 80))
-    bpthread = threading.Thread(target=run)
-    exchangethread = threading.Thread(target=BP_ENGINE.exchange.start)
-
-    bpthread.start()
-    exchangethread.start()
-    guithread.start()
-
-
-    # app.run(port=8081)
 if __name__ == '__main__':
-
     def get_pc():
-        df = BP_ENGINE.pairs_to_df()
+        df = LT_ENGINE.pairs_to_df()
         df[df['total'] > 0]
         return df
     main()

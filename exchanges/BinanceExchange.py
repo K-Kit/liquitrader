@@ -1,14 +1,25 @@
 import asyncio
 import json
 import time
+import traceback
 
 from exchanges.GenericExchange import *
-from binance.client import Client
-from binance.websockets import BinanceSocketManager
+
+import binance
+from binance import client, websockets
+
+import twisted
+
+
+Client = binance.client.Client
+BinanceSocketManager = binance.websockets.BinanceSocketManager
+
+#from binance.client import Client
+#from binance.websockets import BinanceSocketManager
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
-def gen_socket_list(pairs: dict, timeframes: list):
+def gen_socket_list(pairs: dict, timeframes: set):
     # creates list of socket streams to subscribe to
     candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
     depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]
@@ -57,6 +68,7 @@ class BinanceExchange(GenericExchange):
     # ----
     def init_socket_manager(self, public, secret):
         self.socket_manager = BinanceSocketManager(Client(public, secret))
+        self.socket_manager.setDaemon(True)
         self.socket_manager.start()
 
     # ----
@@ -192,8 +204,24 @@ class BinanceExchange(GenericExchange):
 
     # ----
     def stop(self):
-        self.socket_manager.close()
-        self._loop.run_until_complete(super().stop)
+        from twisted.internet import reactor
+
+        # Kill Binance library's Twisted server
+        reactor.callFromThread(lambda: reactor.stop())
+
+        for p in reactor.getDelayedCalls():
+            if p.active():
+                p.cancel()
+
+        try:
+            # Close websocket connections
+            self.socket_manager.close()
+
+        except Exception as _ex:
+            print(str(_ex))
+
+        new_loop = asyncio.new_event_loop()
+        new_loop.run_until_complete(super().stop())
 
     # ----
     def parse_stream_name(self, stream_name):

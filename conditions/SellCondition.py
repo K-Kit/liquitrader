@@ -28,7 +28,9 @@ class SellCondition(Condition):
         price = float(pair['close'])
         trail_to = None
         current_value = get_current_value(price, pair['total'])
-        percent_change = get_percent_change(current_value, pair['total_cost']) - fee
+        total_cost = pair['total_cost']
+        total_cost = -1.0 if total_cost is None else total_cost
+        percent_change = get_percent_change(current_value, total_cost) - fee
         pair['percent_change'] = percent_change
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
@@ -54,7 +56,7 @@ class SellCondition(Condition):
 
 
 if __name__ == '__main__':
-    from examples import *
+    from conditions.examples import *
     strategy = {}
     # 1 and 3 are true with the test data
     strategy['conditions'] = [condition_1]

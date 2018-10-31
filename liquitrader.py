@@ -603,7 +603,7 @@ def main():
     LT_ENGINE = LiquiTrader(shutdown_handler)
     LT_ENGINE.initialize_config()
 
-    gui_server.LT_TRADER = LT_ENGINE
+    gui_server.LT_ENGINE = LT_ENGINE
 
     try:
         LT_ENGINE.load_trade_history()
@@ -633,8 +633,10 @@ def main():
         handle_possible_sells = LT_ENGINE.handle_possible_sells
 
         exchange = LT_ENGINE.exchange
-
-        LT_ENGINE.load_trade_history()
+        try:
+            LT_ENGINE.load_trade_history()
+        except:
+            pass
 
         while not _shutdown_handler.running_or_complete():
             try:

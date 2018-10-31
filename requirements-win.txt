@@ -1,0 +1,2 @@
+pypiwin32
+https://download.lfd.uci.edu/pythonlibs/l8ulg3xw/TA_Lib-0.4.17-cp36-cp36m-win_amd64.whl

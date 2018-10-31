@@ -6,6 +6,7 @@ import time
 import traceback
 import threading
 import functools
+import pathlib
 
 import strategic_analysis
 
@@ -27,24 +28,28 @@ from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
+
 if hasattr(sys, 'frozen'):
-    os.environ["REQUESTS_CA_BUNDLE"] = os.path.join(os.path.dirname(sys.executable), 'lib', 'cacert.pem')
+    liquitrader_dir = pathlib.Path(os.path.dirname(sys.executable)).parent
+    os.chdir(liquitrader_dir)
+    os.environ["REQUESTS_CA_BUNDLE"] = str(liquitrader_dir / 'lib' / 'cacert.pem')
+
 
 DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost', 'current_value', 'dca_level', 'total', 'percentage']
 
 # FRIENDLY_HOLDING_COLUMNS =  ['Last Purchase Time', 'Symbol', 'Price', 'Bought Price', '% Change', 'Volume',
 #                              'Bought Value', 'Current Value', 'DCA Level', 'Amount', '24h Change']
 COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
-                 'symbol': 'Symbol',
-                 'avg_price': 'Bought Price',
-                 'close': 'Price',
-                 'gain': '% Change',
-                 'quoteVolume': 'Volume',
-                 'total_cost': 'Bought Value',
-                 'current_value': 'Current Value',
-                 'dca_level': 'DCA Level',
-                 'total': 'Amount',
-                 'percentage': '24h Change'
+                  'symbol': 'Symbol',
+                  'avg_price': 'Bought Price',
+                  'close': 'Price',
+                  'gain': '% Change',
+                  'quoteVolume': 'Volume',
+                  'total_cost': 'Bought Value',
+                  'current_value': 'Current Value',
+                  'dca_level': 'DCA Level',
+                  'total': 'Amount',
+                  'percentage': '24h Change'
                   }
 
 
@@ -133,29 +138,32 @@ class LiquiTrader:
 
     # ----
     def initialize_exchange(self):
-        if self.config.general_settings['exchange'].lower() == 'binance' and self.config.general_settings['paper_trading']:
+        general_settings = self.config.general_settings
+
+        if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
-                                                      self.config.general_settings['market'].upper(),
-                                                      self.config.general_settings['starting_balance'],
+                                                      general_settings['market'].upper(),
+                                                      general_settings['starting_balance'],
                                                       {'public': keys.public, 'secret': keys.secret},
                                                       self.timeframes)
 
-            # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
-        elif self.config.general_settings['exchange'].lower() == 'binance':
+        # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
+        elif general_settings['exchange'].lower() == 'binance':
             self.exchange = BinanceExchange.BinanceExchange('binance',
-                                                            self.config.general_settings['market'].upper(),
+                                                            general_settings['market'].upper(),
                                                             {'public': keys.public, 'secret': keys.secret},
                                                             self.timeframes)
 
-        elif self.config.general_settings['paper_trading']:
-            self.exchange = GenericPaper.PaperGeneric(self.config.general_settings['exchange'].lower(),
-                                                            self.config.general_settings['market'].upper(),
-                                                            self.config.general_settings['starting_balance'],
-                                                            {'public': keys.public, 'secret': keys.secret},
-                                                            self.timeframes)
+        elif general_settings['paper_trading']:
+            self.exchange = GenericPaper.PaperGeneric(general_settings['exchange'].lower(),
+                                                      general_settings['market'].upper(),
+                                                      general_settings['starting_balance'],
+                                                      {'public': keys.public, 'secret': keys.secret},
+                                                      self.timeframes)
         else:
-            self.exchange = GenericExchange.GenericExchange(self.config.general_settings['exchange'].lower(),
-                                                            self.config.general_settings['market'].upper(),
+            self.exchange = GenericExchange.GenericExchange(general_settings['exchange'].lower(),
+                                                            general_settings['market'].upper(),
+                                                            general_settings['starting_balance'],
                                                             {'public': keys.public, 'secret': keys.secret},
                                                             self.timeframes)
 
@@ -667,6 +675,8 @@ def main():
     gui_thread.start()
     exchange_thread.start()
 
+    # ----
+    # Main thread loop
 
     while True:
         try:

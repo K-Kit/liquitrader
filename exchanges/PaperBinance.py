@@ -1,4 +1,4 @@
-from exchanges.Binance import *
+from exchanges.BinanceExchange import *
 current_order_id = 0
 def create_paper_order(symbol, order_type, side, amount, price, _quote_currency):
     """

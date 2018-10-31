@@ -186,11 +186,16 @@ class LiquiTrader:
     def get_tcv(self):
         pending = 0
         self.owned = []
+
         for pair, value in self.exchange.pairs.items():
-            if 'total' not in value or 'close' not in value: continue
+            if 'total' not in value or 'close' not in value:
+                continue
+
             pending += value['close'] * value['total']
+
             if value['close'] * value['total'] > 0:
                 self.owned.append(pair)
+
         return pending + self.exchange.balance
 
     # ----
@@ -603,7 +608,7 @@ def main():
     LT_ENGINE = LiquiTrader(shutdown_handler)
     LT_ENGINE.initialize_config()
 
-    gui_server.LT_TRADER = LT_ENGINE
+    gui_server.LT_ENGINE = LT_ENGINE
 
     try:
         LT_ENGINE.load_trade_history()

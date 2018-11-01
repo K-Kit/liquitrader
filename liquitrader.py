@@ -29,10 +29,16 @@ from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
 
+LT_ENGINE = None
+
+APP_DIR = ''
 if hasattr(sys, 'frozen'):
-    liquitrader_dir = pathlib.Path(os.path.dirname(sys.executable)).parent
-    os.chdir(liquitrader_dir)
-    os.environ["REQUESTS_CA_BUNDLE"] = str(liquitrader_dir / 'lib' / 'cacert.pem')
+    APP_DIR = pathlib.Path(os.path.dirname(sys.executable))
+    os.chdir(APP_DIR)
+    os.environ["REQUESTS_CA_BUNDLE"] = str(APP_DIR / 'lib' / 'cacert.pem')
+
+else:
+    APP_DIR = pathlib.Path(os.path.dirname(__file__))
 
 
 DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost', 'current_value', 'dca_level', 'total', 'percentage']
@@ -575,6 +581,42 @@ class LiquiTrader:
 
 
 # ----
+def trader_thread_loop(_shutdown_handler):
+    _shutdown_handler.add_task()
+
+    # Alleviate method lookup overhead
+    global_buy_checks = LT_ENGINE.global_buy_checks
+    do_technical_analysis = LT_ENGINE.do_technical_analysis
+    get_possible_buys = LT_ENGINE.get_possible_buys
+    handle_possible_buys = LT_ENGINE.handle_possible_buys
+    handle_possible_dca_buys = LT_ENGINE.handle_possible_dca_buys
+    get_possible_sells = LT_ENGINE.get_possible_sells
+    handle_possible_sells = LT_ENGINE.handle_possible_sells
+
+    exchange = LT_ENGINE.exchange
+
+    while not _shutdown_handler.running_or_complete():
+        try:
+            # timed @ 1.1 seconds 128ms stdev
+            do_technical_analysis()
+
+            if global_buy_checks():
+                possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
+                print(possible_buys)
+                handle_possible_buys(possible_buys)
+                possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
+                handle_possible_dca_buys(possible_dca_buys)
+
+            possible_sells = get_possible_sells(exchange.pairs, LT_ENGINE.sell_strategies)
+            handle_possible_sells(possible_sells)
+
+        except Exception as ex:
+            print('err in run: {}'.format(traceback.format_exc()))
+
+    _shutdown_handler.remove_task()
+
+
+# ----
 def main():
     def err_msg():
         sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
@@ -583,10 +625,8 @@ def main():
 
     print('Starting LiquiTrader...\n')
 
-    if sys.executable is None:
+    if 'python' not in sys.executable.lower():
         setattr(sys, 'frozen', True)
-
-    global gui_thread, trader_thread, exchange_thread, LT_ENGINE
 
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
@@ -608,68 +648,36 @@ def main():
             err_msg()
             sys.exit(1)
 
-    from gui import gui_server
-
+    # ----
     shutdown_handler = ShutdownHandler()
 
-    LT_ENGINE = LiquiTrader(shutdown_handler)
-    LT_ENGINE.initialize_config()
-
-    gui_server.LT_ENGINE = LT_ENGINE
+    lt_engine = LiquiTrader(shutdown_handler)
+    lt_engine.initialize_config()
 
     try:
-        LT_ENGINE.load_trade_history()
+        lt_engine.load_trade_history()
     except FileNotFoundError:
         print('No trade history found')
 
-    LT_ENGINE.initialize_exchange()
+    lt_engine.initialize_exchange()
 
     try:
-        LT_ENGINE.load_pairs_history()
+        lt_engine.load_pairs_history()
     except FileNotFoundError:
         print('No pairs history found')
 
-    LT_ENGINE.load_strategies()
+    lt_engine.load_strategies()
 
     # ----
-    def run_trader(_shutdown_handler):
-        _shutdown_handler.add_task()
+    import gui.gui_server
 
-        # Alleviate method lookup overhead
-        global_buy_checks = LT_ENGINE.global_buy_checks
-        do_technical_analysis = LT_ENGINE.do_technical_analysis
-        get_possible_buys = LT_ENGINE.get_possible_buys
-        handle_possible_buys = LT_ENGINE.handle_possible_buys
-        handle_possible_dca_buys = LT_ENGINE.handle_possible_dca_buys
-        get_possible_sells = LT_ENGINE.get_possible_sells
-        handle_possible_sells = LT_ENGINE.handle_possible_sells
-
-        exchange = LT_ENGINE.exchange
-
-        while not _shutdown_handler.running_or_complete():
-            try:
-                # timed @ 1.1 seconds 128ms stdev
-                do_technical_analysis()
-
-                if global_buy_checks():
-                    possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
-                    print(possible_buys)
-                    handle_possible_buys(possible_buys)
-                    possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
-                    handle_possible_dca_buys(possible_dca_buys)
-
-                possible_sells = get_possible_sells(exchange.pairs, LT_ENGINE.sell_strategies)
-                handle_possible_sells(possible_sells)
-
-            except Exception as ex:
-                print('err in run: {}'.format(traceback.format_exc()))
-
-        _shutdown_handler.remove_task()
+    gui.gui_server.LT_ENGINE = lt_engine
+    gui_server = gui.gui_server.LiquitraderFlaskApp(shutdown_handler)
 
     # ----
-    trader_thread = threading.Thread(target=lambda: run_trader(shutdown_handler))
-    gui_thread = threading.Thread(target=lambda: gui_server.run(shutdown_handler))
-    exchange_thread = threading.Thread(target=LT_ENGINE.run_exchange)
+    trader_thread = threading.Thread(target=lambda: trader_thread_loop(shutdown_handler))
+    gui_thread = threading.Thread(target=gui_server.run)
+    exchange_thread = threading.Thread(target=lt_engine.run_exchange)
 
     trader_thread.start()
     gui_thread.start()
@@ -688,11 +696,11 @@ def main():
             shutdown_handler.start_shutdown()  # Set shutdown flag
 
             print('Stopping GUI server')
-            gui_server.stop(shutdown_handler)  # Gracefully shut down webserver
+            gui_server.stop()  # Gracefully shut down webserver
 
             print('Stopping exchange connections')
             try:
-                LT_ENGINE.stop_exchange()
+                lt_engine.stop_exchange()
 
             # Catch Twisted connection lost bullshit
             except Exception as _ex:

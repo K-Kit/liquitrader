@@ -1,4 +1,5 @@
 arrow
+autobahn>=18.6.1
 
 binance
 
@@ -34,7 +35,6 @@ pytest
 python_binance
 
 requests
-requests.certs
 
 sqlalchemy
 

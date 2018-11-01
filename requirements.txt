@@ -33,7 +33,6 @@ pytest
 python_binance
 
 requests
-requests.certs
 
 sqlalchemy
 

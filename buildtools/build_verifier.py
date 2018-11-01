@@ -7,114 +7,115 @@ import buildtools.signature_tools
 
 
 runner_template = r"""
-def verify():
-    import base64
-    import sys
-    import os
-    
-    def err_msg():
-        sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
-        sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
-        sys.stdout.flush()
+import base64
+import sys
+import os
 
-    import cryptography.exceptions
-    from cryptography.hazmat.backends import default_backend
-    from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import padding, utils
+import cryptography.exceptions
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, utils
 
 
-    def rld(string):
-        decoded = ''
+class VerifyTool:
 
-        for run_length_pos in range(0, len(string), 2):
-            decoded += string[run_length_pos + 1] * int(string[run_length_pos])
+    def __init__(self, verifier_data):
+        rl_decoded_shifted = base64.b64decode(verifier_data).decode('utf-8')
+        rl_decoded_unshifted = unshift(rl_decoded_shifted)
+        rl_decoded = rld(rl_decoded_unshifted).encode()
+        rl_decoded = base64.b64decode(rl_decoded)
 
-        return decoded
+        self.public_key = serialization.load_der_public_key(rl_decoded, default_backend())
 
+    # ----
+    def verify_file(self, filename, signature_b64):
+        if not os.path.exists(filename):
+            print(f'Error: {{filename}} does not exist.')
+            return False
 
-    def unshift(string):
-        split = string.find('~')
-        key, shifted = string[:split], string[split + 1:]
-        shift_table = []
-        
-        next_neg = False
-        for sh in key:
-            if sh == '-':
-                next_neg = True
-                continue
-            
-            shift_table.append(int(sh) * -1 if next_neg else int(sh))
-            next_neg = False
-        
-        unshifted = ''
-        for ch, shift_amt in zip(shifted, shift_table):
-            unshifted += chr(ord(ch) - shift_amt)
+        signature = base64.b64decode(signature_b64)
 
-        return unshifted
+        hash_alg = hashes.SHA256()
+        hasher = hashes.Hash(hash_alg, default_backend())
 
-
-    class VerifyTool:
-
-        def __init__(self, verifier_data):
-            rl_decoded_shifted = base64.b64decode(verifier_data).decode('utf-8')
-            rl_decoded_unshifted = unshift(rl_decoded_shifted)
-            rl_decoded = rld(rl_decoded_unshifted).encode()
-            rl_decoded = base64.b64decode(rl_decoded)
-
-            self.public_key = serialization.load_der_public_key(rl_decoded, default_backend())
-
-        # ----
-        def verify_file(self, filename, signature_b64):
-            if not os.path.exists(filename):
-                print(f'Error: {{filename}} does not exist.')
-                return False
-
-            signature = base64.b64decode(signature_b64)
-
-            hash_alg = hashes.SHA256()
-            hasher = hashes.Hash(hash_alg, default_backend())
-
-            # Load the contents of the file to be signed.
-            with open(filename, 'rb') as file_to_check:
+        # Load the contents of the file to be signed.
+        with open(filename, 'rb') as file_to_check:
+            chunk = file_to_check.read(2048)
+            while chunk != b'':
+                hasher.update(chunk)
                 chunk = file_to_check.read(2048)
-                while chunk != b'':
-                    hasher.update(chunk)
-                    chunk = file_to_check.read(2048)
 
-            digest = hasher.finalize()
+        digest = hasher.finalize()
 
-            # Perform the verification
-            try:
-                self.public_key.verify(
-                    signature,
-                    digest,
-                    padding.PSS(
-                        mgf=padding.MGF1(hashes.SHA256()),
-                        salt_length=padding.PSS.MAX_LENGTH,
-                    ),
-                    utils.Prehashed(hash_alg)
-                )
+        # Perform the verification
+        try:
+            self.public_key.verify(
+                signature,
+                digest,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH,
+                ),
+                utils.Prehashed(hash_alg)
+            )
 
-                return True
+            return True
 
-            except cryptography.exceptions.InvalidSignature:
-                return False
+        except cryptography.exceptions.InvalidSignature:
+            return False
 
-        # ----
-        def verify_files(self, tuples):
-            return all(iter(self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64) for file, signature_b64 in tuples))
+    # ----
+    def verify_files(self, tuples):
+        return all(iter(self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64) for file, signature_b64 in tuples))
 
 
+def rld(string):
+    decoded = ''
+
+    for run_length_pos in range(0, len(string), 2):
+        decoded += string[run_length_pos + 1] * int(string[run_length_pos])
+
+    return decoded
+
+
+def unshift(string):
+    split = string.find('~')
+    key, shifted = string[:split], string[split + 1:]
+    shift_table = []
+    
+    next_neg = False
+    for sh in key:
+        if sh == '-':
+            next_neg = True
+            continue
+        
+        shift_table.append(int(sh) * -1 if next_neg else int(sh))
+        next_neg = False
+    
+    unshifted = ''
+    for ch, shift_amt in zip(shifted, shift_table):
+        unshifted += chr(ord(ch) - shift_amt)
+
+    return unshifted
+
+
+def err_msg():
+    sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
+    sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+    sys.stdout.flush()
+
+
+def verify():
     verifier = VerifyTool('{verifier_data}')
 
     if not verifier.verify_files({signature_tuples}):
         err_msg()
         sys.exit(1)
 
-#if __name__ == '__main__':
-#    import sys
-#    print('This library is not allowed to run standalone')
-#    sys.exit(1)
+if __name__ == '__main__':
+    import sys
+    print('This library is not allowed to run standalone')
+    sys.exit(1)
 """
 
 

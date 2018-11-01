@@ -70,7 +70,6 @@ class BinanceExchange(GenericExchange):
     def init_socket_manager(self, public, secret):
         self.socket_manager = BinanceSocketManager(Client(public, secret))
         self.socket_manager.setDaemon(True)
-        self.socket_manager.start()
 
     # ----
     def process_multiplex_socket(self, msg):
@@ -191,6 +190,8 @@ class BinanceExchange(GenericExchange):
         self.ticker_socket = self.socket_manager.start_multiplex_socket(ticker_sockets, self.process_multiplex_socket)
 
         self._balances = self.update_balances()
+
+        self.socket_manager.start()
 
     # ----
     def start(self):

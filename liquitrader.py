@@ -645,7 +645,6 @@ def main():
 
                 if global_buy_checks():
                     possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
-                    print(possible_buys)
                     handle_possible_buys(possible_buys)
                     possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
                     handle_possible_dca_buys(possible_dca_buys)

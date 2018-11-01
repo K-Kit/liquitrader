@@ -157,6 +157,7 @@ class LiquiTrader:
         elif general_settings['exchange'].lower() == 'binance':
             self.exchange = BinanceExchange.BinanceExchange('binance',
                                                             general_settings['market'].upper(),
+                                                            general_settings['starting_balance'],
                                                             {'public': keys.public, 'secret': keys.secret},
                                                             self.timeframes)
 
@@ -581,19 +582,19 @@ class LiquiTrader:
 
 
 # ----
-def trader_thread_loop(_shutdown_handler):
+def trader_thread_loop(lt_engine, _shutdown_handler):
     _shutdown_handler.add_task()
 
     # Alleviate method lookup overhead
-    global_buy_checks = LT_ENGINE.global_buy_checks
-    do_technical_analysis = LT_ENGINE.do_technical_analysis
-    get_possible_buys = LT_ENGINE.get_possible_buys
-    handle_possible_buys = LT_ENGINE.handle_possible_buys
-    handle_possible_dca_buys = LT_ENGINE.handle_possible_dca_buys
-    get_possible_sells = LT_ENGINE.get_possible_sells
-    handle_possible_sells = LT_ENGINE.handle_possible_sells
+    global_buy_checks = lt_engine.global_buy_checks
+    do_technical_analysis = lt_engine.do_technical_analysis
+    get_possible_buys = lt_engine.get_possible_buys
+    handle_possible_buys = lt_engine.handle_possible_buys
+    handle_possible_dca_buys = lt_engine.handle_possible_dca_buys
+    get_possible_sells = lt_engine.get_possible_sells
+    handle_possible_sells = lt_engine.handle_possible_sells
 
-    exchange = LT_ENGINE.exchange
+    exchange = lt_engine.exchange
 
     while not _shutdown_handler.running_or_complete():
         try:
@@ -601,13 +602,13 @@ def trader_thread_loop(_shutdown_handler):
             do_technical_analysis()
 
             if global_buy_checks():
-                possible_buys = get_possible_buys(exchange.pairs, LT_ENGINE.buy_strategies)
+                possible_buys = get_possible_buys(exchange.pairs, lt_engine.buy_strategies)
                 print(possible_buys)
                 handle_possible_buys(possible_buys)
-                possible_dca_buys = get_possible_buys(exchange.pairs, LT_ENGINE.dca_buy_strategies)
+                possible_dca_buys = get_possible_buys(exchange.pairs, lt_engine.dca_buy_strategies)
                 handle_possible_dca_buys(possible_dca_buys)
 
-            possible_sells = get_possible_sells(exchange.pairs, LT_ENGINE.sell_strategies)
+            possible_sells = get_possible_sells(exchange.pairs, lt_engine.sell_strategies)
             handle_possible_sells(possible_sells)
 
         except Exception as ex:
@@ -672,10 +673,12 @@ def main():
     import gui.gui_server
 
     gui.gui_server.LT_ENGINE = lt_engine
-    gui_server = gui.gui_server.LiquitraderFlaskApp(shutdown_handler)
+
+    # TODO: Pull host, port, and ssl from config
+    gui_server = gui.gui_server.GUIServer(shutdown_handler, host='localhost', port=80, ssl=False)
 
     # ----
-    trader_thread = threading.Thread(target=lambda: trader_thread_loop(shutdown_handler))
+    trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))
     gui_thread = threading.Thread(target=gui_server.run)
     exchange_thread = threading.Thread(target=lt_engine.run_exchange)
 

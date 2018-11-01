@@ -155,15 +155,11 @@ def get_market():
 @_app.route("/buy_log")
 def get_buy_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
-    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-    df['net_gain'] = (df.price - df.bought_price) * df.filled
 
     if 'price' not in df:
         return jsonify([])
 
     cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
-
-    df[df.side == 'buy'][cols].to_json(orient='records', path_or_buf='buy_log')
 
     return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))
 
@@ -173,12 +169,12 @@ def get_buy_log_frame():
 def get_sell_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
-    if 'price' not in df:
+    if 'bought_price' not in df:
         return jsonify([])
 
     df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled',
-            'gain']
+    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+
     df[df.side == 'sell'][cols].to_json(orient='records', path_or_buf='sell_log')
 
     return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))

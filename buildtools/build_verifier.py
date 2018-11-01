@@ -111,10 +111,10 @@ def verify():
         err_msg()
         sys.exit(1)
 
-if __name__ == '__main__':
-    import sys
-    print('This library is not allowed to run standalone')
-    sys.exit(1)
+#if __name__ == '__main__':
+#    import sys
+#    print('This library is not allowed to run standalone')
+#    sys.exit(1)
 """
 
 

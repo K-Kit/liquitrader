@@ -1,6 +1,11 @@
+import binascii
+import os
+# from io import BytesIO
+
 import liquitrader
 
-# from io import BytesIO
+from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
+from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
 from flask import jsonify, Response
@@ -14,11 +19,10 @@ from flask_otp import OTP
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm
 
+from OpenSSL import crypto
+
 import pandas as pd
-
 # import pyqrcode
-
-import requests
 
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length
@@ -28,8 +32,8 @@ LT_ENGINE = None
 FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
 
 
-class LiquitraderFlaskApp:
-    app = flask.Flask('liquitrader_flask_app')
+class GUIServer:
+    app = flask.Flask('lt_flask')
 
     database_uri = f'sqlite:///{liquitrader.APP_DIR / "config" / "liquitrader.db"}'
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
@@ -47,38 +51,88 @@ class LiquitraderFlaskApp:
     flask_compress.Compress(app)
 
     # ----
-    def __init__(self, shutdown_handler, ssl=False):
-        self.shutdown_handler = shutdown_handler
+    def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
+        self._shutdown_handler = shutdown_handler
+        self._host = host
+        self._port = port
+
         self._use_ssl = ssl
+        self._certfile_path = liquitrader.APP_DIR / 'lib' / 'liquitrader.crt'
+        self._keyfile_path = liquitrader.APP_DIR / 'lib' / 'liquitrader.key'
 
+        # Set constants for WSGIServer
+        WSGIServer.version = 'LiquiTrader/2.0'
+
+        self._wsgi_server = None
+
+    # ----
+    def _create_self_signed_cert(self):
+        # create a key pair
+        k = crypto.PKey()
+        k.generate_key(crypto.TYPE_RSA, 2048)
+
+        # create a self-signed cert
+        cert = crypto.X509()
+        cert.get_subject().C = 'US'
+        cert.get_subject().O = 'LiquiTrader'
+        cert.get_subject().CN = 'localhost'
+        cert.set_serial_number(int(binascii.hexlify(os.urandom(16)), 16))
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
+        cert.set_issuer(cert.get_subject())
+        cert.set_pubkey(k)
+        cert.sign(k, b'sha256')
+
+        with open(self._certfile_path, 'wb') as certfile:
+            certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+
+        with open(self._keyfile_path, 'wb') as keyfile:
+            keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, k))
+
+    # --
+    def _init_ssl(self):
+        import flask_sslify
+        flask_sslify.SSLify(self.app, permanent=True)
+
+        if not (os.path.exists(self._certfile_path) and os.path.exists(self._keyfile_path)):
+            self._create_self_signed_cert()
+
+        WSGIServer.ssl_adapter = BuiltinSSLAdapter(certificate=self._certfile_path, private_key=self._keyfile_path)
+
+    # ----
     def run(self):
-        self.shutdown_handler.add_task()
-        self.app.run('0.0.0.0', 80)
+        self._shutdown_handler.add_task()
 
+        if self._use_ssl:
+            self._init_ssl()
+
+        self._wsgi_server = WSGIServer((self._host, self._port), PathInfoDispatcher({'/': self.app}))
+
+        # TODO: Issue with SSL:
+        # Firefox causes a (socket.error 1) exception to be thrown on initial connection (before accepting cert)
+        # This is internal to cheroot, so it may be difficult to handle
+
+        print('LiquiTrader is ready for action!')
+        print(f'Visit http{"s" if self._use_ssl else ""}://{self._host}:{self._port} in your favorite browser')
+        print('to start trading!')
+
+        self._wsgi_server.start()
+
+    # ----
     def stop(self):
-        # TODO: SHUTDOWN CHEROOT HERE
-        _ = requests.get('http://localhost/shutdown')
-        self.shutdown_handler.remove_task()
+        self._wsgi_server.stop()
+        self._shutdown_handler.remove_task()
 
-    @app.route("/shutdown", methods=['GET'])
-    def shutdown(self):
-        # TODO: This only works for Flask
-        app_stop_func = flask.request.environ.get('werkzeug.server.shutdown')
-
-        if app_stop_func is not None:
-            app_stop_func()
-            return flask.Response(status=200)
-
-        else:
-            print('Failed to shutdown GUI')
-            return flask.Response(status=500)
-
+    # ----
+    @staticmethod
     @app.route("/")
-    def gethello(self):
+    def get_hello():
         return "hello"
 
+    # ----
+    @staticmethod
     @app.route("/holding")
-    def get_holding(self):
+    def get_holding():
         df = LT_ENGINE.pairs_to_df(friendly=True)
 
         if 'Amount' not in df:
@@ -87,15 +141,19 @@ class LiquitraderFlaskApp:
         df[df['Amount'] > 0].to_json(orient='records', path_or_buf='holding')
         return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
 
+    # ----
+    @staticmethod
     @app.route("/market")
-    def get_market(self):
+    def get_market():
         df = LT_ENGINE.pairs_to_df(friendly=True)
         df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records', path_or_buf='market')
 
         return jsonify(df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records'))
 
+    # ----
+    @staticmethod
     @app.route("/buy_log")
-    def get_buy_log_frame(self):
+    def get_buy_log_frame():
         df = pd.DataFrame(LT_ENGINE.trade_history)
         df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
         df['net_gain'] = (df.price - df.bought_price) * df.filled
@@ -109,8 +167,10 @@ class LiquitraderFlaskApp:
 
         return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))
 
+    # ----
+    @staticmethod
     @app.route("/sell_log")
-    def get_sell_log_frame(self):
+    def get_sell_log_frame():
         df = pd.DataFrame(LT_ENGINE.trade_history)
 
         if 'price' not in df:
@@ -123,8 +183,10 @@ class LiquitraderFlaskApp:
 
         return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
 
+    # ----
+    @staticmethod
     @app.route("/dashboard_data")
-    def get_dashboard_data(self):
+    def get_dashboard_data():
         data = {
             "quote_balance": LT_ENGINE.exchange.balance,
             "total_pending_value": LT_ENGINE.get_pending_value(),
@@ -139,15 +201,17 @@ class LiquitraderFlaskApp:
 
         return data
 
+    # ----
+    @staticmethod
     @app.route('/update_config', methods=['POST'])
-    def update_config(self):
+    def update_config():
         data = flask.request.data.decode()
         LT_ENGINE.config.update_config(data['section'], data['data'])
 
         return data
 
+    # ----
+    @staticmethod
     @app.route("/config")
-    def get_config(self):
+    def get_config():
         return jsonify(str(vars(LT_ENGINE.config)))
-
-

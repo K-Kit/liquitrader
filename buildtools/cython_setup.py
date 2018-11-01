@@ -24,6 +24,7 @@ def run_cython(source_directories=None, source_file=None):
                 ext_modules=Cython.Build.cythonize('{}/*.py'.format(direct),
                                                    build_dir=f'build/cython/{operating_system}/',
                                                    exclude=[
+                                                            '__init__.py',
                                                             '{}/__init__.py'.format(direct),
                                                             'runner.py',
                                                             'setup.py',
@@ -46,7 +47,11 @@ def run_cython(source_directories=None, source_file=None):
 
         setup(
             ext_modules=Cython.Build.cythonize(source_file,
-                                               exclude=[init_file],
+                                               exclude=[
+                                                   '__init__.py',
+                                                   './__init__.py',
+                                                   init_file
+                                               ],
                                                build_dir=f'build/cython/{operating_system}/',
                                                compiler_directives={
                                                    'language_level': '3'

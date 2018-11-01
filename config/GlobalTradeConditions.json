@@ -1,7 +1,7 @@
 {
   "min_buy_balance": "40%",
   "dca_min_buy_balance": "30%",
-  "max_pairs": 8,
+  "max_pairs": 13,
   "blacklist": ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],
   "whitelist": ["ALL"],
   "max_change": 0,

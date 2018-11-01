@@ -1,9 +1,15 @@
 import os
+import sys
 from distutils.sysconfig import get_python_lib
 
 
 def patch_strptime_patcher():
-    strptime_monkeypatch_path = os.path.join(get_python_lib(), 'dateparser', 'utils', 'strptime.py')
+    if sys.platform == 'win32':
+        strptime_monkeypatch_path = get_python_lib()
+    else:
+        strptime_monkeypatch_path = '/usr/local/lib/python3.6/dist-packages'
+        
+    strptime_monkeypatch_path = os.path.join(strptime_monkeypatch_path, 'dateparser', 'utils', 'strptime.py')
 
     with open(strptime_monkeypatch_path, 'r') as f:
         data = f.read()

@@ -281,7 +281,7 @@ if __name__ == '__main__':
             to_sign.append(file)
 
     build_verifier.build_verifier(to_sign=to_sign)
-    cython_setup.run_cython(source_file='./strategic_analysis.py')
+    cython_setup.run_cython(source_file='strategic_analysis.py')
 
     new_verifier = glob.glob(f'./liquitrader/strategic_analysis*')[0]
     verifier_fname = new_verifier.replace(os.path.sep, '/').split('/')[-1]

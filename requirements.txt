@@ -23,6 +23,7 @@ json_minify
 numpy
 
 onetimepass
+pyopenssl
 
 pandas
 persistent

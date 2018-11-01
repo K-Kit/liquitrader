@@ -31,27 +31,27 @@ import pandas as pd
 LT_ENGINE = None
 FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
 
+_app = flask.Flask('lt_flask')
+
 
 class GUIServer:
-    app = flask.Flask('lt_flask')
 
-    database_uri = f'sqlite:///{liquitrader.APP_DIR / "config" / "liquitrader.db"}'
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    database = SQLAlchemy(app)
-
-    login_man = flask_login.LoginManager(app)
-
-    otp = OTP()
-    otp.init_app(app)
-
-    CORS(app)
-    bootstrap = Bootstrap(app)
-    flask_compress.Compress(app)
-
-    # ----
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
+        database_uri = f'sqlite:///{liquitrader.APP_DIR / "config" / "liquitrader.db"}'
+        _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+        _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+        self._database = SQLAlchemy(_app)
+
+        self._login_man = flask_login.LoginManager(_app)
+
+        otp = OTP()
+        otp.init_app(_app)
+
+        CORS(_app)
+        self._bootstrap = Bootstrap(_app)
+        flask_compress.Compress(_app)
+
         self._shutdown_handler = shutdown_handler
         self._host = host
         self._port = port
@@ -92,7 +92,7 @@ class GUIServer:
     # --
     def _init_ssl(self):
         import flask_sslify
-        flask_sslify.SSLify(self.app, permanent=True)
+        flask_sslify.SSLify(_app, permanent=True)
 
         if not (os.path.exists(self._certfile_path) and os.path.exists(self._keyfile_path)):
             self._create_self_signed_cert()
@@ -106,7 +106,7 @@ class GUIServer:
         if self._use_ssl:
             self._init_ssl()
 
-        self._wsgi_server = WSGIServer((self._host, self._port), PathInfoDispatcher({'/': self.app}))
+        self._wsgi_server = WSGIServer((self._host, self._port), PathInfoDispatcher({'/': _app}))
 
         # TODO: Issue with SSL:
         # Firefox causes a (socket.error 1) exception to be thrown on initial connection (before accepting cert)
@@ -123,95 +123,95 @@ class GUIServer:
         self._wsgi_server.stop()
         self._shutdown_handler.remove_task()
 
-    # ----
-    @staticmethod
-    @app.route("/")
-    def get_hello():
-        return "hello"
 
-    # ----
-    @staticmethod
-    @app.route("/holding")
-    def get_holding():
-        df = LT_ENGINE.pairs_to_df(friendly=True)
+# ----
+@_app.route("/")
+def get_hello():
+    return "hello"
 
-        if 'Amount' not in df:
-            return jsonify([])
 
-        df[df['Amount'] > 0].to_json(orient='records', path_or_buf='holding')
-        return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
+# ----
+@_app.route("/holding")
+def get_holding():
+    df = LT_ENGINE.pairs_to_df(friendly=True)
 
-    # ----
-    @staticmethod
-    @app.route("/market")
-    def get_market():
-        df = LT_ENGINE.pairs_to_df(friendly=True)
-        df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records', path_or_buf='market')
+    if 'Amount' not in df:
+        return jsonify([])
 
-        return jsonify(df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records'))
+    df[df['Amount'] > 0].to_json(orient='records', path_or_buf='holding')
+    return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
 
-    # ----
-    @staticmethod
-    @app.route("/buy_log")
-    def get_buy_log_frame():
-        df = pd.DataFrame(LT_ENGINE.trade_history)
-        df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-        df['net_gain'] = (df.price - df.bought_price) * df.filled
 
-        if 'price' not in df:
-            return jsonify([])
+# ----
+@_app.route("/market")
+def get_market():
+    df = LT_ENGINE.pairs_to_df(friendly=True)
+    df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records', path_or_buf='market')
 
-        cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
+    return jsonify(df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records'))
 
-        df[df.side == 'buy'][cols].to_json(orient='records', path_or_buf='buy_log')
 
-        return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))
+# ----
+@_app.route("/buy_log")
+def get_buy_log_frame():
+    df = pd.DataFrame(LT_ENGINE.trade_history)
+    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+    df['net_gain'] = (df.price - df.bought_price) * df.filled
 
-    # ----
-    @staticmethod
-    @app.route("/sell_log")
-    def get_sell_log_frame():
-        df = pd.DataFrame(LT_ENGINE.trade_history)
+    if 'price' not in df:
+        return jsonify([])
 
-        if 'price' not in df:
-            return jsonify([])
+    cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
 
-        df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-        cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled',
-                'gain']
-        df[df.side == 'sell'][cols].to_json(orient='records', path_or_buf='sell_log')
+    df[df.side == 'buy'][cols].to_json(orient='records', path_or_buf='buy_log')
 
-        return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
+    return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))
 
-    # ----
-    @staticmethod
-    @app.route("/dashboard_data")
-    def get_dashboard_data():
-        data = {
-            "quote_balance": LT_ENGINE.exchange.balance,
-            "total_pending_value": LT_ENGINE.get_pending_value(),
-            "total_current_value": LT_ENGINE.get_tcv(),
-            "total_profit": LT_ENGINE.get_total_profit(),
-            "total_profit_percent": LT_ENGINE.get_total_profit() / LT_ENGINE.exchange.balance * 100,
-            "daily_profit_data": LT_ENGINE.get_daily_profit_data().to_json(orient='records'),
-            "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
-            "cum_profit": LT_ENGINE.get_cumulative_profit().to_json(orient='records'),
-            "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
-        }
 
-        return data
+# ----
+@_app.route("/sell_log")
+def get_sell_log_frame():
+    df = pd.DataFrame(LT_ENGINE.trade_history)
 
-    # ----
-    @staticmethod
-    @app.route('/update_config', methods=['POST'])
-    def update_config():
-        data = flask.request.data.decode()
-        LT_ENGINE.config.update_config(data['section'], data['data'])
+    if 'price' not in df:
+        return jsonify([])
 
-        return data
+    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled',
+            'gain']
+    df[df.side == 'sell'][cols].to_json(orient='records', path_or_buf='sell_log')
 
-    # ----
-    @staticmethod
-    @app.route("/config")
-    def get_config():
-        return jsonify(str(vars(LT_ENGINE.config)))
+    return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
+
+
+# ----
+@_app.route("/dashboard_data")
+def get_dashboard_data():
+    data = {
+        "quote_balance": LT_ENGINE.exchange.balance,
+        "total_pending_value": LT_ENGINE.get_pending_value(),
+        "total_current_value": LT_ENGINE.get_tcv(),
+        "total_profit": LT_ENGINE.get_total_profit(),
+        "total_profit_percent": LT_ENGINE.get_total_profit() / LT_ENGINE.exchange.balance * 100,
+        "daily_profit_data": LT_ENGINE.get_daily_profit_data().to_json(orient='records'),
+        "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
+        "cum_profit": LT_ENGINE.get_cumulative_profit().to_json(orient='records'),
+        "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
+    }
+
+    return data
+
+
+# ----
+@_app.route('/update_config', methods=['POST'])
+def update_config():
+    data = flask.request.data.decode()
+    LT_ENGINE.config.update_config(data['section'], data['data'])
+
+    return data
+
+
+# ----
+@_app.route("/config")
+def get_config():
+    return jsonify(str(vars(LT_ENGINE.config)))

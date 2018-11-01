@@ -38,6 +38,7 @@ requests
 
 sqlalchemy
 
+ta-lib
 twisted
 
 wtforms

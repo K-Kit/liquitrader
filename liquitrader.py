@@ -10,7 +10,7 @@ import pathlib
 
 import strategic_analysis
 
-from config import Config
+from config.config import Config
 from exchanges import BinanceExchange
 from exchanges import GenericExchange
 from exchanges import GenericPaper
@@ -636,7 +636,9 @@ def main():
         # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
         if ((not vfile.startswith('lib/strategic_analysis')) or
                 (not os.path.isfile(vfile)) or
-                os.stat(vfile).st_size < 287000):
+                ((sys.platform == 'win32' and os.stat(vfile).st_size < 280000) or
+                 (sys.platform != 'win32' and os.stat(vfile).st_size < 90000))
+                 ):
 
             err_msg()
             sys.exit(1)

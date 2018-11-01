@@ -2,7 +2,7 @@ import binascii
 import os
 # from io import BytesIO
 
-import liquitrader
+from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
@@ -29,7 +29,7 @@ import pandas as pd
 
 
 LT_ENGINE = None
-FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
+# FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
 
 _app = flask.Flask('lt_flask')
 
@@ -37,7 +37,7 @@ _app = flask.Flask('lt_flask')
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
-        database_uri = f'sqlite:///{liquitrader.APP_DIR / "config" / "liquitrader.db"}'
+        database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
         _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
         _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -57,8 +57,8 @@ class GUIServer:
         self._port = port
 
         self._use_ssl = ssl
-        self._certfile_path = liquitrader.APP_DIR / 'lib' / 'liquitrader.crt'
-        self._keyfile_path = liquitrader.APP_DIR / 'lib' / 'liquitrader.key'
+        self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'
+        self._keyfile_path = APP_DIR / 'lib' / 'liquitrader.key'
 
         # Set constants for WSGIServer
         WSGIServer.version = 'LiquiTrader/2.0'

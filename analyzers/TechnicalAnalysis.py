@@ -6,7 +6,7 @@ from talib.abstract import *
 
 import sys
 import numpy as np
-ta_list = ta.get_functions()
+
 
 def get_output_for_indicator(indicator):
     '''
@@ -85,7 +85,7 @@ def run_ta(candlesticks, indicators):
     stats = {}
     for key in candlesticks:
         for indicator in indicators:
-            if indicator['name'] in ta_list:
+            if indicator['name'] in ta.get_functions():
                 # try:
                 inds = get_indicators(candlesticks[key], indicator['name'],candle_period= indicator['candle_period'])
                 # except Exception as ex:

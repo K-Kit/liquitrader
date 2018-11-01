@@ -1,3 +1,4 @@
+import py_compile
 import os
 import sys
 import shutil
@@ -47,6 +48,14 @@ if __name__ == '__main__':
 
     from cx_Freeze import setup, Executable
 
+
+    # # Re-build .pyc files that git destroys
+    # os.makedirs('dependencies/python/py_built', exist_ok=True)
+    # for source_file in ('_regex_core.py', '_strptime.py'):
+    #     output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
+    #     py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
+
+
     # Dependencies are automatically detected, but it might need fine tuning || LOL BULLSHIT
     build_options = {
         'build_exe': {
@@ -69,6 +78,7 @@ if __name__ == '__main__':
                               ('dependencies/vc_redist_installer.exe.config', 'setup/vc_redist_installer.exe.config'),
                               ('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
+                            #   ('dependencies/python/py_built/_strptime.pyc', 'lib/_strptime.pyc'),
                               ('tos.txt', 'tos.txt'),
                               ('version.txt', 'version.txt'),
                               ('config/BuyStrategies.json', 'config/BuyStrategies.json'),
@@ -271,7 +281,7 @@ if __name__ == '__main__':
             to_sign.append(file)
 
     build_verifier.build_verifier(to_sign=to_sign)
-    cython_setup.run_cython(source_file='strategic_analysis.py')
+    cython_setup.run_cython(source_file='./strategic_analysis.py')
 
     new_verifier = glob.glob(f'./liquitrader/strategic_analysis*')[0]
     verifier_fname = new_verifier.replace(os.path.sep, '/').split('/')[-1]

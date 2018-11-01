@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 
@@ -21,7 +22,7 @@ def run_cython(source_directories=None, source_file=None):
         for direct in source_directories:
             setup(
                 ext_modules=Cython.Build.cythonize('{}/*.py'.format(direct),
-                                                   build_dir=f'./build/cython/{operating_system}/',
+                                                   build_dir=f'build/cython/{operating_system}/',
                                                    exclude=[
                                                             '{}/__init__.py'.format(direct),
                                                             'runner.py',
@@ -41,9 +42,12 @@ def run_cython(source_directories=None, source_file=None):
             )
 
     elif source_file is not None:
+        init_file = os.path.abspath(os.path.basename(source_file)) + os.path.sep + '__init__.py'
+
         setup(
             ext_modules=Cython.Build.cythonize(source_file,
-                                               build_dir=f'./build/cython/{operating_system}/',
+                                               exclude=[init_file],
+                                               build_dir=f'build/cython/{operating_system}/',
                                                compiler_directives={
                                                    'language_level': '3'
                                                },

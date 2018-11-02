@@ -1,4 +1,5 @@
 arrow
+autobahn>=18.6.1
 
 binance
 
@@ -23,6 +24,7 @@ json_minify
 numpy
 
 onetimepass
+pyopenssl
 
 pandas
 persistent
@@ -36,6 +38,7 @@ requests
 
 sqlalchemy
 
+ta-lib
 twisted
 
 wtforms

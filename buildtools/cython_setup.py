@@ -15,7 +15,7 @@ def run_cython(source_directories=None, source_file=None):
     old_sys_argv = sys.argv[:]
     sys.argv = [sys.argv[0]] + ['build_ext', '--inplace']
 
-    operating_system = 'windows' if sys.platform == 'win32' else 'linux'
+    operating_system = 'win' if sys.platform == 'win32' else 'linux'
 
     start = time.time()
     if source_directories is not None:
@@ -24,6 +24,7 @@ def run_cython(source_directories=None, source_file=None):
                 ext_modules=Cython.Build.cythonize('{}/*.py'.format(direct),
                                                    build_dir=f'build/cython/{operating_system}/',
                                                    exclude=[
+                                                            '__init__.py',
                                                             '{}/__init__.py'.format(direct),
                                                             'runner.py',
                                                             'setup.py',
@@ -42,16 +43,12 @@ def run_cython(source_directories=None, source_file=None):
             )
 
     elif source_file is not None:
-        init_file = os.path.abspath(os.path.basename(source_file)) + os.path.sep + '__init__.py'
-
         setup(
             ext_modules=Cython.Build.cythonize(source_file,
-                                               exclude=[init_file],
                                                build_dir=f'build/cython/{operating_system}/',
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
-                                               nthreads=1,
                                                annotate=False
                                                )
         )

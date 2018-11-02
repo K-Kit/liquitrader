@@ -8,6 +8,8 @@ import threading
 import functools
 import pathlib
 
+import pandas as pd
+
 import strategic_analysis
 
 from config.config import Config
@@ -507,14 +509,29 @@ class LiquiTrader:
 
     def pairs_to_df(self, basic=True, friendly=False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
-        df.last_order_time = pd.DatetimeIndex(pd.to_datetime(df.last_order_time, unit='s')).tz_localize(
-            'UTC').tz_convert('US/Eastern')
+        # try:
+        import arrow
+        times = []
+        
+        for t in df.last_order_time.values:
+            times.append(arrow.get(t * 1000).to(self.config.general_settings['timezone']).datetime)
+
+        df.last_order_time = pd.DatetimeIndex(times)
+        #)
+
+        # except Exception as ex:
+        #     print(f'error parsing timezone in pairs to df {ex}')
         if 'total_cost' in df:
             df['current_value'] = df.close * df.total * (1-(fee/100))
             df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
 
         if friendly:
-            df = prettify_dataframe(df, self.exchange.quote_price)
+            try:
+                df = prettify_dataframe(df, self.exchange.quote_price)
+
+            except ValueError as ex:
+                pass
+
             df = df[DEFAULT_COLUMNS] if basic else df
             df.rename(columns=COLUMN_ALIASES,
                       inplace=True)
@@ -600,10 +617,12 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
         try:
             # timed @ 1.1 seconds 128ms stdev
             do_technical_analysis()
+            from pprint import pprint
+            # pprint(exchange.pairs)
 
             if global_buy_checks():
                 possible_buys = get_possible_buys(exchange.pairs, lt_engine.buy_strategies)
-                print(possible_buys)
+                # print(possible_buys)
                 handle_possible_buys(possible_buys)
                 possible_dca_buys = get_possible_buys(exchange.pairs, lt_engine.dca_buy_strategies)
                 handle_possible_dca_buys(possible_dca_buys)
@@ -676,8 +695,14 @@ def main():
 
     gui.gui_server.LT_ENGINE = lt_engine
 
-    # TODO: Pull host, port, and ssl from config
-    gui_server = gui.gui_server.GUIServer(shutdown_handler, host='localhost', port=80, ssl=False)
+    # get config from lt
+    config = lt_engine.config
+
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                            host=config.general_settings['host'],
+                                            port=config.general_settings['port'],
+                                            ssl=config.general_settings['use_ssl'],
+                                        )
 
     # ----
     trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))

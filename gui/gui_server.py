@@ -144,7 +144,6 @@ def get_holding():
     if 'Amount' not in df:
         return jsonify([])
 
-    df[df['Amount'] > 0].to_json(orient='records', path_or_buf='holding')
     return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
 
 
@@ -152,7 +151,6 @@ def get_holding():
 @_app.route("/market")
 def get_market():
     df = LT_ENGINE.pairs_to_df(friendly=True)
-    df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records', path_or_buf='market')
 
     return jsonify(df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records'))
 
@@ -181,7 +179,6 @@ def get_sell_log_frame():
     df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
     cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
 
-    df[df.side == 'sell'][cols].to_json(orient='records', path_or_buf='sell_log')
 
     return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
 

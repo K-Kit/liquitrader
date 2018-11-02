@@ -720,7 +720,7 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
-    return lt_engine
+
     # ----
     # Main thread loop
     while True:
@@ -767,9 +767,5 @@ def main():
 
 
 if __name__ == '__main__':
-    def get_pc():
-        df = LT_ENGINE.pairs_to_df()
-        df[df['total'] > 0]
-        return df
 
-    lt = main()
+    main()

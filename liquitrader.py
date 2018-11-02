@@ -509,11 +509,18 @@ class LiquiTrader:
 
     def pairs_to_df(self, basic=True, friendly=False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
-        try:
-            df.last_order_time = pd.DatetimeIndex(pd.to_datetime(df.last_order_time, unit='s')).tz_localize(
-                'UTC').tz_convert('US/Pacific')
-        except Exception as ex:
-            print(f'error parsing timezone in pairs to df {ex}')
+        # try:
+        import arrow
+        times = []
+        
+        for t in df.last_order_time.values:
+            times.append(arrow.get(t * 1000).to(self.config.general_settings['timezone']).datetime)
+
+        df.last_order_time = pd.DatetimeIndex(times)
+        #)
+
+        # except Exception as ex:
+        #     print(f'error parsing timezone in pairs to df {ex}')
         if 'total_cost' in df:
             df['current_value'] = df.close * df.total * (1-(fee/100))
             df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee

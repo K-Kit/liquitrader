@@ -40,7 +40,7 @@ class BinanceExchange(GenericExchange):
         super().__init__(exchange_id, quote_currency, starting_balance, access_keys, candle_timeframes)
 
         self.socket_manager = None
-
+        self.quote_currency = quote_currency.upper()
         self.candle_socket = None
         self.ticker_socket = None
         self.depth_socket = None
@@ -122,7 +122,7 @@ class BinanceExchange(GenericExchange):
             self.pairs[symbol]['quoteVolume'] = float(msg['q'])
             self.pairs[symbol]['percentage'] = float(msg['P'])
 
-        elif symbol == self._quote_currency + '/USDT':
+        elif symbol == self.quote_currency + '/USDT':
             self.quote_change = float(msg['P'])
             self.quote_price = float(msg['c'])
 

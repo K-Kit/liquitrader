@@ -54,7 +54,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        CORS(_app)
+        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -194,25 +194,30 @@ def get_dashboard_data():
     total_profit = LT_ENGINE.get_total_profit()
     average_daily_gain = profit / len(profit_data)
     market = LT_ENGINE.config.general_settings['market'].upper()
+
+    def reorient(df):
+        # return [{k: v for (k, v) in row.items() if k != 'foo'} for row in df.to_dict(orient='record')]
+        return [{col: getattr(row, col) for col in df} for row in df.itertuples()]
+
     data = {
         "quote_balance": eight_decimal_format(balance),
         "total_pending_value": eight_decimal_format(pending),
         "total_current_value": eight_decimal_format(current),
         "total_profit": eight_decimal_format(profit),
-        "market": f'{market}',
-        "usd_balance_info": f'{to_usd(balance)} / {to_usd(pending)}',
-        "usd_total_profit": f'{to_usd(profit)}',
-        "usd_average_daily_gain": f'{to_usd(average_daily_gain)}',
-        "market_change_24h": f'{round(LT_ENGINE.market_change_24h, 2)}%',
-        "average_daily_gain": f'{average_daily_gain / pending}',
-        "total_profit_percent": f'{round(total_profit / balance * 100, 2)}%',
-        "daily_profit_data": profit_data.to_json(orient='records'),
+        "market": f"{market}",
+        "usd_balance_info": f"{to_usd(balance)} / {to_usd(pending)}",
+        "usd_total_profit": f"{to_usd(profit)}",
+        "usd_average_daily_gain": f"{to_usd(average_daily_gain)}",
+        "market_change_24h": f"{round(LT_ENGINE.market_change_24h, 2)}%",
+        "average_daily_gain": f"{average_daily_gain / pending}",
+        "total_profit_percent": f"{round(total_profit / balance * 100, 2)}%",
+        "daily_profit_data": reorient(profit_data),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
-        "cum_profit": LT_ENGINE.get_cumulative_profit().to_json(orient='records'),
-        "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
+        "cum_profit": reorient(LT_ENGINE.get_cumulative_profit()),
+        "pair_profit_data": reorient(LT_ENGINE.get_pair_profit_data())
     }
 
-    return Response(jsonify(data), 200, content_type='application/json')
+    return jsonify(data)
 
 
 # ----

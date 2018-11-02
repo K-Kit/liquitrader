@@ -514,7 +514,7 @@ class LiquiTrader:
         times = []
         
         for t in df.last_order_time.values:
-            times.append(arrow.get(t * 1000).to(self.config.general_settings['timezone']).datetime)
+            times.append(arrow.get(t).to(self.config.general_settings['timezone']).datetime)
 
         df.last_order_time = pd.DatetimeIndex(times)
         #)
@@ -715,7 +715,6 @@ def main():
 
     # ----
     # Main thread loop
-
     while True:
         try:
             input()
@@ -764,4 +763,5 @@ if __name__ == '__main__':
         df = LT_ENGINE.pairs_to_df()
         df[df['total'] > 0]
         return df
+    
     main()

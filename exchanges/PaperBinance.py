@@ -35,6 +35,7 @@ def create_paper_order(symbol, order_type, side, amount, price, _quote_currency)
     return {
         'id': current_order_id,
         'datetime': "",
+        'bought_price': 0,
         'timestamp': time.time() * 1000,
         'lastTradeTimestamp': time.time() * 1000,
         'status': "CLOSED",
@@ -81,7 +82,7 @@ class PaperBinance(BinanceExchange):
         bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
         print(symbol, amount, self.pairs[symbol]['total'])
 
-        order = create_paper_order(symbol, order_type, side, amount, price, self._quote_currency)
+        order = create_paper_order(symbol, order_type, side, amount, price, self.quote_currency)
         print(order)
 
         if bought_price is not None:

@@ -35,9 +35,11 @@ LT_ENGINE = None
 
 _app = flask.Flask('lt_flask')
 
+CORS(_app)
 
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
+
 
 class GUIServer:
 
@@ -52,7 +54,6 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-
         CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)

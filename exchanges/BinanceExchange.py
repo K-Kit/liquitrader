@@ -33,10 +33,11 @@ class BinanceExchange(GenericExchange):
     def __init__(self,
                  exchange_id: str,
                  quote_currency: str,
+                 starting_balance: float,
                  access_keys: typing.Dict[typing.Union[str, str], typing.Union[str, str]],
                  candle_timeframes: typing.List[str]):
 
-        super().__init__(exchange_id, quote_currency, access_keys, candle_timeframes)
+        super().__init__(exchange_id, quote_currency, starting_balance, access_keys, candle_timeframes)
 
         self.socket_manager = None
 
@@ -69,7 +70,6 @@ class BinanceExchange(GenericExchange):
     def init_socket_manager(self, public, secret):
         self.socket_manager = BinanceSocketManager(Client(public, secret))
         self.socket_manager.setDaemon(True)
-        self.socket_manager.start()
 
     # ----
     def process_multiplex_socket(self, msg):
@@ -190,6 +190,8 @@ class BinanceExchange(GenericExchange):
         self.ticker_socket = self.socket_manager.start_multiplex_socket(ticker_sockets, self.process_multiplex_socket)
 
         self._balances = self.update_balances()
+
+        self.socket_manager.start()
 
     # ----
     def start(self):

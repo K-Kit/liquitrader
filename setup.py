@@ -13,33 +13,36 @@ from buildtools import cython_setup, build_verifier, signature_tools, monkey_pat
 if __name__ == '__main__':
     # ----
     # TOGGLE WHAT GETS BUILT HERE
+    CYTHONIZE_LIQUITRADER = True
     BUILD_LIQUITRADER = True
     BUILD_UPDATER = False
     # ----
 
-    # Write out placeholder verifier
-    with open('strategic_analysis.py', 'w') as f:
-        f.write('def verify(): pass\n')
-
     TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
-    CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
-    cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
 
-    internal_lib_copy_dests = []
-    for src_dir, dirs, files in os.walk('./liquitrader'):
-        dst_dir = src_dir.replace('liquitrader', '', 1)
+    if CYTHONIZE_LIQUITRADER:
+        # Write out placeholder verifier
+        with open('strategic_analysis.py', 'w') as f:
+            f.write('def verify(): pass\n')
 
-        if not os.path.exists(dst_dir):
-            os.makedirs(dst_dir)
+        CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
+        cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
 
-        for file_ in files:
-            src_file = os.path.join(src_dir, file_)
-            dst_file = os.path.join(dst_dir, file_)
-            if os.path.exists(dst_file):
-                os.remove(dst_file)
-            shutil.copy(src_file, dst_dir)
+        internal_lib_copy_dests = []
+        for src_dir, dirs, files in os.walk('./liquitrader'):
+            dst_dir = src_dir.replace('liquitrader', '', 1)
 
-            internal_lib_copy_dests.append(dst_file)
+            if not os.path.exists(dst_dir):
+                os.makedirs(dst_dir)
+
+            for file_ in files:
+                src_file = os.path.join(src_dir, file_)
+                dst_file = os.path.join(dst_dir, file_)
+                if os.path.exists(dst_file):
+                    os.remove(dst_file)
+                shutil.copy(src_file, dst_dir)
+
+                internal_lib_copy_dests.append(dst_file)
 
     BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
 
@@ -212,8 +215,9 @@ if __name__ == '__main__':
               )
 
     # Clean up copied .pyd/.so
-    for file in internal_lib_copy_dests:
-        os.remove(file)
+    if CYTHONIZE_LIQUITRADER:
+        for file in internal_lib_copy_dests:
+            os.remove(file)
 
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
@@ -253,13 +257,21 @@ if __name__ == '__main__':
 
     # ----
     # Dynamically generate verifier.py and build into package
+    
+    opsys = 'win' if sys.platform == 'win32' else 'linux'
+    exe_ext = '.exe' if opsys == 'win' else ''
+
+    # Delete the old build files    
+    try: os.remove(f'build/cython/{opsys}/strategic_analysis.c')
+    except FileNotFoundError: pass
+    try: os.remove(f'build/temp.linux-x86_64-3.6/build/cython/{opsys}/strategic_analysis.o')
+    except FileNotFoundError: pass
+    try: os.remove('liquitrader/strategic_analysis.pyd')
+    except FileNotFoundError: pass
 
     print('Signing files...')
     if not os.path.exists('./buildtools/liquitrader.pem'):
         signature_tools.generate_private_key()
-
-    opsys = 'win' if sys.platform == 'win32' else 'linux'
-    exe_ext = '.exe' if opsys == 'win' else ''
 
     exclude = ['strategic_analysis']
     exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
@@ -281,9 +293,17 @@ if __name__ == '__main__':
             to_sign.append(file)
 
     build_verifier.build_verifier(to_sign=to_sign)
-    cython_setup.run_cython(source_file='./strategic_analysis.py')
 
-    new_verifier = glob.glob(f'./liquitrader/strategic_analysis*')[0]
+    #try: os.remove('__init__.py')
+    #except FileNotFoundError: pass
+    cython_setup.run_cython(source_file='./strategic_analysis.py')
+    #with open('__init__.py', 'w') as f: pass  # touch __init__.py
+
+    try:
+        new_verifier = glob.glob(f'./liquitrader/strategic_analysis*')[0]
+    except IndexError:
+        new_verifier = glob.glob(f'./strategic_analysis.*.*')[0]
+
     verifier_fname = new_verifier.replace(os.path.sep, '/').split('/')[-1]
     shutil.copyfile(new_verifier, f'./build/liquitrader_{opsys}/lib/{verifier_fname}')
 

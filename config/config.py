@@ -1,6 +1,6 @@
 import json
 
-from analyzers.TechnicalAnalysis import ta_list
+from talib import get_functions as get_talib_functions
 
 BUY_STRATEGY_PATH = 'config/BuyStrategies.json'
 DCA_STRATEGY_PATH = 'config/DCABuyStrategies.json'
@@ -87,7 +87,7 @@ class Config:
             for condition in strategy['conditions']:
                 for key, part in condition.items():
                     if isinstance(part, dict):
-                        if part['value'] in ta_list:
+                        if part['value'] in get_talib_functions():
                             period = 0 if "candle_period" not in part else part["candle_period"]
                             indicator = { "name": part['value'], "candle_period": period}
                             # store in dict since we couldnt store a set of dicts

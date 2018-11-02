@@ -215,7 +215,7 @@ def get_dashboard_data():
         "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
     }
 
-    return flask.jsonify(data)
+    return f'{jsonify(data)}'
 
 
 # ----

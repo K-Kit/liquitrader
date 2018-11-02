@@ -24,6 +24,8 @@ from OpenSSL import crypto
 import pandas as pd
 # import pyqrcode
 
+from utils.FormattingTools import eight_decimal_format, decimal_with_usd
+
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length
 
@@ -33,6 +35,9 @@ LT_ENGINE = None
 
 _app = flask.Flask('lt_flask')
 
+
+def to_usd(val):
+    return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
 class GUIServer:
 
@@ -183,19 +188,33 @@ def get_sell_log_frame():
 # ----
 @_app.route("/dashboard_data")
 def get_dashboard_data():
+    balance = LT_ENGINE.exchange.balance
+    pending = LT_ENGINE.get_pending_value()
+    current = LT_ENGINE.get_tcv()
+    profit = LT_ENGINE.get_total_profit()
+    profit_data = LT_ENGINE.get_daily_profit_data()
+    total_profit = LT_ENGINE.get_total_profit()
+    average_daily_gain = profit / len(profit_data)
+    market = LT_ENGINE.config.general_settings['market'].upper()
     data = {
-        "quote_balance": LT_ENGINE.exchange.balance,
-        "total_pending_value": LT_ENGINE.get_pending_value(),
-        "total_current_value": LT_ENGINE.get_tcv(),
-        "total_profit": LT_ENGINE.get_total_profit(),
-        "total_profit_percent": LT_ENGINE.get_total_profit() / LT_ENGINE.exchange.balance * 100,
-        "daily_profit_data": LT_ENGINE.get_daily_profit_data().to_json(orient='records'),
+        "quote_balance": eight_decimal_format(balance),
+        "total_pending_value": eight_decimal_format(pending),
+        "total_current_value": eight_decimal_format(current),
+        "total_profit": eight_decimal_format(profit),
+        "market": f'{market}',
+        "usd_balance_info": f'{to_usd(balance)} / {to_usd(pending)}',
+        "usd_total_profit": f'{to_usd(profit)}',
+        "usd_average_daily_gain": f'{to_usd(average_daily_gain)}',
+        "market_change_24h": f'{round(LT_ENGINE.market_change_24h, 2)}%',
+        "average_daily_gain": f'{average_daily_gain / pending}',
+        "total_profit_percent": f'{round(total_profit / balance * 100, 2)}%',
+        "daily_profit_data": profit_data.to_json(orient='records'),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
         "cum_profit": LT_ENGINE.get_cumulative_profit().to_json(orient='records'),
         "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
     }
 
-    return data
+    return flask.jsonify(data)
 
 
 # ----

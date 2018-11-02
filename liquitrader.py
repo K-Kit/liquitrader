@@ -699,10 +699,10 @@ def main():
     config = lt_engine.config
 
     gui_server = gui.gui_server.GUIServer(shutdown_handler,
-                                            host=config.general_settings['host'],
-                                            port=config.general_settings['port'],
-                                            ssl=config.general_settings['use_ssl'],
-                                        )
+                                          host=config.general_settings['host'],
+                                          port=config.general_settings['port'],
+                                          ssl=config.general_settings['use_ssl'],
+                                          )
 
     # ----
     trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))

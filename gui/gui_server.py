@@ -212,7 +212,7 @@ def get_dashboard_data():
         "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
     }
 
-    return f'{jsonify(data)}'
+    return Response(jsonify(data), 200, content_type='application/json')
 
 
 # ----

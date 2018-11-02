@@ -3,6 +3,9 @@
   "paper_trading": false,
   "starting_balance": 3,
   "market": "ETH",
-  "gui_port": 5000,
-  "start_delay": 0
+  "timezone": "US/Pacific",
+  "start_delay": 0,
+  "host": "0.0.0.0",
+  "port": 8083,
+  "use_ssl": false
 }

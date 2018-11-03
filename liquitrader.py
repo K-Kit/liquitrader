@@ -30,8 +30,8 @@ from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
-
-LT_ENGINE = None
+global lt_engine
+lt_engine = None
 
 APP_DIR = ''
 if hasattr(sys, 'frozen'):
@@ -124,7 +124,7 @@ class LiquiTrader:
 
     def __init__(self, shutdown_handler):
         self.shutdown_handler = shutdown_handler
-
+        self.market_change_24h = 0
         self.exchange = None
         self.statistics = {}
         self.config = None
@@ -434,7 +434,7 @@ class LiquiTrader:
         # Alleviate lookup cost
         quote_change_info = self.exchange.quote_change_info
         market_change = self.config.global_trade_conditions['market_change']
-
+        self.market_change_24h = get_average_market_change(self.exchange.pairs)
         check_24h_quote_change = in_range(quote_change_info['24h'],
                                           market_change['min_24h_quote_change'],
                                           market_change['max_24h_quote_change'])
@@ -443,7 +443,7 @@ class LiquiTrader:
                                          market_change['min_1h_quote_change'],
                                          market_change['max_1h_quote_change'])
 
-        check_24h_market_change = in_range(get_average_market_change(self.exchange.pairs),
+        check_24h_market_change = in_range(self.market_change_24h,
                                            market_change['min_24h_market_change'],
                                            market_change['max_24h_market_change'])
 
@@ -514,7 +514,7 @@ class LiquiTrader:
         times = []
         
         for t in df.last_order_time.values:
-            times.append(arrow.get(t * 1000).to(self.config.general_settings['timezone']).datetime)
+            times.append(arrow.get(t).to(self.config.general_settings['timezone']).datetime)
 
         df.last_order_time = pd.DatetimeIndex(times)
         #)
@@ -556,11 +556,18 @@ class LiquiTrader:
     # ----
     @staticmethod
     def calc_gains_on_df(df):
-        df['total_cost'] = df.bought_price * df.filled
-        df['gain'] = df['cost'] - df['total_cost']
-        df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
+        if 'bought_price' not in df:
+            df['total_cost'] = 0
+            df['gain'] = 0
+            df['percent_gain'] = 0
 
-        return df
+            return df
+        else:
+            df['total_cost'] = df.bought_price * df.filled
+            df['gain'] = df['cost'] - df['total_cost']
+            df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
+
+            return df
 
     # ----
     def get_daily_profit_data(self):
@@ -585,7 +592,8 @@ class LiquiTrader:
     def get_total_profit(self):
         df = pd.DataFrame(self.trade_history)
         df = df[df.side == 'sell']
-
+        if 'bought_price' not in df:
+            return 0
         # filled is the amount filled
         df['total_cost'] = df.bought_price * df.filled
         df['gain'] = df['cost'] - df['total_cost']
@@ -715,7 +723,6 @@ def main():
 
     # ----
     # Main thread loop
-
     while True:
         try:
             input()
@@ -760,8 +767,5 @@ def main():
 
 
 if __name__ == '__main__':
-    def get_pc():
-        df = LT_ENGINE.pairs_to_df()
-        df[df['total'] > 0]
-        return df
+
     main()

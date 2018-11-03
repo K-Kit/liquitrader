@@ -1,11 +1,11 @@
 import os
 import sys
 from distutils.sysconfig import get_python_lib
-
+import site
 
 def patch_strptime_patcher():
     if sys.platform == 'win32':
-        strptime_monkeypatch_path = get_python_lib()
+        strptime_monkeypatch_path = site.getusersitepackages()  # get_python_lib(True)
     else:
         strptime_monkeypatch_path = '/usr/local/lib/python3.6/dist-packages'
         

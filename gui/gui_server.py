@@ -27,7 +27,7 @@ from OpenSSL import crypto
 import pandas as pd
 # import pyqrcode
 
-from utils.FormattingTools import eight_decimal_format, eight_decimal_with_usd
+from utils.FormattingTools import eight_decimal_format
 
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length

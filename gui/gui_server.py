@@ -17,7 +17,6 @@ import flask_compress
 import flask_login
 
 from flask_bootstrap import Bootstrap
-from flask_cors import CORS
 from flask_otp import OTP
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm
@@ -38,10 +37,9 @@ LT_ENGINE = None
 _cmdline = psutil.Process().cmdline()
 abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
 bearpuncher_dir = abs_path
-dist_path = abs_path / 'Views' / 'dist'
-_app = flask.Flask('lt_flask', static_folder=dist_path, template_folder=dist_path)
+dist_path = abs_path / 'static'
+_app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
-CORS(_app)
 
 
 def to_usd(val):

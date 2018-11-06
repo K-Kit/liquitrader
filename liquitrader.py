@@ -556,6 +556,7 @@ class LiquiTrader:
     # ----
     @staticmethod
     def calc_gains_on_df(df):
+        df = df.dropna()
         df['total_cost'] = df.bought_price * df.filled
         df['gain'] = df['cost'] - df['total_cost']
         df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
@@ -586,7 +587,7 @@ class LiquiTrader:
         df = pd.DataFrame(self.trade_history)
 
         # if no trades, return 0 profit
-        if 'side' not in df:
+        if 'bought_price' not in df:
             return 0
 
         df = df[df.side == 'sell']

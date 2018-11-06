@@ -8,6 +8,7 @@ import threading
 import functools
 import pathlib
 
+import arrow
 import pandas as pd
 
 import strategic_analysis
@@ -124,7 +125,7 @@ class LiquiTrader:
 
     def __init__(self, shutdown_handler):
         self.shutdown_handler = shutdown_handler
-
+        self.market_change_24h = 0
         self.exchange = None
         self.statistics = {}
         self.config = None
@@ -434,7 +435,7 @@ class LiquiTrader:
         # Alleviate lookup cost
         quote_change_info = self.exchange.quote_change_info
         market_change = self.config.global_trade_conditions['market_change']
-
+        self.market_change_24h = get_average_market_change(self.exchange.pairs)
         check_24h_quote_change = in_range(quote_change_info['24h'],
                                           market_change['min_24h_quote_change'],
                                           market_change['max_24h_quote_change'])
@@ -443,7 +444,7 @@ class LiquiTrader:
                                          market_change['min_1h_quote_change'],
                                          market_change['max_1h_quote_change'])
 
-        check_24h_market_change = in_range(get_average_market_change(self.exchange.pairs),
+        check_24h_market_change = in_range(self.market_change_24h,
                                            market_change['min_24h_market_change'],
                                            market_change['max_24h_market_change'])
 
@@ -556,24 +557,40 @@ class LiquiTrader:
     # ----
     @staticmethod
     def calc_gains_on_df(df):
-        df = df.dropna()
-        df['total_cost'] = df.bought_price * df.filled
-        df['gain'] = df['cost'] - df['total_cost']
-        df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
+        if 'bought_price' in df:
+            df['total_cost'] = df.bought_price * df.filled
+            df['gain'] = df['cost'] - df['total_cost']
+            df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
+            return df
 
-        return df
+        else:
+            df['total_cost'] = 0
+            df['gain'] = 0
+            df['percent_gain'] = 0
+            return df
 
-    # ----
+
+        # ----
     def get_daily_profit_data(self):
-        df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        if len(self.trade_history) < 1:
+            df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        else:
+            df = pd.DataFrame(self.trade_history)
         df = self.calc_gains_on_df(df)
 
+        times = []
         # todo timezones
         df = df.set_index(
             pd.to_datetime(df.timestamp, unit='ms')
         )
+        for t in df.timestamp.values:
+            times.append(arrow.get(t / 1000).to(self.config.general_settings['timezone']).datetime)
 
-        return df.resample('1d').sum()
+        df.timestamp = pd.DatetimeIndex(times)
+
+        df = df.resample('1d').sum()
+        df['date'] = df.index.astype('str').values
+        return df
 
     # ----
     def get_pair_profit_data(self):

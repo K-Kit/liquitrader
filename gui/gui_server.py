@@ -1,6 +1,9 @@
 import binascii
 import os
 # from io import BytesIO
+import pathlib
+
+import psutil
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
@@ -8,7 +11,7 @@ from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response
+from flask import jsonify, Response, render_template
 
 import flask_compress
 import flask_login
@@ -24,14 +27,25 @@ from OpenSSL import crypto
 import pandas as pd
 # import pyqrcode
 
+from utils.FormattingTools import eight_decimal_format, eight_decimal_with_usd
+
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length
 
 
 LT_ENGINE = None
 # FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
+_cmdline = psutil.Process().cmdline()
+abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
+bearpuncher_dir = abs_path
+dist_path = abs_path / 'Views' / 'dist'
+_app = flask.Flask('lt_flask', static_folder=dist_path, template_folder=dist_path)
 
-_app = flask.Flask('lt_flask')
+CORS(_app)
+
+
+def to_usd(val):
+    return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
 
 class GUIServer:
@@ -47,8 +61,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-
-        CORS(_app)
+        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -126,8 +139,8 @@ class GUIServer:
 
 # ----
 @_app.route("/")
-def get_hello():
-    return "hello"
+def get_index():
+    return render_template('index.html')
 
 
 # ----
@@ -138,7 +151,6 @@ def get_holding():
     if 'Amount' not in df:
         return jsonify([])
 
-    df[df['Amount'] > 0].to_json(orient='records', path_or_buf='holding')
     return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
 
 
@@ -146,7 +158,6 @@ def get_holding():
 @_app.route("/market")
 def get_market():
     df = LT_ENGINE.pairs_to_df(friendly=True)
-    df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records', path_or_buf='market')
 
     return jsonify(df[FRIENDLY_MARKET_COLUMNS].to_json(orient='records'))
 
@@ -175,7 +186,6 @@ def get_sell_log_frame():
     df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
     cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
 
-    df[df.side == 'sell'][cols].to_json(orient='records', path_or_buf='sell_log')
 
     return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
 
@@ -183,19 +193,38 @@ def get_sell_log_frame():
 # ----
 @_app.route("/dashboard_data")
 def get_dashboard_data():
+    balance = LT_ENGINE.exchange.balance
+    pending = LT_ENGINE.get_pending_value()
+    current = LT_ENGINE.get_tcv()
+    profit = LT_ENGINE.get_total_profit()
+    profit_data = LT_ENGINE.get_daily_profit_data()[['date', 'cost', 'total_cost', 'gain', 'percent_gain']]
+    total_profit = LT_ENGINE.get_total_profit()
+    average_daily_gain = profit / len(profit_data)
+    market = LT_ENGINE.config.general_settings['market'].upper()
+
+    def reorient(df):
+        # return [{k: v for (k, v) in row.items() if k != 'foo'} for row in df.to_dict(orient='record')]
+        return [{col: getattr(row, col) for col in df} for row in df.itertuples()]
+
     data = {
-        "quote_balance": LT_ENGINE.exchange.balance,
-        "total_pending_value": LT_ENGINE.get_pending_value(),
-        "total_current_value": LT_ENGINE.get_tcv(),
-        "total_profit": LT_ENGINE.get_total_profit(),
-        "total_profit_percent": LT_ENGINE.get_total_profit() / LT_ENGINE.exchange.balance * 100,
-        "daily_profit_data": LT_ENGINE.get_daily_profit_data().to_json(orient='records'),
+        "quote_balance": eight_decimal_format(balance),
+        "total_pending_value": eight_decimal_format(pending),
+        "total_current_value": eight_decimal_format(current),
+        "total_profit": eight_decimal_format(profit),
+        "market": f"{market}",
+        "usd_balance_info": f"{to_usd(balance)} / {to_usd(pending)}",
+        "usd_total_profit": f"{to_usd(profit)}",
+        "usd_average_daily_gain": f"{to_usd(average_daily_gain)}",
+        "market_change_24h": f"{round(LT_ENGINE.market_change_24h, 2)}%",
+        "average_daily_gain": f"{average_daily_gain / pending}",
+        "total_profit_percent": f"{round(total_profit / balance * 100, 2)}%",
+        "daily_profit_data": reorient(profit_data),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
-        "cum_profit": LT_ENGINE.get_cumulative_profit().to_json(orient='records'),
-        "pair_profit_data": LT_ENGINE.get_pair_profit_data().to_json(orient='records')
+        # "cum_profit": reorient(LT_ENGINE.get_cumulative_profit()),
+        "pair_profit_data": reorient(LT_ENGINE.get_pair_profit_data())
     }
 
-    return data
+    return jsonify(data)
 
 
 # ----

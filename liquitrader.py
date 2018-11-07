@@ -678,6 +678,21 @@ def main():
             err_msg()
             sys.exit(1)
 
+        # ----
+        # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
+        import strategic_tools
+
+        license_key = '2V9HM-YZTS9-G4QEC-LQ9LX-44PKZ'
+        api_key = 'dingusdingus'
+
+        start = time.time()
+        strategic_tools.verify(license_key, api_key)
+
+        if time.time() - start < 2:
+            print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
+                  'please stop trying to crack our license system. This is how we keep food on our tables.)')
+            sys.exit(1)
+
     # ----
     shutdown_handler = ShutdownHandler()
 
@@ -766,6 +781,5 @@ def main():
             sys.exit(0)
 
 
-if __name__ == '__main__':
-
-    main()
+# if __name__ == '__main__':
+#     main()

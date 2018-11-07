@@ -214,7 +214,7 @@ def get_dashboard_data():
         "usd_total_profit": f"{to_usd(profit)}",
         "usd_average_daily_gain": f"{to_usd(average_daily_gain)}",
         "market_change_24h": f"{round(LT_ENGINE.market_change_24h, 2)}%",
-        "average_daily_gain": f"{average_daily_gain / pending}",
+        "average_daily_gain": f"{round(average_daily_gain / pending, 2)}",
         "total_profit_percent": f"{round(total_profit / balance * 100, 2)}%",
         "daily_profit_data": reorient(profit_data),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),

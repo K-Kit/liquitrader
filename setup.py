@@ -20,6 +20,7 @@ if __name__ == '__main__':
 
     TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
 
+    internal_lib_copy_dests = []
     if CYTHONIZE_LIQUITRADER:
         # Write out placeholder verifier
         with open('strategic_analysis.py', 'w') as f:
@@ -28,7 +29,6 @@ if __name__ == '__main__':
         CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
         cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
 
-        internal_lib_copy_dests = []
         for src_dir, dirs, files in os.walk('./liquitrader'):
             dst_dir = src_dir.replace('liquitrader', '', 1)
 
@@ -261,13 +261,13 @@ if __name__ == '__main__':
     opsys = 'win' if sys.platform == 'win32' else 'linux'
     exe_ext = '.exe' if opsys == 'win' else ''
 
-    # Delete the old build files    
-    try: os.remove(f'build/cython/{opsys}/strategic_analysis.c')
-    except FileNotFoundError: pass
-    try: os.remove(f'build/temp.linux-x86_64-3.6/build/cython/{opsys}/strategic_analysis.o')
-    except FileNotFoundError: pass
-    try: os.remove('liquitrader/strategic_analysis.pyd')
-    except FileNotFoundError: pass
+    # # Delete the old build files
+    # try: os.remove(f'build/cython/{opsys}/strategic_analysis.c')
+    # except FileNotFoundError: pass
+    # try: os.remove(f'build/temp.linux-x86_64-3.6/build/cython/{opsys}/strategic_analysis.o')
+    # except FileNotFoundError: pass
+    # try: os.remove('liquitrader/strategic_analysis.pyd')
+    # except FileNotFoundError: pass
 
     print('Signing files...')
     if not os.path.exists('./buildtools/liquitrader.pem'):

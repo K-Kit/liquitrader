@@ -17,6 +17,7 @@ import flask_compress
 import flask_login
 
 from flask_bootstrap import Bootstrap
+from flask_cors import CORS
 from flask_otp import OTP
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm

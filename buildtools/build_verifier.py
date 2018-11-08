@@ -66,7 +66,15 @@ class VerifyTool:
 
     # ----
     def verify_files(self, tuples):
-        return all(iter(self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64) for file, signature_b64 in tuples))
+        for file, signature_b64 in tuples:
+            if not self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64):
+                sys.stdout.write(file, 'failed to verify')
+                sys.stdout.flush()
+                return False
+        
+        return True
+            
+        # return all(iter(self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64) for file, signature_b64 in tuples))
 
 
 def rld(string):
@@ -91,7 +99,7 @@ def unshift(string):
         
         shift_table.append(int(sh) * -1 if next_neg else int(sh))
         next_neg = False
-    
+
     unshifted = ''
     for ch, shift_amt in zip(shifted, shift_table):
         unshifted += chr(ord(ch) - shift_amt)
@@ -100,8 +108,8 @@ def unshift(string):
 
 
 def err_msg():
-    sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
-    sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+    sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
+    sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
     sys.stdout.flush()
 
 

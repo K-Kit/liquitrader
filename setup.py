@@ -71,7 +71,7 @@ if __name__ == '__main__':
             "includes": [
                 'cryptography',
                 'binance',
-                'TimeSyncWin', 'strategic_analysis',
+                'TimeSyncWin', 'strategic_analysis', 'strategic_tools',
                 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
 

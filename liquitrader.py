@@ -674,7 +674,8 @@ def main():
         strategic_analysis.verify()
 
         # Check that verifier took a reasonable amount of time to execute (make NOPing harder)
-        if (time.time() - start) < .03:
+        if (time.time() - start) < .01:
+            print('!!!')
             err_msg()
             sys.exit(1)
 

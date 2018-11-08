@@ -3,7 +3,7 @@
        "conditions": [
            {"left": {"value": "MFI", "timeframe": "30m"}, "op": ">", "right": {"value": 40}}
        ],
-       "sell_value": 5,
+       "sell_value": 0.5,
        "trailing %": 0.3
    },
    {
@@ -11,8 +11,8 @@
           {"left": {"value": "MFI", "timeframe": "30m"}, "op": "<", "right": {"value": 4}},
           {"left": {"value": "EMA", "timeframe": "30m"}, "op": ">", "right": {"value": 0}}
       ],
-      "sell_value": 5,
+      "sell_value": 0.5,
       "minimum_volume": 2,
-      "trailing %": 3
+      "trailing %": 0.3
   }
 ]

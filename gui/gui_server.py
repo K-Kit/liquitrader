@@ -166,7 +166,7 @@ def get_market():
 def get_buy_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
-    if 'price' not in df:
+    if len(df) < 1:
         return jsonify([])
 
     cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']

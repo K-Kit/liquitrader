@@ -113,3 +113,4 @@ buy_log
 strategic_analysis.py
 
 buildtools/bearpuncher_verification_implementation.py
+*.c

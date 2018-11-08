@@ -6,7 +6,7 @@
          {"left": {"value": "MFI", "timeframe": "1h"}, "op": "<", "right": {"value": 50}}
 
        ],
-       "buy_value": "2%",
+       "buy_value": "3%",
        "trailing %": 0.3
    },
   {
@@ -16,7 +16,7 @@
          {"left": {"value": "MFI", "timeframe": "1h"}, "op": "<", "right": {"value": 50}}
 
        ],
-       "buy_value": "2%",
+       "buy_value": "3%",
        "trailing %": 0.3
    }
 ]

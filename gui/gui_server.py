@@ -60,7 +60,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        # CORS(_app)
+        CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 

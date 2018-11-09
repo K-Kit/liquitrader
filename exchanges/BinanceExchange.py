@@ -221,6 +221,8 @@ class BinanceExchange(GenericExchange):
             self.socket_manager.close()
 
         except Exception as _ex:
+            # Dirty hack to shut up Twisted errors on exit
+            # The errors are caused by the Cython build process stripping docstrings
             if 'NoneType object has no attribute \'strip\'' in str(_ex):
                 pass
 

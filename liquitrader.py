@@ -657,18 +657,23 @@ def main():
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
         # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
-        if (not os.path.isfile('lib/analyzers.strategic_analysis.pyd')
-                or (sys.platform == 'win32' and os.stat('lib/analyzers.strategic_analysis.pyd').st_size < 268000)
-                or (sys.platform != 'win32' and os.stat('lib/analyzers.strategic_analysis.pyd').st_size < 90000)):
+        if sys.platform == 'win32':
+            if ((not os.path.isfile('lib/analyzers.strategic_analysis.pyd'))
+                    or os.stat('lib/analyzers.strategic_analysis.pyd').st_size < 268000):
+                err_msg()
+                sys.exit(1)
 
-            err_msg()
-            sys.exit(1)
+        else:
+            if ((not os.path.isfile('lib/analyzers.strategic_analysis.so'))
+                    or os.stat('lib/analyzers.strategic_analysis.so').st_size < 760000):
+                err_msg()
+                sys.exit(1)
 
         start = time.time()
         strategic_analysis.verify()
 
-        # Check that verifier took a reasonable amount of time to execute (make NOPing harder)
-        if (time.time() - start) < .01:
+        # Check that verifier took a reasonable amount of time to execute (prevent simple NOPing)
+        if (time.time() - start) < .005:
             err_msg()
             sys.exit(1)
 
@@ -682,7 +687,7 @@ def main():
         start = time.time()
         strategic_tools.verify(license_key, api_key)
 
-        if (time.time() - start) < .05:
+        if (time.time() - start) < .01:
             print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
                   'please stop trying to crack our license system. This is how we keep food on our tables.)')
             sys.exit(1)

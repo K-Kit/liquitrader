@@ -63,7 +63,7 @@ def make_verifier():
             to_sign.append(file)
 
     build_verifier.build_verifier(to_sign=to_sign)
-    cython_setup.run_cython(source_file='./analyzers/strategic_analysis.py')
+    cython_setup.run_cython(source_file='analyzers/strategic_analysis.py')
 
     new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
 
@@ -309,7 +309,24 @@ if __name__ == '__main__':
         pass
 
     # ----
+    # Delete the old verifier source files to make sure they're rebuilt
+    opsys = 'win' if sys.platform == 'win32' else 'linux'
 
+    try: os.remove(f'build/{opsys}_cython_source/analyzers/strategic_analysis.c')
+    except FileNotFoundError: pass
+
+    platform_build_path = f'{opsys}-{"amd" if opsys == "win" else "x86_"}64-3.6'
+
+    try: os.remove(f'build/temp.{platform_build_path}/build/{opsys}_cython_source/analyzers/strategic_analysis.o')
+    except FileNotFoundError: pass
+
+    plaform_file_end = 'cp36-win_amd64.pyd' if sys.platform == 'win' else 'cpython-36m-x86_64-linux-gnu.so'
+
+    try: os.remove(f'build/lib.{platform_build_path}/analyzers/strategic_analysis.{plaform_file_end}')
+    except FileNotFoundError: pass
+
+    # ----
+    monkey_patcher.do_postbuild_patches()
 
     # ----
     if BUILD_VERIFIER:

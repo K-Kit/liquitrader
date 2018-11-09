@@ -60,7 +60,7 @@ class GenericExchange:
 
         self._access_keys = access_keys
 
-        self._quote_currency = quote_currency.upper()  # second part of currency pair
+        self.quote_currency = quote_currency.upper()  # second part of currency pair
         self._candle_timeframes = candle_timeframes
 
         # initialize standard and sync client
@@ -159,11 +159,11 @@ class GenericExchange:
 
         balances = self._client.fetchBalance()
         for key in balances:
-            if key == self._quote_currency:
+            if key == self.quote_currency:
                 self.balance = balances[key]['total']
                 continue
 
-            symbol = key + '/' + self._quote_currency
+            symbol = key + '/' + self.quote_currency
             if symbol in self.pairs:
                 amount = balances[key]['total']
 
@@ -215,7 +215,7 @@ class GenericExchange:
         pairs = {
                     x['symbol']: x
                     for x in self._client.fetchMarkets()
-                    if x['active'] and x['quote'] == self._quote_currency.upper()
+                    if x['active'] and x['quote'] == self.quote_currency.upper()
                 }
         candles = {}
         for pair in pairs:
@@ -367,10 +367,10 @@ class GenericExchange:
         """
 
         while 1:
-            if 'USD' in self._quote_currency:
+            if 'USD' in self.quote_currency:
                 return
 
-            quote_candles = await self._client_async.fetchOHLCV(self._quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
+            quote_candles = await self._client_async.fetchOHLCV(self.quote_currency.upper() + '/USDT', timeframe='1h', limit=168)
 
             self.quote_candles = candles_to_df(quote_candles)
             self.quote_price = self.quote_candles.iloc[-1]['close']

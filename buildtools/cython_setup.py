@@ -62,7 +62,7 @@ def run_cython(source_directories=None, source_file=None):
     # Copy built files such that they are next to their .py counterparts
     from distutils.dir_util import copy_tree
 
-    path = f'./build/lib.{"win-amd64-3.6" if sys.platform == "win32" else "build/lib.linux-x86_64-3.6"}/'
+    path = f'./build/lib.{"win-amd64-3.6" if sys.platform == "win32" else "linux-x86_64-3.6"}/'
     copy_tree(path, './')
 
 

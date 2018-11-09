@@ -202,10 +202,11 @@ def verify(license_key, api_key):
             counter += 1
 
         if counter >= 5:
-            print('Failed to connect to LiquiTrader license server. Check your network connection.')
+            print('Failed to connect to LiquiTrader license server. Check your network connection.\n')
             sys.exit(0)
 
-    print()
+    if counter > 1:
+        print()
 
     try:
         server_response = validation_request.json()
@@ -216,15 +217,15 @@ def verify(license_key, api_key):
     except json.decoder.JSONDecodeError:
         if b'Web App - Unavailable' in validation_request.content:
             print('You are either being rate limited or something went wrong with the license server.')
-            print('If have not recieved a message about being rate limited, please contact support;')
+            print('If have not received a message about being rate limited, please contact support;')
             print('otherwise, your 10 minutes is not yet up.')
 
         return
 
-    recieved_verifier_data = server_response.get('verifier_data', None)
+    received_verifier_data = server_response.get('verifier_data', None)
     license_time_remaining = server_response.get('expires_in', None)
 
-    if recieved_verifier_data is None or license_time_remaining is None:
+    if received_verifier_data is None or license_time_remaining is None:
         error = server_response.get('error', None)
 
         if error == 'Invalid request (8)':
@@ -234,7 +235,7 @@ def verify(license_key, api_key):
 
         return None
 
-    received_data = verification(recieved_verifier_data)
+    received_data = verification(received_verifier_data)
 
     if received_data is not None:
         if data != received_data:

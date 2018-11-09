@@ -1,4 +1,3 @@
-import py_compile
 import os
 import sys
 import shutil
@@ -15,16 +14,30 @@ if __name__ == '__main__':
     # TOGGLE WHAT GETS BUILT HERE
     CYTHONIZE_LIQUITRADER = True
     BUILD_LIQUITRADER = True
+    BUILD_VERIFIER = True
     BUILD_UPDATER = False
     # ----
 
+    # ----
+    # Cleanup .pyc caches
+    for path in glob.glob('./**/__pycache__', recursive=True):
+        path = os.path.abspath(path)
+
+        try:
+            shutil.rmtree(os.path.abspath(path))
+
+        except PermissionError:
+            print('Warning: __pycache__ cleanup failed due to running Python process')
+            print('This probably won\'t cause issues, but you\'ll be sorry if it does!')
+
+    # ----
     TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
 
-    internal_lib_copy_dests = []
     if CYTHONIZE_LIQUITRADER:
-        # Write out placeholder verifier
-        with open('strategic_analysis.py', 'w') as f:
-            f.write('def verify(): pass\n')
+        if not os.path.exists('analyzers/strategic_analysis.py'):
+            # Write out placeholder verifier
+            with open('analyzers/strategic_analysis.py', 'w') as f:
+                f.write('def verify(): pass\n')
 
         CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
         cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
@@ -41,8 +54,6 @@ if __name__ == '__main__':
                 if os.path.exists(dst_file):
                     os.remove(dst_file)
                 shutil.copy(src_file, dst_dir)
-
-                internal_lib_copy_dests.append(dst_file)
 
     BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
 
@@ -71,7 +82,6 @@ if __name__ == '__main__':
             "includes": [
                 'cryptography',
                 'binance',
-                'TimeSyncWin', 'strategic_analysis', 'strategic_tools',
                 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
 
@@ -214,11 +224,7 @@ if __name__ == '__main__':
               }
               )
 
-    # Clean up copied .pyd/.so
-    if CYTHONIZE_LIQUITRADER:
-        for file in internal_lib_copy_dests:
-            os.remove(file)
-
+    # ----
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
 
@@ -256,56 +262,47 @@ if __name__ == '__main__':
             print('\nWARNING: COULD NOT FIND TALIB BINARY\n')
 
     # ----
-    # Dynamically generate verifier.py and build into package
-    
-    opsys = 'win' if sys.platform == 'win32' else 'linux'
-    exe_ext = '.exe' if opsys == 'win' else ''
+    if BUILD_VERIFIER:
+        # Dynamically generate verifier.py and build into package
 
-    # # Delete the old build files
-    # try: os.remove(f'build/cython/{opsys}/strategic_analysis.c')
-    # except FileNotFoundError: pass
-    # try: os.remove(f'build/temp.linux-x86_64-3.6/build/cython/{opsys}/strategic_analysis.o')
-    # except FileNotFoundError: pass
-    # try: os.remove('liquitrader/strategic_analysis.pyd')
-    # except FileNotFoundError: pass
+        opsys = 'win' if sys.platform == 'win32' else 'linux'
+        exe_ext = '.exe' if opsys == 'win' else ''
 
-    print('Signing files...')
-    if not os.path.exists('./buildtools/liquitrader.pem'):
-        signature_tools.generate_private_key()
+        print('Signing files...')
+        if not os.path.exists('./buildtools/liquitrader.pem'):
+            signature_tools.generate_private_key()
 
-    exclude = ['strategic_analysis']
-    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
-    to_sign = []
-    for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
-        bad = False
+        exclude = ['strategic_analysis']
+        exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
+        to_sign = []
+        for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
+            bad = False
 
-        for ext in exclude_ext:
-            if file.endswith(ext):
-                bad = True
-                break
+            for ext in exclude_ext:
+                if file.endswith(ext):
+                    bad = True
+                    break
 
-        for exclu in exclude:
-            if bad or exclu in file:
-                bad = True
-                break
+            for exclu in exclude:
+                if bad or exclu in file:
+                    bad = True
+                    break
 
-        if not bad:
-            to_sign.append(file)
+            if not bad:
+                to_sign.append(file)
 
-    build_verifier.build_verifier(to_sign=to_sign)
+        build_verifier.build_verifier(to_sign=to_sign)
+        cython_setup.run_cython(source_file='./analyzers/strategic_analysis.py')
 
-    #try: os.remove('__init__.py')
-    #except FileNotFoundError: pass
-    cython_setup.run_cython(source_file='./strategic_analysis.py')
-    #with open('__init__.py', 'w') as f: pass  # touch __init__.py
+        new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
 
-    try:
-        new_verifier = glob.glob(f'./liquitrader/strategic_analysis*')[0]
-    except IndexError:
-        new_verifier = glob.glob(f'./strategic_analysis.*.*')[0]
+        verifier_outpath = f'./build/liquitrader_{opsys}/lib/analyzers.strategic_analysis.' +\
+                           "pyd" if sys.platform == "win32" else "so"
+        shutil.move(new_verifier, verifier_outpath)
 
-    verifier_fname = new_verifier.replace(os.path.sep, '/').split('/')[-1]
-    shutil.copyfile(new_verifier, f'./build/liquitrader_{opsys}/lib/{verifier_fname}')
+    # ----
+    # Clean up .pyd/.so's alongside .py's leftover from build
+    cython_setup.cleanup_pyd()
 
     # ----
     what_built = 'LiquiTrader' if BUILD_LIQUITRADER else ''

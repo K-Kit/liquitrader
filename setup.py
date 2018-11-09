@@ -9,6 +9,15 @@ import requests.certs
 from buildtools import cython_setup, build_verifier, signature_tools, monkey_patcher
 
 
+# ----
+# TOGGLE WHAT GETS BUILT HERE
+CYTHONIZE_LIQUITRADER = True
+BUILD_LIQUITRADER = True
+BUILD_VERIFIER = True
+BUILD_UPDATER = False
+# ----
+
+
 BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
 
 
@@ -35,8 +44,26 @@ def cythonize_liquitrader(target_packages):
 
 
 def make_verifier():
-    # Dynamically generate verifier.py and build into package
+    """Dynamically generate verifier.py and build into package"""
 
+    # Delete the old verifier source files to make sure they're rebuilt
+    opsys = 'win' if sys.platform == 'win32' else 'linux'
+
+    try: os.remove(f'build/{opsys}_cython_source/analyzers/strategic_analysis.c')
+    except FileNotFoundError: pass
+
+    platform_build_path = f'{opsys}-{"amd" if opsys == "win" else "x86_"}64-3.6'
+
+    try: os.remove(f'build/temp.{platform_build_path}/build/{opsys}_cython_source/analyzers/strategic_analysis.o')
+    except FileNotFoundError: pass
+
+    plaform_file_end = 'cp36-win_amd64.pyd' if sys.platform == 'win' else 'cpython-36m-x86_64-linux-gnu.so'
+
+    try: os.remove(f'build/lib.{platform_build_path}/analyzers/strategic_analysis.{plaform_file_end}')
+    except FileNotFoundError: pass
+
+    # =====
+    # Build the new verifier
     opsys = 'win' if sys.platform == 'win32' else 'linux'
 
     print('Signing files...')
@@ -115,15 +142,6 @@ def rebuild_pyc():
 
 
 if __name__ == '__main__':
-    # ----
-    # TOGGLE WHAT GETS BUILT HERE
-    CYTHONIZE_LIQUITRADER = True
-    BUILD_LIQUITRADER = True
-    BUILD_VERIFIER = True
-    BUILD_UPDATER = False
-    # ----
-
-    # ----
     # Cleanup .pyc caches
     for path in glob.glob('./**/__pycache__', recursive=True):
         path = os.path.abspath(path)
@@ -307,23 +325,6 @@ if __name__ == '__main__':
         os.remove(BUILD_PATH + 'webserver/static/main.js.map')
     except FileNotFoundError:
         pass
-
-    # ----
-    # Delete the old verifier source files to make sure they're rebuilt
-    opsys = 'win' if sys.platform == 'win32' else 'linux'
-
-    try: os.remove(f'build/{opsys}_cython_source/analyzers/strategic_analysis.c')
-    except FileNotFoundError: pass
-
-    platform_build_path = f'{opsys}-{"amd" if opsys == "win" else "x86_"}64-3.6'
-
-    try: os.remove(f'build/temp.{platform_build_path}/build/{opsys}_cython_source/analyzers/strategic_analysis.o')
-    except FileNotFoundError: pass
-
-    plaform_file_end = 'cp36-win_amd64.pyd' if sys.platform == 'win' else 'cpython-36m-x86_64-linux-gnu.so'
-
-    try: os.remove(f'build/lib.{platform_build_path}/analyzers/strategic_analysis.{plaform_file_end}')
-    except FileNotFoundError: pass
 
     # ----
     monkey_patcher.do_postbuild_patches()

@@ -130,5 +130,5 @@ def do_postbuild_patches():
     twisted_error_patcher()
 
 
-if __name__ == '__main__':
-    twisted_error_patcher('C:/Users/Luke/Documents/GitHub/liquitrader/build/liquitrader_win/')
+#if __name__ == '__main__':
+#    twisted_error_patcher('C:/Users/Luke/Documents/GitHub/liquitrader/build/liquitrader_win/')

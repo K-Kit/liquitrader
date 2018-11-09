@@ -19,12 +19,6 @@ BinanceSocketManager = binance.websockets.BinanceSocketManager
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
-def gen_socket_list(pairs: dict, timeframes: set):
-    # creates list of socket streams to subscribe to
-    candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
-    depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]
-    tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
-    return candles, depth, tickers
 
 # TODO check last socket update time and restart if needed
 
@@ -162,17 +156,16 @@ class BinanceExchange(GenericExchange):
         else:
             return None
 
-
+    
     # ----
-    async def initialize(self):
-        # this may want to be split up
-        self._init_client_connection()
-        self._client.load_markets()
-        self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
-
-        await super().initialize()
-
-        time.sleep(1)
+    def start_sockets(self):
+        def gen_socket_list(pairs: dict, timeframes: set):
+            # creates list of socket streams to subscribe to
+            candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in
+                       pairs.values()]
+            depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]
+            tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
+            return candles, depth, tickers
 
         # generate list of stream names to start in multiplex socket
         candle_sockets, depth_sockets, ticker_sockets = gen_socket_list(self.pairs, self._candle_timeframes)
@@ -188,10 +181,29 @@ class BinanceExchange(GenericExchange):
 
         time.sleep(1)
         self.ticker_socket = self.socket_manager.start_multiplex_socket(ticker_sockets, self.process_multiplex_socket)
+        try:
+            self.socket_manager.start()
+        except Exception as ex:
+            print(ex)
 
-        self._balances = self.update_balances()
 
-        self.socket_manager.start()
+
+
+    # ----
+    async def initialize(self):
+        # this may want to be split up
+        self._init_client_connection()
+        self._client.load_markets()
+        self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
+
+        await super().initialize()
+
+        time.sleep(1)
+        self.start_sockets()
+
+        self.update_balances()
+
+
 
     # ----
     def start(self):
@@ -238,11 +250,44 @@ class BinanceExchange(GenericExchange):
         # get candle period from stream name to associate candle period
         return stream_name.split('_')[1]
 
+    # --
+    async def _socket_upkeep(self):
+        """
+        update candle history during runtime - see binance klines socket handler
+        candle history will fetch most recent candle for all timeframes and assign to end of candles dataframe
+        """
+
+        while 1:
+            self.update_balances()
+            await asyncio.sleep(self._balance_upkeep_call_schedule)
+
+    def restart_sockets(self):
+        self.socket_manager.close()
+        self.start_sockets()
+
+    # ----
+    def check_sockets(self):
+        now = time.time()
+
+        def not_stale(now, last_check):
+            return now-last_check < 3
+
+        deltas = [
+            not_stale(now, self.last_candle_update_time),
+            not_stale(now, self.last_depth_update_time),
+            not_stale(now, self.last_ticker_update_time)
+        ]
+        if not all(deltas):
+            self.restart_sockets()
+            
+
 
 # ----
 if __name__ == '__main__':
     from dev_keys_binance import keys
-    ex = BinanceExchange('binance', 'ETH', {'public': keys.public, 'secret': keys.secret}, ['5m'])
+    ex = BinanceExchange('binance', 'ETH', 5, {'public': keys.public, 'secret': keys.secret}, ['5m'])
     asyncio.get_event_loop().run_until_complete(ex.initialize())
     ex.update_balances()
-    ex.start()
+    # ex.start()
+    client = ex._client
+

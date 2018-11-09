@@ -221,7 +221,11 @@ class BinanceExchange(GenericExchange):
             self.socket_manager.close()
 
         except Exception as _ex:
-            print(str(_ex))
+            if 'NoneType object has no attribute \'strip\'' in str(_ex):
+                pass
+
+            else:
+                print(str(_ex))
 
         new_loop = asyncio.new_event_loop()
         new_loop.run_until_complete(super().stop())

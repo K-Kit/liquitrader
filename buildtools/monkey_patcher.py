@@ -1,14 +1,18 @@
 import sys
-from distutils.sysconfig import get_python_lib
 import site
-
 import tempfile
 import zipfile
 import shutil
 import os
 
+from distutils.sysconfig import get_python_lib
 
-def remove_from_zip(zipfname, *filenames):
+import py_compile
+
+
+def replace_in_zip(zipfname, file_dict):
+    """file_dict = { object_path_in_zip: file_path }"""
+
     tempdir = tempfile.mkdtemp()
 
     try:
@@ -17,7 +21,16 @@ def remove_from_zip(zipfname, *filenames):
         with zipfile.ZipFile(zipfname, 'r') as zipread:
             with zipfile.ZipFile(tempname, 'w') as zipwrite:
                 for item in zipread.infolist():
-                    if item.filename not in filenames:
+                    if item.filename in file_dict:
+                        try:
+                            #with open(file_dict[item.filename], 'r') as replacement:
+                            #zipwrite.writestr(item.filename, replacement.read())
+                            zipwrite.write(file_dict[item.filename], arcname=item.filename)
+
+                        except PermissionError:
+                            print(f'Failed to zip {file_dict[item.filename]}')
+
+                    else:
                         data = zipread.read(item.filename)
                         zipwrite.writestr(item, data)
 
@@ -27,18 +40,22 @@ def remove_from_zip(zipfname, *filenames):
         shutil.rmtree(tempdir)
 
 
-def strptime_patcher():
-    #if sys.platform == 'win32':
-    found = False
+def get_library_filepath(partial_path):
+    """Partial path such as 'dateparser/utils/strptime.py'"""
 
     for lib_path in (site.getusersitepackages(), get_python_lib(True)):
-        strptime_monkeypatch_path = os.path.join(lib_path, 'dateparser', 'utils', 'strptime.py')
+        path = os.path.join(lib_path, partial_path)
 
-        if os.path.exists(strptime_monkeypatch_path):
-            found = True
-            break
+        if os.path.exists(path):
+            return path
 
-    if not found:
+    return None
+
+
+def strptime_patcher():
+    strptime_path = get_library_filepath('dateparser/utils/strptime.py')
+
+    if strptime_path is None:
         print('ERROR: Could not find dateparser/utils/strptime.py in site packages')
         sys.exit(1)
 
@@ -52,7 +69,7 @@ def strptime_patcher():
     #         strptime_monkeypatch_path = '/usr/local/lib/python3.6/site-packages'
     #         strptime_monkeypatch_path = os.path.join(strptime_monkeypatch_path, 'dateparser', 'utils', 'strptime.py')
 
-    with open(strptime_monkeypatch_path, 'r') as f:
+    with open(strptime_path, 'r') as f:
         data = f.read()
 
     # Patch already done
@@ -88,8 +105,21 @@ except ZipImportError:
 # ~~~~~~~~~~~~
 ''')
 
-    with open(strptime_monkeypatch_path, 'w') as f:
+    with open(strptime_path, 'w') as f:
         f.write(data)
+
+
+def twisted_error_patcher(build_path=None):
+    if build_path is None:
+        build_path = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
+
+    error_path = get_library_filepath('twisted/internet/error.py')
+    outpath = py_compile.compile(error_path)
+    print(f'Twisted pyc outpath: {outpath}')
+
+    replace_in_zip(build_path + 'lib/library.zip', {
+        'twisted/internet/error.pyc': outpath
+    })
 
 
 def do_prebuild_patches():
@@ -97,4 +127,8 @@ def do_prebuild_patches():
 
 
 def do_postbuild_patches():
-    pass
+    twisted_error_patcher()
+
+
+if __name__ == '__main__':
+    twisted_error_patcher('C:/Users/Luke/Documents/GitHub/liquitrader/build/liquitrader_win/')

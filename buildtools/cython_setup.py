@@ -48,7 +48,8 @@ def run_cython(source_directories=None, source_file=None):
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
-                                               annotate=False
+                                               annotate=False,
+                                               force=True
                                                )
         )
 

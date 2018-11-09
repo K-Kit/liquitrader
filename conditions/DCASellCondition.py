@@ -1,4 +1,5 @@
-from Condition import Condition
+from conditions.Condition import Condition
+
 
 class DCASellCondition(Condition):
     pass

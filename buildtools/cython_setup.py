@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 
@@ -13,7 +12,7 @@ def run_cython(source_directories=None, source_file=None):
     Cython.Compiler.Options.emit_code_comments = False
 
     old_sys_argv = sys.argv[:]
-    sys.argv = [sys.argv[0]] + ['build_ext', '--inplace']
+    sys.argv = [sys.argv[0]] + ['build_ext']
 
     operating_system = 'win' if sys.platform == 'win32' else 'linux'
 
@@ -22,7 +21,7 @@ def run_cython(source_directories=None, source_file=None):
         for direct in source_directories:
             setup(
                 ext_modules=Cython.Build.cythonize('{}/*.py'.format(direct),
-                                                   build_dir=f'build/cython/{operating_system}/',
+                                                   build_dir=f'build/{operating_system}_cython_src/',
                                                    exclude=[
                                                             '__init__.py',
                                                             '{}/__init__.py'.format(direct),
@@ -45,7 +44,7 @@ def run_cython(source_directories=None, source_file=None):
     elif source_file is not None:
         setup(
             ext_modules=Cython.Build.cythonize(source_file,
-                                               build_dir=f'build/cython/{operating_system}/',
+                                               build_dir=f'build/{operating_system}_cython_src/',
                                                compiler_directives={
                                                    'language_level': '3'
                                                },
@@ -60,14 +59,20 @@ def run_cython(source_directories=None, source_file=None):
 
     sys.argv = old_sys_argv
 
+    # Copy built files such that they are next to their .py counterparts
+    from distutils.dir_util import copy_tree
 
-def cleanup_pyd(source_directories):
-    import glob
+    path = f'./build/lib.{"win-amd64-3.6" if sys.platform == "win32" else "build/lib.linux-x86_64-3.6"}/'
+    copy_tree(path, './')
+
+
+def cleanup_pyd():
     import os
-    import sys
-    
-    ext = 'pyd' if sys.platform == 'win32' else 'so'
-    
-    for dir in source_directories:
-        for pydfile in glob.glob('{}/*.{}'.format(dir, ext)):
-            os.remove(pydfile)
+    import glob
+
+    # Clean up .pyd/.so stragglers leftover from build (shouldn't be any; sanity check)
+    files = [path_obj for path_obj in glob.glob('**', recursive=True) if os.path.isfile(path_obj)]
+    files = [os.path.abspath(file) for file in files if not file.startswith('build') and (file.endswith('.pyd') or file.endswith('.so'))]
+
+    for file in files:
+        os.remove(file)

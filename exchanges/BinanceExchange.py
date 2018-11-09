@@ -19,6 +19,7 @@ BinanceSocketManager = binance.websockets.BinanceSocketManager
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
+
 def gen_socket_list(pairs: dict, timeframes: set):
     # creates list of socket streams to subscribe to
     candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
@@ -26,8 +27,8 @@ def gen_socket_list(pairs: dict, timeframes: set):
     tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
     return candles, depth, tickers
 
-# TODO check last socket update time and restart if needed
 
+# TODO check last socket update time and restart if needed
 class BinanceExchange(GenericExchange):
 
     def __init__(self,

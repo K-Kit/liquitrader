@@ -9,6 +9,111 @@ import requests.certs
 from buildtools import cython_setup, build_verifier, signature_tools, monkey_patcher
 
 
+BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
+
+
+def cythonize_liquitrader(target_packages):
+    if not os.path.exists('analyzers/strategic_analysis.py'):
+        # Write out placeholder verifier
+        with open('analyzers/strategic_analysis.py', 'w') as f:
+            f.write('def verify(): pass\n')
+
+    cython_setup.run_cython(['.'] + target_packages)
+
+    for src_dir, dirs, files in os.walk('./liquitrader'):
+        dst_dir = src_dir.replace('liquitrader', '', 1)
+
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+
+        for file_ in files:
+            src_file = os.path.join(src_dir, file_)
+            dst_file = os.path.join(dst_dir, file_)
+            if os.path.exists(dst_file):
+                os.remove(dst_file)
+            shutil.copy(src_file, dst_dir)
+
+
+def make_verifier():
+    # Dynamically generate verifier.py and build into package
+
+    opsys = 'win' if sys.platform == 'win32' else 'linux'
+
+    print('Signing files...')
+    if not os.path.exists('./buildtools/liquitrader.pem'):
+        signature_tools.generate_private_key()
+
+    exclude = ['strategic_analysis']
+    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
+    to_sign = []
+    for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
+        bad = False
+
+        for ext in exclude_ext:
+            if file.endswith(ext):
+                bad = True
+                break
+
+        for exclu in exclude:
+            if bad or exclu in file:
+                bad = True
+                break
+
+        if not bad:
+            to_sign.append(file)
+
+    build_verifier.build_verifier(to_sign=to_sign)
+    cython_setup.run_cython(source_file='./analyzers/strategic_analysis.py')
+
+    new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
+
+    verifier_outpath = f'./build/liquitrader_{opsys}/lib/analyzers.strategic_analysis.' + \
+                       "pyd" if sys.platform == "win32" else "so"
+    shutil.move(new_verifier, verifier_outpath)
+
+
+def copy_requirements():
+    if sys.platform == 'win32':
+        shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
+
+    else:
+        shutil.rmtree(BUILD_PATH + 'setup', ignore_errors=True)
+        os.mkdir(BUILD_PATH + 'setup')
+        shutil.copy('dependencies/setup.sh', BUILD_PATH + 'setup/')
+
+        # Copy so's
+        lib_dir = BUILD_PATH + 'lib/'
+        cffi_dir = lib_dir + '.libs_cffi_backend/'
+        libffi_dll = lib_dir + [_ for _ in os.listdir(lib_dir) if 'libffi' in _][0]
+
+        os.makedirs(cffi_dir, exist_ok=True)
+
+        try:
+            shutil.copy2(libffi_dll, cffi_dir)
+        except shutil.SameFileError:
+            pass
+
+        talib_bin = '/usr/lib/libta_lib.so.0'
+        if os.path.isfile(talib_bin):
+            try:
+                shutil.copy2(talib_bin, BUILD_PATH)
+            except shutil.SameFileError:
+                pass
+        else:
+            print('\nWARNING: COULD NOT FIND TALIB BINARY\n')
+
+
+def rebuild_pyc():
+    import py_compile
+
+    # Re-build .pyc files that git destroys
+    os.makedirs('dependencies/python/py_built', exist_ok=True)
+
+    for source_file in ('_regex_core.py', '_strptime.py'):
+        output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
+        py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
+
+
 if __name__ == '__main__':
     # ----
     # TOGGLE WHAT GETS BUILT HERE
@@ -34,41 +139,12 @@ if __name__ == '__main__':
     TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
 
     if CYTHONIZE_LIQUITRADER:
-        if not os.path.exists('analyzers/strategic_analysis.py'):
-            # Write out placeholder verifier
-            with open('analyzers/strategic_analysis.py', 'w') as f:
-                f.write('def verify(): pass\n')
-
-        CYTHON_TARGET_DIRECTORIES = ['.'] + TARGET_PACKAGES
-        cython_setup.run_cython(CYTHON_TARGET_DIRECTORIES)
-
-        for src_dir, dirs, files in os.walk('./liquitrader'):
-            dst_dir = src_dir.replace('liquitrader', '', 1)
-
-            if not os.path.exists(dst_dir):
-                os.makedirs(dst_dir)
-
-            for file_ in files:
-                src_file = os.path.join(src_dir, file_)
-                dst_file = os.path.join(dst_dir, file_)
-                if os.path.exists(dst_file):
-                    os.remove(dst_file)
-                shutil.copy(src_file, dst_dir)
-
-    BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
+        cythonize_liquitrader(TARGET_PACKAGES)
 
     TARGET_DIRECTORIES = ['./' + package for package in TARGET_PACKAGES]
     sys.path.extend(TARGET_DIRECTORIES)
 
-    from cx_Freeze import setup, Executable
-
-
-    # # Re-build .pyc files that git destroys
-    # os.makedirs('dependencies/python/py_built', exist_ok=True)
-    # for source_file in ('_regex_core.py', '_strptime.py'):
-    #     output_name = 'dependencies/python/py_built/' + source_file.split('.')[0] + '.pyc'
-    #     py_compile.compile('dependencies/python/' + source_file, cfile=output_name)
-
+    # rebuild_pyc()
 
     # Dependencies are automatically detected, but it might need fine tuning || LOL BULLSHIT
     build_options = {
@@ -123,7 +199,6 @@ if __name__ == '__main__':
                          'pandas',
                          'json_minify',
                          'packaging',
-                         'logger',
                          'ccxt',
                          'binance',
                          'talib',
@@ -148,7 +223,7 @@ if __name__ == '__main__':
 
     """
     'cheroot.test', 'cheroot.testing',
-                         'cython', 'pyximport',
+                         'pyximport',
                          'pandas.conftest', 'pandas.tests', 'pandas.testing', 'pandas.util._test_decorators',
                             'pandas.util._tester', 'pandas.util.testing',
                          'psutil.tests',
@@ -171,9 +246,10 @@ if __name__ == '__main__':
                             'zope.structuredtext.tests', 'zope.tal.tests', 'zope.tales.tests', 'zope.testbrowser.tests',
                             'zope.testing', 'zope.traversing.tests', 'zope.viewlet.tests',
                             
-        'tkinter', 'unittest', 'mock', 'pytest', 'pdb', 'doctest', 'cProfile', 'profile',
-                            'distutils', 'setuptools',
+       'unittest', 'pytest', 'setuptools',
     """
+
+    from cx_Freeze import setup, Executable
 
     if sys.platform == 'win32':
         executables = [Executable('runner.py',
@@ -189,7 +265,7 @@ if __name__ == '__main__':
                        ]
 
     # Write library monkey-patches to site-packages
-    monkey_patcher.do_patches()
+    monkey_patcher.do_prebuild_patches()
 
     if BUILD_LIQUITRADER:
         print('\n=====\nBuilding LiquiTrader...\n')
@@ -225,80 +301,19 @@ if __name__ == '__main__':
               )
 
     # ----
-    if sys.platform == 'win32':
-        shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
+    copy_requirements()
 
     try:
         os.remove(BUILD_PATH + 'webserver/static/main.js.map')
     except FileNotFoundError:
         pass
 
-    if sys.platform != 'win32':
-        shutil.rmtree(BUILD_PATH + 'setup', ignore_errors=True)
-        os.mkdir(BUILD_PATH + 'setup')
-        shutil.copy('dependencies/setup.sh', BUILD_PATH + 'setup/')
+    # ----
 
-    # Copy dll's/so's
-    lib_dir = BUILD_PATH + 'lib/'
-
-    if sys.platform != 'win32':
-        cffi_dir = lib_dir + '.libs_cffi_backend/'
-        libffi_dll = lib_dir + [_ for _ in os.listdir(lib_dir) if 'libffi' in _][0]
-
-        os.makedirs(cffi_dir, exist_ok=True)
-
-        try:
-            shutil.copy2(libffi_dll, cffi_dir)
-        except shutil.SameFileError:
-            pass
-
-        talib_bin = '/usr/lib/libta_lib.so.0'
-        if os.path.isfile(talib_bin):
-            try:
-                shutil.copy2(talib_bin, BUILD_PATH)
-            except shutil.SameFileError:
-                pass
-        else:
-            print('\nWARNING: COULD NOT FIND TALIB BINARY\n')
 
     # ----
     if BUILD_VERIFIER:
-        # Dynamically generate verifier.py and build into package
-
-        opsys = 'win' if sys.platform == 'win32' else 'linux'
-        exe_ext = '.exe' if opsys == 'win' else ''
-
-        print('Signing files...')
-        if not os.path.exists('./buildtools/liquitrader.pem'):
-            signature_tools.generate_private_key()
-
-        exclude = ['strategic_analysis']
-        exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
-        to_sign = []
-        for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
-            bad = False
-
-            for ext in exclude_ext:
-                if file.endswith(ext):
-                    bad = True
-                    break
-
-            for exclu in exclude:
-                if bad or exclu in file:
-                    bad = True
-                    break
-
-            if not bad:
-                to_sign.append(file)
-
-        build_verifier.build_verifier(to_sign=to_sign)
-        cython_setup.run_cython(source_file='./analyzers/strategic_analysis.py')
-
-        new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
-
-        verifier_outpath = f'./build/liquitrader_{opsys}/lib/analyzers.strategic_analysis.' +\
-                           "pyd" if sys.platform == "win32" else "so"
-        shutil.move(new_verifier, verifier_outpath)
+        make_verifier()
 
     # ----
     # Clean up .pyd/.so's alongside .py's leftover from build

@@ -265,7 +265,8 @@ class GenericExchange:
 
         # recalculate average price from total cost and amount
         try:
-            self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
+            if side.lower() == 'sell':
+                self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
         except ZeroDivisionError:
             self.pairs[symbol]['avg_price'] = None
 

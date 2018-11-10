@@ -32,6 +32,7 @@ class BinanceExchange(GenericExchange):
                  candle_timeframes: typing.List[str]):
 
         super().__init__(exchange_id, quote_currency, starting_balance, access_keys, candle_timeframes)
+        self._socket_upkeep_schedule = 60
 
         self.socket_manager = None
         self.quote_currency = quote_currency.upper()
@@ -214,6 +215,7 @@ class BinanceExchange(GenericExchange):
         """
         self._loop.create_task(self._quote_change_upkeep())
         self._loop.create_task(self._balances_upkeep())
+        self._loop.create_task(self._socket_upkeep())
         self._loop.run_forever()
 
     # ----
@@ -258,11 +260,13 @@ class BinanceExchange(GenericExchange):
         """
 
         while 1:
-            self.update_balances()
-            await asyncio.sleep(self._balance_upkeep_call_schedule)
+            self.check_sockets()
+            await asyncio.sleep(self._socket_upkeep_schedule)
 
     def restart_sockets(self):
+        print('detected closed sockets, re-opening connection')
         self.socket_manager.close()
+        time.sleep(1)
         self.start_sockets()
 
     # ----

@@ -21,11 +21,12 @@ def replace_in_zip(zipfname, file_dict):
         with zipfile.ZipFile(zipfname, 'r') as zipread:
             with zipfile.ZipFile(tempname, 'w') as zipwrite:
                 for item in zipread.infolist():
-                    if item.filename in file_dict:
+                    if item.filename == 'twisted/internet/error.pyc':
                         try:
                             #with open(file_dict[item.filename], 'r') as replacement:
                             #zipwrite.writestr(item.filename, replacement.read())
-                            zipwrite.write(file_dict[item.filename], arcname=item.filename)
+                            zipwrite.write(file_dict['twisted/internet/error.pyc'],
+                                           arcname='twisted/internet/error.pyc')
 
                         except PermissionError:
                             print(f'Failed to zip {file_dict[item.filename]}')
@@ -109,15 +110,17 @@ except ZipImportError:
         f.write(data)
 
 
+# --------
 def twisted_error_patcher(build_path=None):
     if build_path is None:
         build_path = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
+        build_path = os.path.abspath(build_path)
 
     error_path = get_library_filepath('twisted/internet/error.py')
-    outpath = py_compile.compile(error_path)
-    print(f'Twisted pyc outpath: {outpath}')
+    #  os.remove(error_path.replace('error.py', '__pycache__/error.cpython-36.pyc'))  Not needed
+    outpath = py_compile.compile(error_path, optimize=1)
 
-    replace_in_zip(build_path + 'lib/library.zip', {
+    replace_in_zip(build_path + '/lib/library.zip', {
         'twisted/internet/error.pyc': outpath
     })
 

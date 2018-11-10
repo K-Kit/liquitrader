@@ -68,7 +68,7 @@ class VerifyTool:
     def verify_files(self, tuples):
         for file, signature_b64 in tuples:
             if not self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64):
-                sys.stdout.write(file + ' failed to verify')
+                sys.stdout.write(base64.b64decode(file).decode('utf-8') + ' failed to verify\n')
                 sys.stdout.flush()
                 return False
         

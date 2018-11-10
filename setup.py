@@ -3,6 +3,7 @@ import sys
 import shutil
 import datetime
 import glob
+import time
 
 import requests.certs
 
@@ -89,13 +90,17 @@ def make_verifier():
         if not bad:
             to_sign.append(file)
 
+    if opsys == 'linux':
+        to_sign.append('./build/liquitrader_linux/liquitrader')
+
     build_verifier.build_verifier(to_sign=to_sign)
     cython_setup.run_cython(source_file='analyzers/strategic_analysis.py')
 
     new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
 
     verifier_outpath = f'./build/liquitrader_{opsys}/lib/analyzers.strategic_analysis.' + \
-                       "pyd" if sys.platform == "win32" else "so"
+                       ("pyd" if sys.platform == "win32" else "so")
+
     shutil.move(new_verifier, verifier_outpath)
 
 
@@ -104,10 +109,6 @@ def copy_requirements():
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
 
     else:
-        shutil.rmtree(BUILD_PATH + 'setup', ignore_errors=True)
-        os.mkdir(BUILD_PATH + 'setup')
-        shutil.copy('dependencies/setup.sh', BUILD_PATH + 'setup/')
-
         # Copy so's
         lib_dir = BUILD_PATH + 'lib/'
         cffi_dir = lib_dir + '.libs_cffi_backend/'
@@ -181,11 +182,8 @@ if __name__ == '__main__':
 
             'bin_includes': ['openblas', 'libgfortran', 'libffi'],
 
-            'include_files': [('dependencies/vc_redist_installer.exe', 'setup/vc_redist_installer.exe'),
-                              ('dependencies/vc_redist_installer.exe.config', 'setup/vc_redist_installer.exe.config'),
-                              ('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
+            'include_files': [('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
-                            #   ('dependencies/python/py_built/_strptime.pyc', 'lib/_strptime.pyc'),
                               ('tos.txt', 'tos.txt'),
                               ('version.txt', 'version.txt'),
                               ('config/BuyStrategies.json', 'config/BuyStrategies.json'),
@@ -269,12 +267,21 @@ if __name__ == '__main__':
 
     from cx_Freeze import setup, Executable
 
+    os.makedirs(BUILD_PATH + 'setup/', exist_ok=True)
+
     if sys.platform == 'win32':
         executables = [Executable('runner.py',
                                   targetName='liquitrader.exe',
                                   icon='dependencies/liquitrader.ico')
                        ]
+
         build_options['build_exe']['packages'].append('win32api')
+
+        build_options['build_exe']['include_files'].append(('dependencies/vc_redist_installer.exe',
+                                                            'setup/vc_redist_installer.exe'))
+
+        build_options['build_exe']['include_files'].append(('dependencies/vc_redist_installer.exe.config',
+                                                            'setup/vc_redist_installer.exe.config'))
 
     else:
         executables = [Executable('runner.py',
@@ -282,13 +289,15 @@ if __name__ == '__main__':
                                   icon='dependencies/liquitrader.ico')
                        ]
 
+        build_options['build_exe']['include_files'].append(('dependencies/setup.sh', 'setup/setup.sh'))
+
     # Write library monkey-patches to site-packages
     monkey_patcher.do_prebuild_patches()
 
     if BUILD_LIQUITRADER:
         print('\n=====\nBuilding LiquiTrader...\n')
         setup(name='liquitrader',
-              version='1.0.3',
+              version='2.0.0',
               description='LiquiTrader',
               options=build_options,
               executables=executables
@@ -297,7 +306,7 @@ if __name__ == '__main__':
     if BUILD_UPDATER:
         print('\n=====\nBuilding Updater...\n')
         setup(name='updater',
-              version='1.0.0',
+              version='2.0.0',
               description='LiquiTrader updater',
               executables=[Executable('updater.py')],
               options={
@@ -331,6 +340,7 @@ if __name__ == '__main__':
 
     # ----
     if BUILD_VERIFIER:
+        time.sleep(1)  # wait for zip to flush
         make_verifier()
 
     # ----

@@ -754,12 +754,15 @@ def main():
                 lt_engine.stop_exchange()
 
             # Catch Twisted connection lost bullshit
-            except Exception as _ex:
+            except Exception:
                 exception_data = traceback.format_exc()
+
                 if 'connectionLost' in exception_data:
                     pass
+
                 else:
-                    raise _ex
+                    sys.stdout.write(str(exception_data) + '\n')
+                    sys.stdout.flush()
 
             # Wait for transactions / critical actions to finish
             if not shutdown_handler.is_complete():

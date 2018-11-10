@@ -163,7 +163,6 @@ class BinanceExchange(GenericExchange):
         else:
             return None
 
-
     # ----
     async def initialize(self):
         # this may want to be split up
@@ -221,13 +220,7 @@ class BinanceExchange(GenericExchange):
             self.socket_manager.close()
 
         except Exception as _ex:
-            # Dirty hack to shut up Twisted errors on exit
-            # The errors are caused by the Cython build process stripping docstrings
-            if 'NoneType object has no attribute \'strip\'' in str(_ex):
-                pass
-
-            else:
-                print(str(_ex))
+            print(str(_ex))
 
         new_loop = asyncio.new_event_loop()
         new_loop.run_until_complete(super().stop())

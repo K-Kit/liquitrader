@@ -11,7 +11,7 @@ from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response, render_template
+from flask import jsonify, Response
 
 import flask_compress
 import flask_login
@@ -27,7 +27,7 @@ from OpenSSL import crypto
 import pandas as pd
 # import pyqrcode
 
-from utils.FormattingTools import eight_decimal_format
+from utils.FormattingTools import eight_decimal_format, decimal_with_usd
 
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length
@@ -138,8 +138,8 @@ class GUIServer:
 
 # ----
 @_app.route("/")
-def get_index():
-    return render_template('index.html')
+def get_hello():
+    return "hello"
 
 
 # ----
@@ -196,7 +196,7 @@ def get_dashboard_data():
     pending = LT_ENGINE.get_pending_value()
     current = LT_ENGINE.get_tcv()
     profit = LT_ENGINE.get_total_profit()
-    profit_data = LT_ENGINE.get_daily_profit_data()[['date', 'cost', 'total_cost', 'gain', 'percent_gain']]
+    profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
     average_daily_gain = profit / len(profit_data)
     market = LT_ENGINE.config.general_settings['market'].upper()
@@ -219,7 +219,7 @@ def get_dashboard_data():
         "total_profit_percent": f"{round(total_profit / balance * 100, 2)}%",
         "daily_profit_data": reorient(profit_data),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
-        # "cum_profit": reorient(LT_ENGINE.get_cumulative_profit()),
+        "cum_profit": reorient(LT_ENGINE.get_cumulative_profit()),
         "pair_profit_data": reorient(LT_ENGINE.get_pair_profit_data())
     }
 

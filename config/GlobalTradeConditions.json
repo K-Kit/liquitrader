@@ -1,9 +1,9 @@
 {
   "min_buy_balance": "40%",
   "dca_min_buy_balance": "30%",
-  "max_pairs": 13,
+  "max_pairs": 10,
   "blacklist": ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],
-  "whitelist": ["ALL"],
+  "whitelist": [ "OMGETH", "ETCETH", "MANAETH", "BNBETH", "XRPETH", "BATETH", "LINKETH", "ZRXETH", "XLMETH", "REQETH", "ADAETH", "CMTETH", "WPRETH", "PIVXETH", "GNTETH", "TUSDETH", "LRCETH", "QKCETH", "ZILETH", "SNTETH", "VETETH", "QSPETH", "HOTETH", "SYSETH", "IOTAETH", "QTUMETH", "NANOETH", "ZECETH", "XMRETH", "ONTETH", "NEOETH", "DLTETH", "STEEMETH", "ICXETH", "FUNETH", "LOOMETH", "XEMETH", "IOTXETH", "RDNETH", "MCOETH", "DENTETH", "APPCETH", "OAXETH", "NEBLETH", "NULSETH", "LSKETH"],
   "max_change": 0,
   "min_change": 0,
   "market_change": {
@@ -14,7 +14,7 @@
       "min_24h_market_change" : -3.5,
       "max_24h_market_change" : 5
       },
-  "dca_timeout": 30,
+  "dca_timeout": 90,
   "max_spread": 0,
   "min_available_volume": 0,
   "bear_override": {},

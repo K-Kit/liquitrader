@@ -7,7 +7,7 @@
 
        ],
        "buy_value": "2%",
-       "trailing %": 0.3
+       "trailing %": 0.01
    },
   {
        "conditions": [

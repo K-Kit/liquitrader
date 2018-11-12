@@ -595,11 +595,6 @@ class LiquiTrader:
     # ----
     def get_total_profit(self):
         df = pd.DataFrame(self.trade_history)
-
-        # if no trades, return 0 profit
-        if 'bought_price' not in df:
-            return 0
-
         df = df[df.side == 'sell']
 
         # filled is the amount filled
@@ -779,5 +774,5 @@ if __name__ == '__main__':
         df = LT_ENGINE.pairs_to_df()
         df[df['total'] > 0]
         return df
-    
+
     main()

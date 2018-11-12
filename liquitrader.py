@@ -8,6 +8,7 @@ import threading
 import functools
 import pathlib
 
+import arrow
 import pandas as pd
 
 import strategic_analysis
@@ -30,8 +31,8 @@ from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
-global lt_engine
-lt_engine = None
+
+LT_ENGINE = None
 
 APP_DIR = ''
 if hasattr(sys, 'frozen'):
@@ -63,13 +64,6 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
 
 FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
                            'Amount', '24h Change']
-
-
-class User:
-    balance = 5
-
-
-user = User()
 
 
 class ShutdownHandler:
@@ -521,7 +515,7 @@ class LiquiTrader:
 
         # except Exception as ex:
         #     print(f'error parsing timezone in pairs to df {ex}')
-        if 'total_cost' in df:
+        if 'total_cost' in df and 'close' in df:
             df['current_value'] = df.close * df.total * (1-(fee/100))
             df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
 
@@ -556,30 +550,40 @@ class LiquiTrader:
     # ----
     @staticmethod
     def calc_gains_on_df(df):
-        if 'bought_price' not in df:
-            df['total_cost'] = 0
-            df['gain'] = 0
-            df['percent_gain'] = 0
-
-            return df
-        else:
+        if 'bought_price' in df:
             df['total_cost'] = df.bought_price * df.filled
             df['gain'] = df['cost'] - df['total_cost']
             df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
-
             return df
 
-    # ----
+        else:
+            df['total_cost'] = 0
+            df['gain'] = 0
+            df['percent_gain'] = 0
+            return df
+
+
+        # ----
     def get_daily_profit_data(self):
-        df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        if len(self.trade_history) < 1:
+            df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        else:
+            df = pd.DataFrame(self.trade_history)
         df = self.calc_gains_on_df(df)
 
+        times = []
         # todo timezones
         df = df.set_index(
             pd.to_datetime(df.timestamp, unit='ms')
         )
+        for t in df.timestamp.values:
+            times.append(arrow.get(t / 1000).to(self.config.general_settings['timezone']).datetime)
 
-        return df.resample('1d').sum()
+        df.timestamp = pd.DatetimeIndex(times)
+
+        df = df.resample('1d').sum()
+        df['date'] = df.index.astype('str').values
+        return df
 
     # ----
     def get_pair_profit_data(self):
@@ -592,8 +596,7 @@ class LiquiTrader:
     def get_total_profit(self):
         df = pd.DataFrame(self.trade_history)
         df = df[df.side == 'sell']
-        if 'bought_price' not in df:
-            return 0
+
         # filled is the amount filled
         df['total_cost'] = df.bought_price * df.filled
         df['gain'] = df['cost'] - df['total_cost']
@@ -620,6 +623,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
     handle_possible_sells = lt_engine.handle_possible_sells
 
     exchange = lt_engine.exchange
+    config = lt_engine.config
 
     while not _shutdown_handler.running_or_complete():
         try:
@@ -630,11 +634,12 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
             if global_buy_checks():
                 possible_buys = get_possible_buys(exchange.pairs, lt_engine.buy_strategies)
-                # print(possible_buys)
-                handle_possible_buys(possible_buys)
+                print(possible_buys)
                 possible_dca_buys = get_possible_buys(exchange.pairs, lt_engine.dca_buy_strategies)
-                handle_possible_dca_buys(possible_dca_buys)
-
+                # Don't make buys if trading disabled or sell only mode active
+                if config.general_settings['trading_enabled'] and not config.general_settings['sell_only_mode']:
+                    handle_possible_buys(possible_buys)
+                    handle_possible_dca_buys(possible_dca_buys)
             possible_sells = get_possible_sells(exchange.pairs, lt_engine.sell_strategies)
             handle_possible_sells(possible_sells)
 
@@ -767,5 +772,9 @@ def main():
 
 
 if __name__ == '__main__':
+    def get_pc():
+        df = LT_ENGINE.pairs_to_df()
+        df[df['total'] > 0]
+        return df
 
     main()

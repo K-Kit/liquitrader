@@ -109,6 +109,16 @@ tradehistory.json
 sell_log
 market
 buy_log
-
+holding
+*.json
+*.ipynb
+docs/
+docs\
 strategic_analysis.py
+*.json
+pair_data.json
 
+*.json
+pair_data.json
+pair_data.json
+*.json

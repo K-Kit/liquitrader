@@ -11,7 +11,7 @@ from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response
+from flask import jsonify, Response, render_template
 
 import flask_compress
 import flask_login
@@ -138,8 +138,8 @@ class GUIServer:
 
 # ----
 @_app.route("/")
-def get_hello():
-    return "hello"
+def get_index():
+    return render_template('index.html')
 
 
 # ----

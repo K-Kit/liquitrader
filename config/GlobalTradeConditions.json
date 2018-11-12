@@ -14,7 +14,7 @@
       "min_24h_market_change" : -3.5,
       "max_24h_market_change" : 5
       },
-  "dca_timeout": 900,
+  "dca_timeout": 90,
   "max_spread": 0,
   "min_available_volume": 0,
   "bear_override": {},

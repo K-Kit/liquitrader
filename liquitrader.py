@@ -623,6 +623,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
     handle_possible_sells = lt_engine.handle_possible_sells
 
     exchange = lt_engine.exchange
+    config = lt_engine.config
 
     while not _shutdown_handler.running_or_complete():
         try:
@@ -633,11 +634,12 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
             if global_buy_checks():
                 possible_buys = get_possible_buys(exchange.pairs, lt_engine.buy_strategies)
-                # print(possible_buys)
-                handle_possible_buys(possible_buys)
+                print(possible_buys)
                 possible_dca_buys = get_possible_buys(exchange.pairs, lt_engine.dca_buy_strategies)
-                handle_possible_dca_buys(possible_dca_buys)
-
+                # Don't make buys if trading disabled or sell only mode active
+                if config.general_settings['trading_enabled'] and not config.general_settings['sell_only_mode']:
+                    handle_possible_buys(possible_buys)
+                    handle_possible_dca_buys(possible_dca_buys)
             possible_sells = get_possible_sells(exchange.pairs, lt_engine.sell_strategies)
             handle_possible_sells(possible_sells)
 

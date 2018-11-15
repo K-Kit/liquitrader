@@ -534,13 +534,18 @@ class LiquiTrader:
             except ValueError as ex:
                 pass
 
-            df = df[DEFAULT_COLUMNS] if basic else df
+            except TypeError as ex:
+                pass
+            try:
+                df = df[DEFAULT_COLUMNS] if basic else df
+            except KeyError as ex:
+                pass
             df.rename(columns=COLUMN_ALIASES,
                       inplace=True)
             return df
 
         else:
-            return df[DEFAULT_COLUMNS] if basic else df
+            return df
 
     # ----
     def get_pending_value(self):
@@ -746,7 +751,7 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
-    return lt_engine
+    # return lt_engine
     # ----
     # Main thread loop
     while True:
@@ -798,4 +803,4 @@ if __name__ == '__main__':
         df[df['total'] > 0]
         return df
 
-    lt = main()
+    main()

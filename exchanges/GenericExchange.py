@@ -98,7 +98,7 @@ class GenericExchange:
             'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 20000,
+            'timeout': 50000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
@@ -107,7 +107,7 @@ class GenericExchange:
             'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 20000,
+            'timeout': 50000,
             'enableRateLimit': False,
             'asyncio_loop': self._loop
         }
@@ -270,7 +270,7 @@ class GenericExchange:
 
         # recalculate average price from total cost and amount
         try:
-            if side.lower() == 'sell':
+            if side.lower() == 'buy':
                 self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
         except ZeroDivisionError:
             self.pairs[symbol]['avg_price'] = None

@@ -230,6 +230,7 @@ class GenericExchange:
             pairs[pair]['trades'] = []
             pairs[pair]['last_id'] = 0
             pairs[pair]['last_depth_check'] = 0
+            pairs[pair]['percentage'] = 0
 
         self.pairs = pairs
         self.candles = candles
@@ -419,7 +420,11 @@ class GenericExchange:
             await asyncio.sleep(self._ticker_upkeep_call_schedule)
 
     def get_min_cost(self, symbol):
-        return self.pairs[symbol]['limits']['cost']['min']
+        limits = self.pairs[symbol]['limits']
+        if 'cost' in limits:
+            return limits['cost']['min']
+        else:
+            return limits['amount']['min'] * limits['price']['min']
 
     def reload_single_candle_history(self, symbol):
         for period in self._candle_timeframes:

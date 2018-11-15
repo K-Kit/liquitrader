@@ -3,7 +3,7 @@
   "dca_min_buy_balance": "30%",
   "max_pairs": 10,
   "blacklist": ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],
-  "whitelist": [ "OMGETH", "ETCETH", "MANAETH", "BNBETH", "XRPETH", "BATETH", "LINKETH", "ZRXETH", "XLMETH", "REQETH", "ADAETH", "CMTETH", "WPRETH", "PIVXETH", "GNTETH", "TUSDETH", "LRCETH", "QKCETH", "ZILETH", "SNTETH", "VETETH", "QSPETH", "HOTETH", "SYSETH", "IOTAETH", "QTUMETH", "NANOETH", "ZECETH", "XMRETH", "ONTETH", "NEOETH", "DLTETH", "STEEMETH", "ICXETH", "FUNETH", "LOOMETH", "XEMETH", "IOTXETH", "RDNETH", "MCOETH", "DENTETH", "APPCETH", "OAXETH", "NEBLETH", "NULSETH", "LSKETH"],
+  "whitelist": ["ALL"],
   "max_change": 0,
   "min_change": 0,
   "market_change": {

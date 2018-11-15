@@ -242,6 +242,10 @@ class GenericExchange:
         order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
         print(order)
 
+        # if the order didnt fill just return
+        if order['fee'] is None or order['lastTradeTimestamp'] is None:
+            return order
+
         if bought_price is not None:
             order['bought_price'] = bought_price
 

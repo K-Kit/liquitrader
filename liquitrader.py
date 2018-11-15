@@ -426,8 +426,8 @@ class LiquiTrader:
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
             checks.append(below_max_pairs(len(self.owned), global_trade_conditions['max_pairs']))
-        if not all(checks):
-            print(pair, checks)
+        # if not all(checks):
+        #     print(pair, checks)
         return all(checks)
 
     # ----
@@ -528,7 +528,8 @@ class LiquiTrader:
 
         if friendly:
             try:
-                df = prettify_dataframe(df, self.exchange.quote_price)
+                if len(df) > 0:
+                    df = prettify_dataframe(df, self.exchange.quote_price)
 
             except ValueError as ex:
                 pass
@@ -595,15 +596,25 @@ class LiquiTrader:
     # ----
     def get_pair_profit_data(self):
         df = pd.DataFrame(self.trade_history)
+
         df = self.calc_gains_on_df(df)
+
+        if len(df) == 0 or 'symbol' not in df:
+            return df
 
         return df.groupby('symbol').sum()[['total_cost', 'cost', 'amount', 'gain']]
 
     # ----
     def get_total_profit(self):
         df = pd.DataFrame(self.trade_history)
+
+        if 'side' not in df:
+            return 0
+
         df = df[df.side == 'sell']
 
+        if len(df) == 0:
+            return 0
         # filled is the amount filled
         df['total_cost'] = df.bought_price * df.filled
         df['gain'] = df['cost'] - df['total_cost']
@@ -641,7 +652,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
             if global_buy_checks():
                 possible_buys = get_possible_buys(exchange.pairs, lt_engine.buy_strategies)
-                print(possible_buys)
+                # print(possible_buys)
                 possible_dca_buys = get_possible_buys(exchange.pairs, lt_engine.dca_buy_strategies)
                 # Don't make buys if trading disabled or sell only mode active
                 if config.general_settings['trading_enabled'] and not config.general_settings['sell_only_mode']:
@@ -652,7 +663,6 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
             if config.general_settings['trading_enabled']:
                 handle_possible_sells(possible_sells)
 
-            print(possible_buys)
 
         except Exception as ex:
             print('err in run: {}'.format(traceback.format_exc()))
@@ -736,7 +746,7 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
-
+    return lt_engine
     # ----
     # Main thread loop
     while True:
@@ -788,4 +798,4 @@ if __name__ == '__main__':
         df[df['total'] > 0]
         return df
 
-    main()
+    lt = main()

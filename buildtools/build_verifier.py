@@ -107,7 +107,7 @@ def unshift(string):
     return unshifted
 
 
-def err_msg(caller):
+def err_msg():
     sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
     sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
     sys.stdout.flush()
@@ -117,7 +117,7 @@ def verify():
     verifier = VerifyTool('{verifier_data}')
 
     if not verifier.verify_files({signature_tuples}):
-        err_msg('strategic_analysis/verify()')
+        err_msg()
         sys.exit(1)
 
 """

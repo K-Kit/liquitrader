@@ -224,7 +224,7 @@ if __name__ == '__main__':
 
             'excludes': [
                          'tkinter', 'cProfile', 'profile', 'pdb', 'pydoc', 'doctest',
-                         'Cython',
+                         'Cython', 'zodbpickle',
                          'conditions.test_conditions', # 'dev_keys_binance', !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                          ],
 
@@ -338,12 +338,12 @@ if __name__ == '__main__':
     monkey_patcher.do_postbuild_patches()
 
     # ----
-    python_files = glob.glob(f'{BUILD_PATH}**/*.py', recursive=True)
-    for file in python_files:
-        print(file)
-        py_compile.compile(file, optimize=1)
-        time.sleep(1)
-        #os.remove(file)
+    # python_files = glob.glob(f'{BUILD_PATH}**/*.py', recursive=True)
+    # for file in python_files:
+    #     print(file)
+    #     py_compile.compile(file, optimize=1)
+    #     time.sleep(1)
+    #     #os.remove(file)
 
     # ----
     if BUILD_VERIFIER:

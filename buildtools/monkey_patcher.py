@@ -1,17 +1,16 @@
 import sys
 import site
-import tempfile
 import zipfile
-import shutil
 import os
+import shutil
+import py_compile
+import tempfile
 
 from distutils.sysconfig import get_python_lib
 
-import py_compile
 
-
-def replace_in_zip(zipfname, file_dict):
-    """file_dict = { object_path_in_zip: file_path }"""
+def replace_in_zip(zipfname, file_pairs):
+    """file_pairs = [ [path_in_archive, path_to_replacement], ]"""
 
     tempdir = tempfile.mkdtemp()
 
@@ -19,22 +18,20 @@ def replace_in_zip(zipfname, file_dict):
         tempname = os.path.join(tempdir, 'new.zip')
 
         with zipfile.ZipFile(zipfname, 'r') as zipread:
-            with zipfile.ZipFile(tempname, 'w') as zipwrite:
+            with zipfile.ZipFile(tempname, 'w', compression=zipfile.ZIP_DEFLATED) as zipwrite:
                 for item in zipread.infolist():
                     if item.filename == 'twisted/internet/error.pyc':
                         try:
-                            #with open(file_dict[item.filename], 'r') as replacement:
-                            #zipwrite.writestr(item.filename, replacement.read())
-                            zipwrite.write(file_dict['twisted/internet/error.pyc'],
-                                           arcname='twisted/internet/error.pyc')
+                            zipwrite.write(file_pairs[0][1], arcname=file_pairs[0][0])
 
                         except PermissionError:
-                            print(f'Failed to zip {file_dict[item.filename]}')
+                            print(f'Failed to zip {file_pairs[0][1]}')
 
                     else:
                         data = zipread.read(item.filename)
                         zipwrite.writestr(item, data)
 
+        os.remove(zipfname)
         shutil.move(tempname, zipfname)
 
     finally:
@@ -117,12 +114,8 @@ def twisted_error_patcher(build_path=None):
         build_path = os.path.abspath(build_path)
 
     error_path = get_library_filepath('twisted/internet/error.py')
-    #  os.remove(error_path.replace('error.py', '__pycache__/error.cpython-36.pyc'))  Not needed
     outpath = py_compile.compile(error_path, optimize=1)
-
-    replace_in_zip(build_path + '/lib/library.zip', {
-        'twisted/internet/error.pyc': outpath
-    })
+    replace_in_zip(build_path + '/lib/library.zip', [['twisted/internet/error.pyc', outpath]])
 
 
 def do_prebuild_patches():
@@ -131,7 +124,3 @@ def do_prebuild_patches():
 
 def do_postbuild_patches():
     twisted_error_patcher()
-
-
-#if __name__ == '__main__':
-#    twisted_error_patcher('C:/Users/Luke/Documents/GitHub/liquitrader/build/liquitrader_win/')

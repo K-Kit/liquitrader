@@ -11,7 +11,7 @@ import pathlib
 import arrow
 import pandas as pd
 
-import strategic_analysis
+import analyzers.strategic_analysis as strategic_analysis
 
 from config.config import Config
 from exchanges import BinanceExchange
@@ -702,11 +702,11 @@ def main():
                 err_msg()
                 sys.exit(1)
 
-        start = time.time()
+        time.perf_counter()
         strategic_analysis.verify()
 
         # Check that verifier took a reasonable amount of time to execute (prevent simple NOPing)
-        if (time.time() - start) < .005:
+        if time.perf_counter() < .01:
             err_msg()
             sys.exit(1)
 
@@ -717,10 +717,10 @@ def main():
         license_key = '2V9HM-YZTS9-G4QEC-LQ9LX-44PKZ'
         api_key = 'dingusdingus'
 
-        start = time.time()
+        start = time.perf_counter()
         strategic_tools.verify(license_key, api_key)
 
-        if (time.time() - start) < .01:
+        if (time.perf_counter() - start) < .01:
             print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
                   'please stop trying to crack our license system. This is how we keep food on our tables.)')
             sys.exit(1)

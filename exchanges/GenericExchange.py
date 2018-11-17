@@ -98,7 +98,7 @@ class GenericExchange:
             'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 20000,
+            'timeout': 50000,
             'enableRateLimit': True,
             'parseOrderToPrecision': True
         })
@@ -107,7 +107,7 @@ class GenericExchange:
             'options': options,
             'apiKey': self._access_keys['public'],
             'secret': self._access_keys['secret'],
-            'timeout': 20000,
+            'timeout': 50000,
             'enableRateLimit': False,
             'asyncio_loop': self._loop
         }
@@ -230,6 +230,7 @@ class GenericExchange:
             pairs[pair]['trades'] = []
             pairs[pair]['last_id'] = 0
             pairs[pair]['last_depth_check'] = 0
+            pairs[pair]['percentage'] = 0
 
         self.pairs = pairs
         self.candles = candles
@@ -241,6 +242,10 @@ class GenericExchange:
         print(symbol, amount, self.pairs[symbol]['total'])
         order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
         print(order)
+
+        # if the order didnt fill just return
+        if order['fee'] is None or order['lastTradeTimestamp'] is None:
+            return order
 
         if bought_price is not None:
             order['bought_price'] = bought_price
@@ -265,12 +270,13 @@ class GenericExchange:
 
         # recalculate average price from total cost and amount
         try:
-            self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
+            if side.lower() == 'buy':
+                self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
         except ZeroDivisionError:
             self.pairs[symbol]['avg_price'] = None
 
         # update quote balance
-        self.balance += order['cost'] if side == 'buy' else - order['cost']
+        self.balance -= order['cost'] if side == 'buy' else - order['cost']
         # update last order time
         self.pairs[symbol]['last_order_time'] = int(time.time())
         # temp - will manually calc avg instead of calling update
@@ -414,7 +420,11 @@ class GenericExchange:
             await asyncio.sleep(self._ticker_upkeep_call_schedule)
 
     def get_min_cost(self, symbol):
-        return self.pairs[symbol]['limits']['cost']['min']
+        limits = self.pairs[symbol]['limits']
+        if 'cost' in limits:
+            return limits['cost']['min']
+        else:
+            return limits['amount']['min'] * limits['price']['min']
 
     def reload_single_candle_history(self, symbol):
         for period in self._candle_timeframes:

@@ -8,7 +8,10 @@ import threading
 import functools
 import pathlib
 
-from analyzers import strategic_analysis
+import arrow
+import pandas as pd
+
+import strategic_analysis
 
 from config.config import Config
 from exchanges import BinanceExchange
@@ -23,13 +26,11 @@ from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
 
-from dev_keys_binance import keys  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
-global lt_engine
-lt_engine = None
+
+LT_ENGINE = None
 
 APP_DIR = ''
 if hasattr(sys, 'frozen'):
@@ -63,12 +64,13 @@ FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
                            'Amount', '24h Change']
 
 
-class User:
-    balance = 5
+# ----
+def get_keys():
+    fp = 'config/keys.json'
+    with open(fp, 'r') as f:
+        keys = json.load(f)
 
-
-user = User()
-
+    return keys
 
 class ShutdownHandler:
 
@@ -145,12 +147,12 @@ class LiquiTrader:
     # ----
     def initialize_exchange(self):
         general_settings = self.config.general_settings
-
+        keys = get_keys()
         if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
                                                       general_settings['market'].upper(),
                                                       general_settings['starting_balance'],
-                                                      {'public': keys.public, 'secret': keys.secret},
+                                                      keys,
                                                       self.timeframes)
 
         # use USDT in tests to decrease API calls (only ~12 pairs vs 100+)
@@ -158,20 +160,20 @@ class LiquiTrader:
             self.exchange = BinanceExchange.BinanceExchange('binance',
                                                             general_settings['market'].upper(),
                                                             general_settings['starting_balance'],
-                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            keys,
                                                             self.timeframes)
 
         elif general_settings['paper_trading']:
             self.exchange = GenericPaper.PaperGeneric(general_settings['exchange'].lower(),
                                                       general_settings['market'].upper(),
                                                       general_settings['starting_balance'],
-                                                      {'public': keys.public, 'secret': keys.secret},
+                                                      keys,
                                                       self.timeframes)
         else:
             self.exchange = GenericExchange.GenericExchange(general_settings['exchange'].lower(),
                                                             general_settings['market'].upper(),
                                                             general_settings['starting_balance'],
-                                                            {'public': keys.public, 'secret': keys.secret},
+                                                            keys,
                                                             self.timeframes)
 
         asyncio.get_event_loop().run_until_complete(self.exchange.initialize())
@@ -424,7 +426,8 @@ class LiquiTrader:
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
             checks.append(below_max_pairs(len(self.owned), global_trade_conditions['max_pairs']))
-
+        # if not all(checks):
+        #     print(pair, checks)
         return all(checks)
 
     # ----
@@ -519,24 +522,30 @@ class LiquiTrader:
 
         # except Exception as ex:
         #     print(f'error parsing timezone in pairs to df {ex}')
-        if 'total_cost' in df:
+        if 'total_cost' in df and 'close' in df:
             df['current_value'] = df.close * df.total * (1-(fee/100))
             df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
 
         if friendly:
             try:
-                df = prettify_dataframe(df, self.exchange.quote_price)
+                if len(df) > 0:
+                    df = prettify_dataframe(df, self.exchange.quote_price)
 
             except ValueError as ex:
                 pass
 
-            df = df[DEFAULT_COLUMNS] if basic else df
+            except TypeError as ex:
+                pass
+            try:
+                df = df[DEFAULT_COLUMNS] if basic else df
+            except KeyError as ex:
+                pass
             df.rename(columns=COLUMN_ALIASES,
                       inplace=True)
             return df
 
         else:
-            return df[DEFAULT_COLUMNS] if basic else df
+            return df
 
     # ----
     def get_pending_value(self):
@@ -554,43 +563,62 @@ class LiquiTrader:
     # ----
     @staticmethod
     def calc_gains_on_df(df):
-        if 'bought_price' not in df:
-            df['total_cost'] = 0
-            df['gain'] = 0
-            df['percent_gain'] = 0
-
-            return df
-        else:
+        if 'bought_price' in df:
             df['total_cost'] = df.bought_price * df.filled
             df['gain'] = df['cost'] - df['total_cost']
             df['percent_gain'] = (df['cost'] - df['total_cost']) / df['total_cost'] * 100
-
             return df
 
-    # ----
+        else:
+            df['total_cost'] = 0
+            df['gain'] = 0
+            df['percent_gain'] = 0
+            return df
+
+
+        # ----
     def get_daily_profit_data(self):
-        df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        if len(self.trade_history) < 1:
+            df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
+        else:
+            df = pd.DataFrame(self.trade_history)
         df = self.calc_gains_on_df(df)
 
+        times = []
         # todo timezones
         df = df.set_index(
             pd.to_datetime(df.timestamp, unit='ms')
         )
+        for t in df.timestamp.values:
+            times.append(arrow.get(t / 1000).to(self.config.general_settings['timezone']).datetime)
 
-        return df.resample('1d').sum()
+        df.timestamp = pd.DatetimeIndex(times)
+
+        df = df.resample('1d').sum()
+        df['date'] = df.index.astype('str').values
+        return df
 
     # ----
     def get_pair_profit_data(self):
         df = pd.DataFrame(self.trade_history)
+
         df = self.calc_gains_on_df(df)
+
+        if len(df) == 0 or 'symbol' not in df:
+            return df
 
         return df.groupby('symbol').sum()[['total_cost', 'cost', 'amount', 'gain']]
 
     # ----
     def get_total_profit(self):
         df = pd.DataFrame(self.trade_history)
+
+        if 'side' not in df:
+            return 0
+
         df = df[df.side == 'sell']
-        if 'bought_price' not in df:
+
+        if len(df) == 0:
             return 0
         # filled is the amount filled
         df['total_cost'] = df.bought_price * df.filled
@@ -618,6 +646,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
     handle_possible_sells = lt_engine.handle_possible_sells
 
     exchange = lt_engine.exchange
+    config = lt_engine.config
 
     while not _shutdown_handler.running_or_complete():
         try:
@@ -629,12 +658,16 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
             if global_buy_checks():
                 possible_buys = get_possible_buys(exchange.pairs, lt_engine.buy_strategies)
                 # print(possible_buys)
-                handle_possible_buys(possible_buys)
                 possible_dca_buys = get_possible_buys(exchange.pairs, lt_engine.dca_buy_strategies)
-                handle_possible_dca_buys(possible_dca_buys)
-
+                # Don't make buys if trading disabled or sell only mode active
+                if config.general_settings['trading_enabled'] and not config.general_settings['sell_only_mode']:
+                    handle_possible_buys(possible_buys)
+                    handle_possible_dca_buys(possible_dca_buys)
             possible_sells = get_possible_sells(exchange.pairs, lt_engine.sell_strategies)
-            handle_possible_sells(possible_sells)
+            # Don't make sells if not trading enabled
+            if config.general_settings['trading_enabled']:
+                handle_possible_sells(possible_sells)
+
 
         except Exception as ex:
             print('err in run: {}'.format(traceback.format_exc()))
@@ -734,7 +767,7 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
-
+    # return lt_engine
     # ----
     # Main thread loop
     while True:

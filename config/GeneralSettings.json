@@ -1,11 +1,13 @@
 {
-  "exchange": "binance",
-  "paper_trading": false,
-  "starting_balance": 3,
+  "exchange": "bittrex",
+  "paper_trading": true,
+  "starting_balance": 100,
   "market": "ETH",
   "timezone": "US/Pacific",
   "start_delay": 0,
   "host": "0.0.0.0",
-  "port": 80,
-  "use_ssl": false
+  "port": 8080,
+  "use_ssl": false,
+  "sell_only_mode": false,
+  "trading_enabled": true
 }

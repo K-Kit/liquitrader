@@ -9,7 +9,7 @@
        "trailing %": 0.3,
        "dca_strategy": {
          "default": {"trigger": -3.5, "percentage": 50},
-         "1": {"trigger": -5.5, "percentage": 50},
+         "1": {"trigger": -7.5, "percentage": 200},
          "0": {"trigger": -1, "percentage": 50}
        }
    }

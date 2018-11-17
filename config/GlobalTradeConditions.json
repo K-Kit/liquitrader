@@ -1,7 +1,7 @@
 {
   "min_buy_balance": "40%",
   "dca_min_buy_balance": "30%",
-  "max_pairs": 13,
+  "max_pairs": 10,
   "blacklist": ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],
   "whitelist": ["ALL"],
   "max_change": 0,
@@ -14,8 +14,8 @@
       "min_24h_market_change" : -3.5,
       "max_24h_market_change" : 5
       },
-  "dca_timeout": 30,
-  "max_spread": 0,
+  "dca_timeout": 15,
+  "max_spread": 1.2,
   "min_available_volume": 0,
   "bear_override": {},
   "bull_override": {}

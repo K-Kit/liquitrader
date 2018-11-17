@@ -1,6 +1,9 @@
 import binascii
 import os
 # from io import BytesIO
+import pathlib
+
+import psutil
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
@@ -8,7 +11,7 @@ from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response
+from flask import jsonify, Response, render_template
 
 import flask_compress
 import flask_login
@@ -32,10 +35,13 @@ from utils.FormattingTools import eight_decimal_format, decimal_with_usd
 
 LT_ENGINE = None
 # FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
+_cmdline = psutil.Process().cmdline()
+abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
+bearpuncher_dir = abs_path
+dist_path = abs_path / 'static'
+_app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
-_app = flask.Flask('lt_flask')
 
-CORS(_app)
 
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
@@ -54,7 +60,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        # CORS(_app)
+        CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -132,8 +138,8 @@ class GUIServer:
 
 # ----
 @_app.route("/")
-def get_hello():
-    return "hello"
+def get_index():
+    return render_template('index.html')
 
 
 # ----
@@ -160,7 +166,7 @@ def get_market():
 def get_buy_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
-    if 'price' not in df:
+    if len(df) < 1:
         return jsonify([])
 
     cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
@@ -209,7 +215,7 @@ def get_dashboard_data():
         "usd_total_profit": f"{to_usd(profit)}",
         "usd_average_daily_gain": f"{to_usd(average_daily_gain)}",
         "market_change_24h": f"{round(LT_ENGINE.market_change_24h, 2)}%",
-        "average_daily_gain": f"{average_daily_gain / pending}",
+        "average_daily_gain": f"{round(average_daily_gain / pending*100, 2)}",
         "total_profit_percent": f"{round(total_profit / balance * 100, 2)}%",
         "daily_profit_data": reorient(profit_data),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),

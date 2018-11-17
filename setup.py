@@ -4,6 +4,7 @@ import shutil
 import datetime
 import glob
 import time
+import py_compile
 
 import requests.certs
 
@@ -132,8 +133,6 @@ def copy_requirements():
 
 
 def rebuild_pyc():
-    import py_compile
-
     # Re-build .pyc files that git destroys
     os.makedirs('dependencies/python/py_built', exist_ok=True)
 
@@ -337,6 +336,14 @@ if __name__ == '__main__':
 
     # ----
     monkey_patcher.do_postbuild_patches()
+
+    # ----
+    python_files = glob.glob(f'{BUILD_PATH}**/*.py', recursive=True)
+    for file in python_files:
+        print(file)
+        py_compile.compile(file, optimize=1)
+        time.sleep(1)
+        #os.remove(file)
 
     # ----
     if BUILD_VERIFIER:

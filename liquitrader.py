@@ -9,7 +9,6 @@ import functools
 import pathlib
 
 import arrow
-import pandas as pd
 
 import analyzers.strategic_analysis as strategic_analysis
 
@@ -26,7 +25,7 @@ from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
 
-from conditions.condition_tools import get_buy_value, percentToFloat
+from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
 
@@ -71,6 +70,7 @@ def get_keys():
         keys = json.load(f)
 
     return keys
+
 
 class ShutdownHandler:
 

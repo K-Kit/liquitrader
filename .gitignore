@@ -115,10 +115,6 @@ holding
 docs/
 docs\
 strategic_analysis.py
-*.json
 pair_data.json
-
-*.json
-pair_data.json
-pair_data.json
-*.json
+buildtools/bearpuncher_verification_implementation.py
+*.c

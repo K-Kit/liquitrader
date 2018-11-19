@@ -66,7 +66,15 @@ class VerifyTool:
 
     # ----
     def verify_files(self, tuples):
-        return all(iter(self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64) for file, signature_b64 in tuples))
+        for file, signature_b64 in tuples:
+            if not self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64):
+                sys.stdout.write(base64.b64decode(file).decode('utf-8') + ' failed to verify\n')
+                sys.stdout.flush()
+                return False
+        
+        return True
+            
+        # return all(iter(self.verify_file(base64.b64decode(file).decode('utf-8'), signature_b64) for file, signature_b64 in tuples))
 
 
 def rld(string):
@@ -91,7 +99,7 @@ def unshift(string):
         
         shift_table.append(int(sh) * -1 if next_neg else int(sh))
         next_neg = False
-    
+
     unshifted = ''
     for ch, shift_amt in zip(shifted, shift_table):
         unshifted += chr(ord(ch) - shift_amt)
@@ -100,8 +108,8 @@ def unshift(string):
 
 
 def err_msg():
-    sys.stdout.write(r'LiquiTrader has been illegitimately modified and must be reinstalled.\n')
-    sys.stdout.write(r'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+    sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
+    sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
     sys.stdout.flush()
 
 
@@ -112,10 +120,6 @@ def verify():
         err_msg()
         sys.exit(1)
 
-if __name__ == '__main__':
-    import sys
-    print('This library is not allowed to run standalone')
-    sys.exit(1)
 """
 
 
@@ -166,7 +170,7 @@ def build_verifier(to_sign):
     server_pub_rl_encoded_shifted = shift(server_pub_rl_encoded)
     server_pub_rl_encoded_shifted_b64 = base64.b64encode(server_pub_rl_encoded_shifted.encode()).decode('utf-8')
 
-    with open('strategic_analysis.py', 'w') as runner_file:
+    with open('analyzers/strategic_analysis.py', 'w') as runner_file:
         print(runner_template.format(verifier_data=server_pub_rl_encoded_shifted_b64,
                                      signature_tuples=file_signature_tuples),
               file=runner_file)

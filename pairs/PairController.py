@@ -1,11 +1,8 @@
-
 class PairController:
 
     def __init__(self, default_conditions=None):
         self.default_conditions = default_conditions
         self.pairs = {}
-
-
 
     # ----
     def add_pair(self, name, symbol, price, current_value, volumne, spread, change24, bids, asks,

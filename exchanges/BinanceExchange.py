@@ -20,8 +20,15 @@ BinanceSocketManager = binance.websockets.BinanceSocketManager
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 
 
-# TODO check last socket update time and restart if needed
+def gen_socket_list(pairs: dict, timeframes: set):
+    # creates list of socket streams to subscribe to
+    candles = ['{}@kline_{}'.format(pair['id'].lower(), timeframe) for timeframe in timeframes for pair in pairs.values()]
+    depth = ['{}@depth20'.format(pair['id'].lower()) for pair in pairs.values()]
+    tickers = ['{}@ticker'.format(pair['id'].lower()) for pair in pairs.values()]
+    return candles, depth, tickers
 
+
+# TODO check last socket update time and restart if needed
 class BinanceExchange(GenericExchange):
 
     def __init__(self,
@@ -187,9 +194,6 @@ class BinanceExchange(GenericExchange):
         except Exception as ex:
             print(ex)
 
-
-
-
     # ----
     async def initialize(self):
         # this may want to be split up
@@ -203,8 +207,6 @@ class BinanceExchange(GenericExchange):
         self.start_sockets()
 
         self.update_balances()
-
-
 
     # ----
     def start(self):
@@ -283,15 +285,14 @@ class BinanceExchange(GenericExchange):
         ]
         if not all(deltas):
             self.restart_sockets()
-            
+
 
 
 # ----
-if __name__ == '__main__':
-    from dev_keys_binance import keys
-    ex = BinanceExchange('binance', 'ETH', 5, {'public': keys.public, 'secret': keys.secret}, ['5m'])
-    asyncio.get_event_loop().run_until_complete(ex.initialize())
-    ex.update_balances()
-    # ex.start()
-    client = ex._client
-
+# if __name__ == '__main__':
+#     from dev_keys_binance import keys
+#     ex = BinanceExchange('binance', 'ETH', 5, {'public': keys.public, 'secret': keys.secret}, ['5m'])
+#     asyncio.get_event_loop().run_until_complete(ex.initialize())
+#     ex.update_balances()
+#     # ex.start()
+#     client = ex._client

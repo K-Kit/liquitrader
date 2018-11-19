@@ -9,9 +9,8 @@ import functools
 import pathlib
 
 import arrow
-import pandas as pd
 
-import strategic_analysis
+import analyzers.strategic_analysis as strategic_analysis
 
 from config.config import Config
 from exchanges import BinanceExchange
@@ -26,7 +25,7 @@ from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
 
-from conditions.condition_tools import get_buy_value, percentToFloat
+from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
 
@@ -71,6 +70,7 @@ def get_keys():
         keys = json.load(f)
 
     return keys
+
 
 class ShutdownHandler:
 
@@ -688,25 +688,41 @@ def main():
         setattr(sys, 'frozen', True)
 
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
-        vfile = 'lib/strategic_analysis.cp36-win_amd64.pyd' if sys.platform == 'win32' else 'lib/strategic_analysis.cpython-36m-x86_64-linux-gnu.so'
-
         # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
         # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
-        if ((not vfile.startswith('lib/strategic_analysis')) or
-                (not os.path.isfile(vfile)) or
-                ((sys.platform == 'win32' and os.stat(vfile).st_size < 280000) or
-                 (sys.platform != 'win32' and os.stat(vfile).st_size < 90000))
-                 ):
+        if sys.platform == 'win32':
+            if ((not os.path.isfile('lib/analyzers.strategic_analysis.pyd'))
+                    or os.stat('lib/analyzers.strategic_analysis.pyd').st_size < 268000):
+                err_msg()
+                sys.exit(1)
 
+        else:
+            if ((not os.path.isfile('lib/analyzers.strategic_analysis.so'))
+                    or os.stat('lib/analyzers.strategic_analysis.so').st_size < 760000):
+                err_msg()
+                sys.exit(1)
+
+        time.perf_counter()
+        strategic_analysis.verify()
+
+        # Check that verifier took a reasonable amount of time to execute (prevent simple NOPing)
+        if time.perf_counter() < .01:
             err_msg()
             sys.exit(1)
 
-        start = time.time()
-        strategic_analysis.verify()
+        # ----
+        # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
+        from analyzers import strategic_tools
 
-        # Check that verifier took a reasonable amount of time to execute (make NOPing harder)
-        if (time.time() - start) < .03:
-            err_msg()
+        license_key = '2V9HM-YZTS9-G4QEC-LQ9LX-44PKZ'
+        api_key = 'dingusdingus'
+
+        start = time.perf_counter()
+        strategic_tools.verify(license_key, api_key)
+
+        if (time.perf_counter() - start) < .01:
+            print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
+                  'please stop trying to crack our license system. This is how we keep food on our tables.)')
             sys.exit(1)
 
     # ----
@@ -738,10 +754,10 @@ def main():
     config = lt_engine.config
 
     gui_server = gui.gui_server.GUIServer(shutdown_handler,
-                                            host=config.general_settings['host'],
-                                            port=config.general_settings['port'],
-                                            ssl=config.general_settings['use_ssl'],
-                                            )
+                                          host=config.general_settings['host'],
+                                          port=config.general_settings['port'],
+                                          ssl=config.general_settings['use_ssl'],
+                                          )
 
     # ----
     trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))
@@ -771,12 +787,15 @@ def main():
                 lt_engine.stop_exchange()
 
             # Catch Twisted connection lost bullshit
-            except Exception as _ex:
+            except Exception:
                 exception_data = traceback.format_exc()
+
                 if 'connectionLost' in exception_data:
                     pass
+
                 else:
-                    raise _ex
+                    sys.stdout.write(str(exception_data) + '\n')
+                    sys.stdout.flush()
 
             # Wait for transactions / critical actions to finish
             if not shutdown_handler.is_complete():
@@ -797,10 +816,5 @@ def main():
             sys.exit(0)
 
 
-if __name__ == '__main__':
-    def get_pc():
-        df = LT_ENGINE.pairs_to_df()
-        df[df['total'] > 0]
-        return df
-
-    main()
+# if __name__ == '__main__':
+#     main()

@@ -1,5 +1,5 @@
 {
-  "exchange": "bittrex",
+  "exchange": "binance",
   "paper_trading": true,
   "starting_balance": 100,
   "market": "ETH",

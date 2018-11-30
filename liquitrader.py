@@ -628,7 +628,8 @@ class LiquiTrader:
 
     # ----
     def get_cumulative_profit(self):
-        return self.get_daily_profit_data().cumsum()
+        df = self.get_daily_profit_data().cumsum()
+        return df[df.percent_gain < 9999]
     #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
 
 

@@ -1,7 +1,7 @@
 {
   "exchange": "binance",
-  "paper_trading": true,
-  "starting_balance": 100,
+  "paper_trading": false,
+  "starting_balance": 3,
   "market": "ETH",
   "timezone": "US/Pacific",
   "start_delay": 0,

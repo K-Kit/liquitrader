@@ -276,6 +276,8 @@ class BinanceExchange(GenericExchange):
         now = time.time()
 
         def not_stale(now, last_check):
+            if last_check is None:
+                return True
             return now-last_check < 3
 
         deltas = [

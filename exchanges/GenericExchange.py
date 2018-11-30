@@ -244,7 +244,7 @@ class GenericExchange:
         print(order)
 
         # if the order didnt fill just return
-        if order['fee'] is None or order['lastTradeTimestamp'] is None:
+        if order['fee'] is None:
             return order
 
         if bought_price is not None:

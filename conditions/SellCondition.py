@@ -10,7 +10,7 @@ class SellCondition(Condition):
 
     def get_lowest_sell_price(self, total_cost, amount, fee):
         bought_price = total_cost/amount
-        return bought_price * (1 + ((self.sell_value + fee) / 100))
+        return bought_price * ((1 + self.sell_value + fee) / 100)
 
     def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
         """

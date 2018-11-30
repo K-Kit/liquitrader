@@ -66,7 +66,7 @@ class PaperBinance(BinanceExchange):
                  access_keys: typing.Dict[typing.Union[str, str], typing.Union[str, str]],
                  candle_timeframes: typing.List[str]):
 
-        super().__init__(exchange_id, quote_currency, access_keys, candle_timeframes)
+        super().__init__(exchange_id, quote_currency, starting_balance, access_keys, candle_timeframes)
         self.order_id = 0
         self.balance = starting_balance
         self.errors = []

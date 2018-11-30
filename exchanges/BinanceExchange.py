@@ -268,6 +268,7 @@ class BinanceExchange(GenericExchange):
     def restart_sockets(self):
         print('detected closed sockets, re-opening connection')
         self.socket_manager.close()
+        self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
         time.sleep(1)
         self.start_sockets()
 
@@ -278,7 +279,7 @@ class BinanceExchange(GenericExchange):
         def not_stale(now, last_check):
             if last_check is None:
                 return True
-            return now-last_check < 3
+            return now-last_check < 5
 
         deltas = [
             not_stale(now, self.last_candle_update_time),

@@ -362,7 +362,7 @@ class LiquiTrader:
             
             # profits.append(
             #     (current_value - exch_pair['total_cost']) / exch_pair['total_cost'] * 100)
-            order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], price.price)
+            order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], lowest_sell_price)
             self.trade_history.append(order)
             self.save_trade_history()
 

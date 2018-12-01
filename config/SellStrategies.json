@@ -3,7 +3,7 @@
        "conditions": [
            {"left": {"value": "MFI", "timeframe": "30m"}, "op": ">", "right": {"value": 20}}
        ],
-       "sell_value": 0.65,
+       "sell_value": 0.55,
        "trailing %": 0.22
    },
    {

@@ -121,6 +121,8 @@ class BinanceExchange(GenericExchange):
 
         elif symbol in self.pairs:
             self.pairs[symbol]['close'] = float(msg['c'])
+            self.pairs[symbol]['bid'] = float(msg['b'])
+            self.pairs[symbol]['ask'] = float(msg['a'])
             self.pairs[symbol]['quoteVolume'] = float(msg['q'])
             self.pairs[symbol]['percentage'] = float(msg['P'])
 

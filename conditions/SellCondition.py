@@ -2,6 +2,8 @@ from conditions.Condition import Condition
 from conditions.condition_tools import evaluate_condition
 from utils.Utils import get_current_value, get_percent_change
 
+import time
+
 class SellCondition(Condition):
 
     def __init__(self, condition_config: dict):
@@ -22,7 +24,8 @@ class SellCondition(Condition):
         :return:
         """
         symbol = pair['symbol']
-        if 'total' not in pair or 'close' not in pair or 'total_cost' not in pair:
+        if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair:
+            print(f'bid not in pair: {time.time()} {symbol}')
             return None
 
         price = float(pair['bid'])

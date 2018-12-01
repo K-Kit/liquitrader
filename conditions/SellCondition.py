@@ -25,11 +25,12 @@ class SellCondition(Condition):
         if 'total' not in pair or 'close' not in pair or 'total_cost' not in pair:
             return None
 
-        price = float(pair['close'])
+        price = float(pair['bid'])
         trail_to = None
-        current_value = get_current_value(price, pair['total'])
+        current_value = pair['total'] * price
         total_cost = pair['total_cost']
-        total_cost = -1.0 if total_cost is None else total_cost
+        if total_cost is None:
+            return None
         percent_change = get_percent_change(current_value, total_cost) - fee
         pair['percent_change'] = percent_change
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]

@@ -135,14 +135,31 @@ class LiquiTrader:
         self.indicators = None
         self.timeframes = None
         self.owned = []
+        self.possible_trades = []
+        self.below_max_pairs = False
 
     # ----
     def initialize_config(self):
-        self.config = Config()
+        self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
+
+    # ----
+    def update_config(self, strategies=False):
+        old_timeframes = self.timeframes
+        self.config = Config()
+        self.config.load_general_settings()
+        self.config.load_global_trade_conditions()
+        self.indicators = self.config.get_indicators()
+        timeframes_changed = old_timeframes != self.config.timeframes
+        self.timeframes = self.config.timeframes
+        if strategies:
+            self.load_strategies()
+            if timeframes_changed:
+                print("timeframe_changed")
+                self.exchange.load_all_candle_histories()
 
     # ----
     def initialize_exchange(self):
@@ -253,7 +270,7 @@ class LiquiTrader:
                 if result is not None:
                     if pair not in possible_trades or possible_trades[pair] > result:
                         possible_trades[pair] = result
-
+            self.possible_trades = possible_trades
             return possible_trades
 
     # ----
@@ -362,7 +379,7 @@ class LiquiTrader:
             
             # profits.append(
             #     (current_value - exch_pair['total_cost']) / exch_pair['total_cost'] * 100)
-            order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], lowest_sell_price)
+            order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], price.price)
             self.trade_history.append(order)
             self.save_trade_history()
 
@@ -425,10 +442,15 @@ class LiquiTrader:
 
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
-            checks.append(below_max_pairs(len(self.owned), global_trade_conditions['max_pairs']))
+            self.below_max_pairs = self.is_below_max_pairs(len(self.owned), global_trade_conditions['max_pairs'])
+            checks.append(self.below_max_pairs)
         # if not all(checks):
         #     print(pair, checks)
         return all(checks)
+
+    def is_below_max_pairs(self, current_pairs, max_pairs):
+        below_max_pairs = current_pairs < max_pairs or max_pairs == 0
+        return below_max_pairs
 
     # ----
     def global_buy_checks(self):
@@ -436,22 +458,22 @@ class LiquiTrader:
         quote_change_info = self.exchange.quote_change_info
         market_change = self.config.global_trade_conditions['market_change']
         self.market_change_24h = get_average_market_change(self.exchange.pairs)
-        check_24h_quote_change = in_range(quote_change_info['24h'],
+        self.check_24h_quote_change = in_range(quote_change_info['24h'],
                                           market_change['min_24h_quote_change'],
                                           market_change['max_24h_quote_change'])
 
-        check_1h_quote_change = in_range(quote_change_info['1h'],
+        self.check_1h_quote_change = in_range(quote_change_info['1h'],
                                          market_change['min_1h_quote_change'],
                                          market_change['max_1h_quote_change'])
 
-        check_24h_market_change = in_range(self.market_change_24h,
+        self.check_24h_market_change = in_range(self.market_change_24h,
                                            market_change['min_24h_market_change'],
                                            market_change['max_24h_market_change'])
 
         return all((
-            check_1h_quote_change,
-            check_24h_market_change,
-            check_24h_quote_change
+            self.check_1h_quote_change,
+            self.check_24h_market_change,
+            self.check_24h_quote_change
         ))
 
     # ----

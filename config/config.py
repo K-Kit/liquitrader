@@ -13,7 +13,7 @@ SELL_STRATEGIES_PATH = 'config/SellStrategies.json'
 
 class Config:
 
-    def __init__(self):
+    def __init__(self, lt_callback=None):
         self.buy_strategies = None
         self.dca_buy_strategies = None
         self.sell_strategies = None
@@ -22,6 +22,7 @@ class Config:
         self.global_trade_conditions = None
         self.timeframes = set()
         self.indicators = {}
+        self.update_lt_callback = lt_callback
 
     # ----
     def load_buy_strategies(self):
@@ -55,31 +56,31 @@ class Config:
     def update_buy_strategies(self, json_data):
         with open(BUY_STRATEGY_PATH, 'w') as f:
             json.dump(json_data, f)
-            self.buy_strategies = json.loads(json_data)
+            self.buy_strategies = json_data
 
     # ----
     def update_dca_buy_strategies(self, json_data):
         with open(DCA_STRATEGY_PATH, 'w') as f:
             json.dump(json_data, f)
-            self.dca_buy_strategies = json.loads(json_data)
+            self.dca_buy_strategies = json_data
 
     # ----
     def update_sell_strategies(self, json_data):
         with open(SELL_STRATEGIES_PATH, 'w') as f:
             json.dump(json_data, f)
-            self.sell_strategies = json.loads(json_data)
+            self.sell_strategies = json_data
 
     # ----
     def update_general_settings(self, json_data):
         with open(GENERAL_SETTINGS_PATH, 'w') as f:
             json.dump(json_data, f)
-            self.general_settings = json.loads(json_data)
+            self.general_settings = json_data
 
     # ----
     def update_global_trade_conditions(self, json_data):
         with open(GLOBAL_TRADE_CONDITION_PATH, 'w') as f:
             json.dump(json_data, f)
-            self.global_trade_conditions = json.loads(json_data)
+            self.global_trade_conditions = json_data
 
     # ----
     def parse_indicators_from_strategy(self, strategies):
@@ -121,6 +122,22 @@ class Config:
             "pair_specific": self.update_global_trade_conditions,
         }
         config_update_cases[section](data)
+        if self.update_lt_callback is not None:
+            print("updating config")
+            self.update_lt_callback()
+
+    def get_config(self):
+        self.timeframes = list(self.timeframes)
+        return json.dumps({
+            "buy_strategies": self.buy_strategies,
+            "sell_strategies": self.sell_strategies,
+            "dca_buy_strategies": self.dca_buy_strategies,
+            "global_trade": self.global_trade_conditions,
+            "general": self.general_settings
+
+        })
+
+    
 
 
 if __name__ == '__main__':

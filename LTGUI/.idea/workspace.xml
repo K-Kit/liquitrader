@@ -2,45 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b9b58db2-6a5a-40d4-986a-aaaf07472b1f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../conditions/SellCondition.py" beforeDir="false" afterPath="$PROJECT_DIR$/../conditions/SellCondition.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../config/BuyStrategies.json" beforeDir="false" afterPath="$PROJECT_DIR$/../config/BuyStrategies.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../config/DCABuyStrategies.json" beforeDir="false" afterPath="$PROJECT_DIR$/../config/DCABuyStrategies.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../config/GlobalTradeConditions.json" beforeDir="false" afterPath="$PROJECT_DIR$/../config/GlobalTradeConditions.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../config/SellStrategies.json" beforeDir="false" afterPath="$PROJECT_DIR$/../config/SellStrategies.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../config/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/../config/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gui/gui_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/../gui/gui_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../liquitrader.py" beforeDir="false" afterPath="$PROJECT_DIR$/../liquitrader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/asset-manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/../static/asset-manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../static/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/../static/manifest.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/service-worker.js" beforeDir="false" afterPath="$PROJECT_DIR$/../static/service-worker.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/css/main.4176eb77.css" beforeDir="false" afterPath="$PROJECT_DIR$/../static/static/css/main.4176eb77.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/css/main.ece182ef.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/css/main.ece182ef.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.1efec9a4.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.1efec9a4.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.2affcd3b.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.2affcd3b.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.3204e48c.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.3204e48c.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.9f55ff2d.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.9f55ff2d.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.a065c65b.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.a065c65b.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.aeb6ff52.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.aeb6ff52.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.b61f343d.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.b61f343d.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.e130eec4.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.e130eec4.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.f0b71691.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/js/main.f0b71691.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/media/card-1.6ee66b2c.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/media/card-2.ae10829f.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/media/card-3.4ae4eeff.jpeg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/media/logo-white.a80cd7a7.svg" beforeDir="false" afterPath="$PROJECT_DIR$/../static/static/media/logo-white.a80cd7a7.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/media/logo-white.eec7c7f6.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../static/static/media/sidebar-2.d30c9e30.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/variables/global.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/variables/global.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/Settings/StrategyList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/Settings/StrategyList.jsx" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -55,6 +20,7 @@
     <session id="-1090624173">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
+          <entry key="project.closed" value="1" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.opened" value="1" />
         </counts>
@@ -67,48 +33,35 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="json" value="1" />
-          <entry key="jsx" value="7" />
+          <entry key="jsx" value="12" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="ECMAScript 6" value="1" />
           <entry key="JSON" value="1" />
-          <entry key="JSX Harmony" value="6" />
+          <entry key="JSX Harmony" value="11" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="jsx" value="6" />
+          <entry key="jsx" value="438" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JSX Harmony" value="6" />
+          <entry key="JSX Harmony" value="438" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/views/Settings/ConditionInput.jsx">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="307">
-              <caret line="37" column="62" selection-start-line="37" selection-start-column="62" selection-end-line="37" selection-end-column="62" />
-              <folding>
-                <element signature="e#59#120#0" expanded="true" />
-                <element signature="e#423#480#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/views/Settings/StrategyList.jsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="17" column="19" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
+            <state relative-caret-position="46">
+              <caret line="11" column="44" selection-start-line="11" selection-start-column="44" selection-end-line="11" selection-end-column="44" />
             </state>
           </provider>
         </entry>
@@ -116,7 +69,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/views/Settings/MultipleStrategies.jsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-691">
+            <state relative-caret-position="-898">
               <folding>
                 <element signature="e#59#120#0" expanded="true" />
                 <element signature="e#423#480#0" expanded="true" />
@@ -143,20 +96,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="391">
-              <caret line="35" column="24" selection-start-line="35" selection-start-column="24" selection-end-line="35" selection-end-column="24" />
+            <state relative-caret-position="147">
+              <caret line="422" column="47" selection-start-line="422" selection-start-column="47" selection-end-line="422" selection-end-column="47" />
               <folding>
                 <element signature="e#0#26#0" expanded="true" />
+                <element signature="e#450#512#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/views/Settings/StrategyCard.jsx">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="9" column="28" selection-start-line="9" selection-start-column="28" selection-end-line="9" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -168,11 +113,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/variables/global.jsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="138">
-              <caret line="6" column="24" lean-forward="true" selection-start-line="6" selection-start-column="24" selection-end-line="6" selection-end-column="24" />
+            <state>
+              <caret column="41" selection-start-column="41" selection-end-column="41" />
             </state>
           </provider>
         </entry>
@@ -184,6 +129,14 @@
       <find>../../../../node_modules/@material-ui/</find>
       <find>../../</find>
       <find>.@</find>
+      <find>chart</find>
+      <find>getdata</find>
+      <find>quote</find>
+      <find>quote_c</find>
+      <find>bar</find>
+      <find>24h</find>
+      <find>date</find>
+      <find>button</find>
     </findStrings>
     <replaceStrings>
       <replace>@material-ui/</replace>
@@ -197,10 +150,10 @@
       <list>
         <option value="$PROJECT_DIR$/src/views/Settings/ConditionInput.jsx" />
         <option value="$PROJECT_DIR$/src/views/Settings/StrategyCard.jsx" />
-        <option value="$PROJECT_DIR$/src/views/Settings/StrategyList.jsx" />
         <option value="$PROJECT_DIR$/src/views/Settings/BuyStrategies.jsx" />
-        <option value="$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx" />
         <option value="$PROJECT_DIR$/src/variables/global.jsx" />
+        <option value="$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx" />
+        <option value="$PROJECT_DIR$/src/views/Settings/StrategyList.jsx" />
       </list>
     </option>
   </component>
@@ -263,13 +216,6 @@
               <item name="views" type="462c0819:PsiDirectoryNode" />
               <item name="Dashboard" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="LTGUI" type="b2602c69:ProjectViewProjectNode" />
-              <item name="LTGUI" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="views" type="462c0819:PsiDirectoryNode" />
-              <item name="Settings" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -327,8 +273,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="npm.deploy" />
         <item itemvalue="npm.start" />
+        <item itemvalue="npm.deploy" />
       </list>
     </recent_temporary>
   </component>
@@ -342,16 +288,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1543726065843</updated>
-      <workItem from="1543726067039" duration="2638000" />
+      <workItem from="1543726067039" duration="8328000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2638000" />
+    <option name="totallyTimeSpent" value="8328000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info id="npm" side_tool="true" />
       <window_info id="Favorites" side_tool="true" />
@@ -360,11 +305,11 @@
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="SonarLint" />
       <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Terminal" />
+      <window_info anchor="bottom" id="Terminal" visible="true" weight="0.32929516" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32929516" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32929516" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -392,17 +337,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/views/Settings/MultipleStrategies.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-691">
-          <folding>
-            <element signature="e#59#120#0" expanded="true" />
-            <element signature="e#423#480#0" expanded="true" />
-            <element signature="e#1511#1551#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/views/Settings/BuyStrategy.jsx">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -413,27 +347,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/views/Settings/StrategyList.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="17" column="19" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/views/Settings/BuyStrategies.jsx">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="230">
           <caret line="10" column="20" selection-start-line="10" selection-start-column="20" selection-end-line="10" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="35" column="24" selection-start-line="35" selection-start-column="24" selection-end-line="35" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#26#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -442,10 +359,54 @@
         <state relative-caret-position="-552" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/views/Settings/MultipleStrategies.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-898">
+          <folding>
+            <element signature="e#59#120#0" expanded="true" />
+            <element signature="e#423#480#0" expanded="true" />
+            <element signature="e#1511#1551#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/variables/charts.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="736">
+          <caret line="32" column="11" selection-start-line="32" selection-start-column="11" selection-end-line="32" selection-end-column="11" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/variables/global.jsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="138">
-          <caret line="6" column="24" lean-forward="true" selection-start-line="6" selection-start-column="24" selection-end-line="6" selection-end-column="24" />
+        <state>
+          <caret column="41" selection-start-column="41" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/views/Dashboard/Dashboard.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="147">
+          <caret line="422" column="47" selection-start-line="422" selection-start-column="47" selection-end-line="422" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#26#0" expanded="true" />
+            <element signature="e#450#512#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/variables/general.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-207" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/views/Settings/StrategyList.jsx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="46">
+          <caret line="11" column="44" selection-start-line="11" selection-start-column="44" selection-end-line="11" selection-end-column="44" />
         </state>
       </provider>
     </entry>

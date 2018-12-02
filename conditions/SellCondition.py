@@ -8,7 +8,7 @@ class SellCondition(Condition):
 
     def __init__(self, condition_config: dict):
         super().__init__(condition_config)
-        self.sell_value = condition_config['sell_value']
+        self.sell_value = float(condition_config['sell_value'])
 
     def get_lowest_sell_price(self, total_cost, amount, fee):
         bought_price = total_cost/amount
@@ -25,7 +25,6 @@ class SellCondition(Condition):
         """
         symbol = pair['symbol']
         if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair:
-            print(f'bid not in pair: {time.time()} {symbol}')
             return None
 
         price = float(pair['bid'])

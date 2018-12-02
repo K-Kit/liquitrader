@@ -1,0 +1,11 @@
+export const ADD_BUY_STRATEGY = "strategy/ADD_BUY_STRATEGY";
+export const ADD_SELL_STRATEGY = "strategy/ADD_SELL_STRATEGY";
+export const ADD_DCA_BUY_STRATEGY = "strategy/ADD_DCA_BUY_STRATEGY";
+
+export const REMOVE_BUY_STRATEGY = "strategy/REMOVE_BUY_STRATEGY";
+export const REMOVE_SELL_STRATEGY = "strategy/REMOVE_SELL_STRATEGY";
+export const REMOVE_DCA_BUY_STRATEGY = "strategy/REMOVE_DCA_BUY_STRATEGY";
+
+export const UPDATE_BUY_STRATEGY = "strategy/UPDATE_BUY_STRATEGY";
+export const UPDATE_SELL_STRATEGY = "strategy/UPDATE_SELL_STRATEGY";
+export const UPDATE_DCA_BUY_STRATEGY = "strategy/UPDATE_DCA_BUY_STRATEGY";

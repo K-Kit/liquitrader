@@ -8,9 +8,9 @@
        "max_dca_level": 4,
        "trailing %": 0.3,
        "dca_strategy": {
-         "default": {"trigger": -3.5, "percentage": 50},
-         "1": {"trigger": -7.5, "percentage": 200},
-         "0": {"trigger": -1, "percentage": 50}
+         "default": {"trigger": -2.5, "percentage": 50},
+         "3": {"trigger": -7.5, "percentage": 200},
+         "0": {"trigger": -3, "percentage": 100}
        }
    }
 ]

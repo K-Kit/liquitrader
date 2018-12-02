@@ -38,7 +38,8 @@ LT_ENGINE = None
 _cmdline = psutil.Process().cmdline()
 abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
 bearpuncher_dir = abs_path
-dist_path = abs_path / 'static'
+dist_path = abs_path / 'LTGUI' / 'build'
+print("dist paths", dist_path)
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
@@ -190,6 +191,21 @@ def get_sell_log_frame():
 
 
 # ----
+def latest_sales():
+    df = pd.DataFrame(LT_ENGINE.trade_history)
+
+    if 'bought_price' not in df:
+        return []
+
+    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+    cols = ['symbol', 'gain']
+    df=df[df.side == 'sell'][cols].tail(4)
+
+
+    return df.to_dict(orient="records")
+
+
+# ----
 @_app.route("/dashboard_data")
 def get_dashboard_data():
     balance = LT_ENGINE.exchange.balance
@@ -200,7 +216,7 @@ def get_dashboard_data():
     total_profit = LT_ENGINE.get_total_profit()
     average_daily_gain = profit / len(profit_data)
     market = LT_ENGINE.config.general_settings['market'].upper()
-
+    recent_sales = latest_sales()
     def reorient(df):
         # return [{k: v for (k, v) in row.items() if k != 'foo'} for row in df.to_dict(orient='record')]
         return [{col: getattr(row, col) for col in df} for row in df.itertuples()]
@@ -220,7 +236,13 @@ def get_dashboard_data():
         "daily_profit_data": reorient(profit_data[profit_data.percent_gain < 9999]),
         "holding_chart_data": LT_ENGINE.pairs_to_df()['total_cost'].dropna().to_json(orient='records'),
         "cum_profit": reorient(LT_ENGINE.get_cumulative_profit()),
-        "pair_profit_data": reorient(LT_ENGINE.get_pair_profit_data())
+        "recent_sales": recent_sales,
+        "pair_profit_data": reorient(LT_ENGINE.get_pair_profit_data()),
+        "market_conditions": [[f"Below Max Pairs: ", str(LT_ENGINE.below_max_pairs)],
+                              [f"1h {market} change in range: ", str(LT_ENGINE.check_1h_quote_change)],
+                              [f"24h {market} change in range: ", str(LT_ENGINE.check_24h_quote_change)],
+                              [f"24h Market Average Change in range:", str(LT_ENGINE.check_24h_market_change)]
+                              ]
     }
 
     return jsonify(data)
@@ -229,13 +251,18 @@ def get_dashboard_data():
 # ----
 @_app.route('/update_config', methods=['POST'])
 def update_config():
-    data = flask.request.data.decode()
+    print("hello")
+    import json
+    data = flask.request.get_json(force=True)
+    print(data)
     LT_ENGINE.config.update_config(data['section'], data['data'])
 
-    return data
+    return 'hello'
 
 
 # ----
 @_app.route("/config")
 def get_config():
-    return jsonify(str(vars(LT_ENGINE.config)))
+    return LT_ENGINE.config.get_config()
+
+

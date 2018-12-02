@@ -9,7 +9,7 @@ import CardBody from "components/Card/CardBody.jsx";
 
 import BuyStrategy from "views/Settings/BuyStrategy.jsx";
 import {exampleBuyStrategies, exampleDCAStrategies} from "views/Settings/data/ExampleStrategies.jsx";
-import Button from "@material-ui/core/Button/Button";
+import Button from "components/CustomButtons/Button";
 import * as PropTypes from "prop-types";
 import StrategyCard from  "views/Settings/StrategyCard.jsx";
 import Modal from "@material-ui/core/Modal/Modal";

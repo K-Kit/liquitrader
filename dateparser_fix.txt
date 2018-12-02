@@ -1,0 +1,1 @@
+cp -r /usr/local/lib/python3.6/dist-packages/dateparser /usr/lib/python3/dist-packages

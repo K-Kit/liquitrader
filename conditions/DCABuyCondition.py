@@ -33,13 +33,13 @@ class DCABuyCondition(Condition):
         :param pair:
         :return:
         """
-        if 'total' not in pair or 'close' not in pair:
+        if 'total' not in pair or 'ask' not in pair:
             return None
         if 'dca_level' not in pair:
             pair['dca_level'] = 0
         trail_to = None
         symbol = pair['symbol']
-        price = pair['close']
+        price = pair['ask']
         dca_level = pair['dca_level']
 
         # check to make sure we're below max dca level (# of times DCA'd)
@@ -51,7 +51,8 @@ class DCABuyCondition(Condition):
         current_value = get_current_value(price, pair['total'])
 
         total_cost = pair['total_cost']
-        total_cost = -1.0 if total_cost is None else total_cost
+        if total_cost is None:
+            return None
         percent_change = get_percent_change(current_value, total_cost)
 
         # check percent change, if above trigger return none

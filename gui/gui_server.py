@@ -170,7 +170,7 @@ def get_buy_log_frame():
     if len(df) < 1:
         return jsonify([])
 
-    cols = ['datetime', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
+    cols = ['timestamp', 'symbol', 'price', 'amount', 'side', 'status', 'remaining', 'filled']
 
     return jsonify(df[df.side == 'buy'][cols].to_json(orient='records'))
 
@@ -184,7 +184,7 @@ def get_sell_log_frame():
         return jsonify([])
 
     df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-    cols = ['datetime', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    cols = ['timestamp', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
 
 
     return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
@@ -238,6 +238,7 @@ def get_dashboard_data():
         "cum_profit": reorient(LT_ENGINE.get_cumulative_profit()),
         "recent_sales": recent_sales,
         "pair_profit_data": reorient(LT_ENGINE.get_pair_profit_data()),
+        "quote_candles": reorient(LT_ENGINE.exchange.quote_candles.tail(24)),
         "market_conditions": [[f"Below Max Pairs: ", str(LT_ENGINE.below_max_pairs)],
                               [f"1h {market} change in range: ", str(LT_ENGINE.check_1h_quote_change)],
                               [f"24h {market} change in range: ", str(LT_ENGINE.check_24h_quote_change)],

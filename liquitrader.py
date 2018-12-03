@@ -736,9 +736,9 @@ def main():
         # ----
         # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
         from analyzers import strategic_tools
-
-        license_key = '2V9HM-YZTS9-G4QEC-LQ9LX-44PKZ'
-        api_key = 'dingusdingus'
+        keys = get_keys()
+        license_key = keys['liquitrader_key']
+        api_key = keys['public']
 
         start = time.perf_counter()
         strategic_tools.verify(license_key, api_key)

@@ -110,7 +110,7 @@ sell_log
 market
 buy_log
 holding
-*.json
+
 *.ipynb
 docs/
 docs\
@@ -118,3 +118,5 @@ strategic_analysis.py
 pair_data.json
 buildtools/bearpuncher_verification_implementation.py
 *.c
+vet_trades.json
+*.map

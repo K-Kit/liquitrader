@@ -119,12 +119,21 @@ class ReactTables extends React.Component {
                 data={this.state.data}
                 filterable
                 columns={[
-                  { Header: "Time", accessor: "datetime" },
+                  { Header: "Time", accessor: "timestamp", Cell: ci => {
+                    let date =  new Date(ci.value);
+                          return date.toLocaleString()
+                      }},
                   { Header: "Symbol", accessor: "symbol" },
-                  { Header: "Bought Price", accessor: "bought_price" },
-                  { Header: "Sold Price", accessor: "price" },
-                  { Header: "Amount", accessor: "filled" },
-                  { Header: "% Gain", accessor: "gain" }
+                  { Header: "Bought Price", accessor: "bought_price",
+                      Cell: ci => ci.value.toFixed(8) },
+                  { Header: "Sold Price", accessor: "price",
+                      Cell: ci => ci.value.toFixed(8) },
+                  { Header: "Amount", accessor: "filled" ,
+                      Cell: ci => ci.value.toFixed(2)},
+                  { Header: "% Gain", accessor: "gain" ,
+                  Cell: row => (
+                          <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value.toFixed(2)}%</span>
+                      )}
                 ]}
                 defaultPageSize={10}
                 showPaginationTop

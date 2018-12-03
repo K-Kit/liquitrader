@@ -118,7 +118,10 @@ class ReactTables extends React.Component {
                 data={this.state.data}
                 filterable
                 columns={[
-                  { Header: "Time", accessor: "datetime" },
+                  { Header: "Time", accessor: "timestamp", Cell: ci => {
+                    let date =  new Date(ci.value)
+                          return date.toLocaleString()
+                      }},
                   { Header: "Symbol", accessor: "symbol" },
                   { Header: "Price", accessor: "price" },
                   { Header: "Remaining", accessor: "remaining" },

@@ -741,7 +741,9 @@ def main():
         api_key = keys['public']
 
         start = time.perf_counter()
-        strategic_tools.verify(license_key, api_key)
+        if strategic_tools.verify(license_key, api_key) is None:
+            print("Error validating license, please check your license and try again.")
+            sys.exit(1)
 
         if (time.perf_counter() - start) < .01:
             print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'

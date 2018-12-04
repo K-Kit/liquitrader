@@ -4,6 +4,7 @@ import shutil
 import datetime
 import glob
 import time
+from pathlib import Path
 import py_compile
 
 import requests.certs
@@ -21,6 +22,7 @@ BUILD_UPDATER = False
 
 
 BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
+BUILD_PATH = Path(BUILD_PATH)
 
 
 def cythonize_liquitrader(target_packages):
@@ -106,6 +108,8 @@ def make_verifier():
 
 
 def copy_requirements():
+    shutil.copy('static/', BUILD_PATH / 'static')
+
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
 

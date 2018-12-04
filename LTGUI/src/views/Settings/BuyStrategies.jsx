@@ -3,13 +3,6 @@ import React from "react";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import Card from "components/Card/Card.jsx";
-import CardHeader from "components/Card/CardHeader.jsx";
-import CardBody from "components/Card/CardBody.jsx";
-
-import BuyStrategy from "views/Settings/BuyStrategy.jsx";
-import Button from "@material-ui/core/Button/Button";
-import * as PropTypes from "prop-types";
 import StrategyList from "./StrategyList";
 
 class BuyStrategies extends React.Component {

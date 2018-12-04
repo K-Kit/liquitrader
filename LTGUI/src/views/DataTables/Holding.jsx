@@ -128,7 +128,7 @@ class ReactTables extends React.Component {
                   { Header: "% Change",
                       accessor: "% Change",
                       Cell: row => (
-                          <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value.toFixed(2)} %</span>
+                          <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value.toFixed(2)}%</span>
                       )
                   },
                   { Header: "Volume", accessor: "Volume" },
@@ -139,7 +139,7 @@ class ReactTables extends React.Component {
                   { Header: "24h Change",
                       accessor: "24h Change",
                       Cell: row => (
-                          <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value} %</span>
+                          <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value}%</span>
                       )}
                 ]}
                 defaultPageSize={10}

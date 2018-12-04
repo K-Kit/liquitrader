@@ -2,7 +2,7 @@ import binascii
 import os
 # from io import BytesIO
 import pathlib
-
+import sys
 import psutil
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
@@ -38,8 +38,11 @@ LT_ENGINE = None
 _cmdline = psutil.Process().cmdline()
 abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
 bearpuncher_dir = abs_path
-dist_path = abs_path / 'LTGUI' / 'build'
-print("dist paths", dist_path)
+
+if hasattr(sys, 'frozen'):
+    dist_path = abs_path / 'static'
+else:
+    dist_path = abs_path / 'LTGUI' / 'build'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 

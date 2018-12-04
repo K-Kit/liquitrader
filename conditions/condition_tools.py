@@ -6,8 +6,69 @@ from talib.abstract import *
 import operator as py_operators
 import numpy
 # a op b
-
-
+PATTERNS = [
+    "CDL2CROWS",
+    "CDL3BLACKCROWS",
+    "CDL3INSIDE",
+    "CDL3LINESTRIKE",
+    "CDL3OUTSIDE",
+    "CDL3STARSINSOUTH",
+    "CDL3WHITESOLDIERS",
+    "CDLABANDONEDBABY",
+    "CDLADVANCEBLOCK",
+    "CDLBELTHOLD",
+    "CDLBREAKAWAY",
+    "CDLCLOSINGMARUBOZU",
+    "CDLCONCEALBABYSWALL",
+    "CDLCOUNTERATTACK",
+    "CDLDARKCLOUDCOVER",
+    "CDLDOJI",
+    "CDLDOJISTAR",
+    "CDLDRAGONFLYDOJI",
+    "CDLENGULFING",
+    "CDLEVENINGDOJISTAR",
+    "CDLEVENINGSTAR",
+    "CDLGAPSIDESIDEWHITE",
+    "CDLGRAVESTONEDOJI",
+    "CDLHAMMER",
+    "CDLHANGINGMAN",
+    "CDLHARAMI",
+    "CDLHARAMICROSS",
+    "CDLHIGHWAVE",
+    "CDLHIKKAKE",
+    "CDLHIKKAKEMOD",
+    "CDLHOMINGPIGEON",
+    "CDLIDENTICAL3CROWS",
+    "CDLINNECK",
+    "CDLINVERTEDHAMMER",
+    "CDLKICKING",
+    "CDLKICKINGBYLENGTH",
+    "CDLLADDERBOTTOM",
+    "CDLLONGLEGGEDDOJI",
+    "CDLLONGLINE",
+    "CDLMARUBOZU",
+    "CDLMATCHINGLOW",
+    "CDLMATHOLD",
+    "CDLMORNINGDOJISTAR",
+    "CDLMORNINGSTAR",
+    "CDLONNECK",
+    "CDLPIERCING",
+    "CDLRICKSHAWMAN",
+    "CDLRISEFALL3METHODS",
+    "CDLSEPARATINGLINES",
+    "CDLSHOOTINGSTAR",
+    "CDLSHORTLINE",
+    "CDLSPINNINGTOP",
+    "CDLSTALLEDPATTERN",
+    "CDLSTICKSANDWICH",
+    "CDLTAKURI",
+    "CDLTASUKIGAP",
+    "CDLTHRUSTING",
+    "CDLTRISTAR",
+    "CDLUNIQUE3RIVER",
+    "CDLUPSIDEGAP2CROWS",
+    "CDLXSIDEGAP3METHODS",
+]
 # note change over will no longer be usable in cross
 talib_indicators = ['MFI']
 op_translate = {'<': py_operators.lt, '<=': py_operators.le,
@@ -138,7 +199,13 @@ def handle_gain_strat(pair, part, is_buy):
 # TODO GAIN and other strats
 def evaluate_condition(cond, pair, indicators, is_buy = True):
     inputs = {**pair, **indicators}
-    if cond['op'] in op_translate:
+    if cond['left']['value'] in PATTERNS:
+        a = getCurrentValue(cond['left'], inputs)
+        if 'inverse' in cond and cond['inverse']:
+            return a < 0
+        else:
+            return a > 0
+    elif cond['op'] in op_translate:
         a = getCurrentValue(cond['left'], inputs)
         b = getCurrentValue(cond['right'], inputs)
         if a is None or b is None:

@@ -35,21 +35,6 @@ import { dashboard_route } from "variables/global";
 import dashboardStyle from "assets/jss/material-dashboard-pro-react/views/dashboardStyle";
 import Typography from "@material-ui/core/Typography/Typography";
 
-// E-CHARTS
-// or var ReactEcharts = require('echarts-for-react');
-// rechart
-// import ResponsiveContainer from "recharts/lib/component/ResponsiveContainer";
-// import LineChart from "recharts/lib/chart/LineChart";
-// import Line from "recharts/lib/cartesian/Line";
-// import XAxis from "recharts/lib/cartesian/XAxis";
-// import YAxis from "recharts/lib/cartesian/YAxis";
-// import CartesianGrid from "recharts/lib/cartesian/CartesianGrid";
-// import { Tooltip } from "recharts";
-//
-// import Legend from "recharts/lib/component/Legend";
-// import {BarChart, PieChart, Pie, Cell} from "recharts";
-// import Bar from "recharts/es6/cartesian/Bar";
-
 const lightgreyfont = {
   color: "gray"
 };

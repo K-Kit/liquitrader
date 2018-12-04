@@ -17,12 +17,10 @@ import DCAStrategies from "views/Settings/DCAStrategies.jsx";
 import SellStrategies from "views/Settings/SellStrategies.jsx";
 
 
-import ReactTables from "../views/Tables/ReactTables";
 import Holding from "../views/DataTables/Holding";
 import BuyLog from "../views/DataTables/BuyLog";
 import SellLog from "../views/DataTables/SellLog";
 import Market from "../views/DataTables/Market";
-import StrategyList from "../views/Settings/StrategyList";
 
 var dashRoutes = [
   {

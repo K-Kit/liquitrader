@@ -4,13 +4,11 @@ import shutil
 import datetime
 import glob
 import time
-from pathlib import Path
 import py_compile
 
 import requests.certs
 
 from buildtools import cython_setup, build_verifier, signature_tools, monkey_patcher
-
 
 # ----
 # TOGGLE WHAT GETS BUILT HERE
@@ -22,7 +20,6 @@ BUILD_UPDATER = False
 
 
 BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
-BUILD_PATH = Path(BUILD_PATH)
 
 
 def cythonize_liquitrader(target_packages):
@@ -53,18 +50,24 @@ def make_verifier():
     # Delete the old verifier source files to make sure they're rebuilt
     opsys = 'win' if sys.platform == 'win32' else 'linux'
 
-    try: os.remove(f'build/{opsys}_cython_source/analyzers/strategic_analysis.c')
-    except FileNotFoundError: pass
+    try:
+        os.remove(f'build/{opsys}_cython_source/analyzers/strategic_analysis.c')
+    except FileNotFoundError:
+        pass
 
     platform_build_path = f'{opsys}-{"amd" if opsys == "win" else "x86_"}64-3.6'
 
-    try: os.remove(f'build/temp.{platform_build_path}/build/{opsys}_cython_source/analyzers/strategic_analysis.o')
-    except FileNotFoundError: pass
+    try:
+        os.remove(f'build/temp.{platform_build_path}/build/{opsys}_cython_source/analyzers/strategic_analysis.o')
+    except FileNotFoundError:
+        pass
 
     plaform_file_end = 'cp36-win_amd64.pyd' if sys.platform == 'win' else 'cpython-36m-x86_64-linux-gnu.so'
 
-    try: os.remove(f'build/lib.{platform_build_path}/analyzers/strategic_analysis.{plaform_file_end}')
-    except FileNotFoundError: pass
+    try:
+        os.remove(f'build/lib.{platform_build_path}/analyzers/strategic_analysis.{plaform_file_end}')
+    except FileNotFoundError:
+        pass
 
     # =====
     # Build the new verifier
@@ -198,39 +201,39 @@ if __name__ == '__main__':
                               ],
 
             'packages': TARGET_PACKAGES + [  # LiquiTrader internal packages
-                         'os', 'asyncio', 'configparser', 'datetime', 'io', 'json',
-                         'pkg_resources._vendor',
-                         'cffi', '_cffi_backend',
-                         'encodings', 'encodings.cp949', 'encodings.utf_8', 'encodings.ascii',
-                         'appdirs',
-                         'cheroot',
-                         'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
-                            'flask_compress', 'flask_sslify', 'flask_cors',
-                         'OpenSSL',
-                         'arrow',
-                         'jinja2',
-                         'sqlalchemy',
-                         'pyqrcode',
-                         'onetimepass',
-                         'wtforms',
-                         'requests',
-                         'numpy', 'numpy.core.numeric',
-                         'pandas',
-                         'json_minify',
-                         'packaging',
-                         'ccxt',
-                         'binance',
-                         'talib',
-                         'zope', 'zope.interface',
-                         'regex', 'idna', 'dateparser',
-                         'lxml', 'lxml._elementpath', 'lxml.etree', 'gzip', 'psutil', 'encodings'
-                         ],
+                'os', 'asyncio', 'configparser', 'datetime', 'io', 'json',
+                'pkg_resources._vendor',
+                'cffi', '_cffi_backend',
+                'encodings', 'encodings.cp949', 'encodings.utf_8', 'encodings.ascii',
+                'appdirs',
+                'cheroot',
+                'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
+                'flask_compress', 'flask_sslify', 'flask_cors',
+                'OpenSSL',
+                'arrow',
+                'jinja2',
+                'sqlalchemy',
+                'pyqrcode',
+                'onetimepass',
+                'wtforms',
+                'requests',
+                'numpy', 'numpy.core.numeric',
+                'pandas',
+                'json_minify',
+                'packaging',
+                'ccxt',
+                'binance',
+                'talib',
+                'zope', 'zope.interface',
+                'regex', 'idna', 'dateparser',
+                'lxml', 'lxml._elementpath', 'lxml.etree', 'gzip', 'psutil', 'encodings'
+            ],
 
             'excludes': [
-                         'tkinter', 'cProfile', 'profile', 'pdb', 'pydoc', 'doctest',
-                         'Cython', 'zodbpickle',
-                         'conditions.test_conditions', # 'dev_keys_binance', !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                         ],
+                'tkinter', 'cProfile', 'profile', 'pdb', 'pydoc', 'doctest',
+                'Cython', 'zodbpickle',
+                'conditions.test_conditions',  # 'dev_keys_binance', !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ],
 
             'zip_include_packages': '*',
             'zip_exclude_packages': ['flask_bootstrap'],
@@ -264,7 +267,7 @@ if __name__ == '__main__':
                             'zope.security.tests', 'zope.sequencesort.tests', 'zope.site.tests', 'zope.size.tests',
                             'zope.structuredtext.tests', 'zope.tal.tests', 'zope.tales.tests', 'zope.testbrowser.tests',
                             'zope.testing', 'zope.traversing.tests', 'zope.viewlet.tests',
-                            
+
        'unittest', 'pytest', 'setuptools',
     """
 
@@ -317,8 +320,8 @@ if __name__ == '__main__':
                       'build_exe': BUILD_PATH + 'updater/',
                       'packages': ['ctypes', '_ctypes', 'requests', 'idna', 'idna.idnadata', 'psutil'],
                       'include_files': [(requests.certs.where(), 'lib/cacert.pem')],
-                      #'zip_include_packages': '*',
-                      #'zip_exclude_packages': [],
+                      # 'zip_include_packages': '*',
+                      # 'zip_exclude_packages': [],
 
                       'excludes': ['tkinter'],
 

@@ -88,13 +88,15 @@ class Config:
             for condition in strategy['conditions']:
                 for key, part in condition.items():
                     if isinstance(part, dict):
-                        if part['value'] in get_talib_functions():
-                            period = 0 if "candle_period" not in part else part["candle_period"]
-                            indicator = { "name": part['value'], "candle_period": period}
-                            # store in dict since we couldnt store a set of dicts
-                            hashvalue = "{}{}".format(*indicator.values())
-                            self.indicators[hashvalue] = indicator
-                            self.timeframes.add(part['timeframe'])
+                        if 'value' in part:
+                            if part['value'] in get_talib_functions():
+                                period = 0 if "candle_period" not in part else part["candle_period"]
+                                indicator = { "name": part['value'], "candle_period": period}
+                                # store in dict since we couldnt store a set of dicts
+                                hashvalue = "{}{}".format(*indicator.values())
+                                self.indicators[hashvalue] = indicator
+                                if 'timeframe' in part:
+                                    self.timeframes.add(part['timeframe'])
         return self.indicators
 
     # ----

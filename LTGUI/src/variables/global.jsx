@@ -1,5 +1,5 @@
-// export const url = window.location.origin + "/";
-export const url = "http://45.77.216.107:8080/";
+export const url = window.location.origin + "/";
+// export const url = "http://45.77.216.107:8080/";
 
 export const dashboard_route = url + 'dashboard_data';
 

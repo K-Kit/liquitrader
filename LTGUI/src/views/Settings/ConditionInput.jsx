@@ -29,6 +29,7 @@ import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/ex
 import Slide from "@material-ui/core/Slide";
 
 import Operand from "views/Settings/operand.jsx";
+import { indicatorInput } from "views/Settings/operand.jsx";
 import Tabs from "components/CustomTabs/CustomTabs.jsx";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import Select from "@material-ui/core/Select/Select";
@@ -47,23 +48,6 @@ let mfo = { left: mfi, op: ">", right: staticval };
 let cup = { left: mfi, op: "cross_up", right: staticval };
 let conditions = [cup, mfo];
 let opList = [">", "<", "cross_up", "cross_down", "GAIN"];
-let indicatorInput = (side, label, callback) => {
-  return (
-    <div>
-      <CustomInput
-        labelText={label}
-        id={side}
-        formControlProps={{
-          fullWidth: true
-        }}
-        inputProps={{
-          onChange: event => callback(event),
-          name: side
-        }}
-      />
-    </div>
-  );
-};
 
 class ConditionInput extends React.Component {
   constructor(props) {
@@ -77,8 +61,19 @@ class ConditionInput extends React.Component {
 
     this.handleLeft = this.handleLeft.bind(this);
     this.handleRight = this.handleRight.bind(this);
+    this.updateTextField = this.updateTextField.bind(this);
   }
 
+  updateTextField(event, name) {
+    const target = event.target;
+    const value = target.value;
+    let left = this.state.left;
+    left[name] = value
+    this.setState({
+      left: left
+    });
+    console.log(this.state);
+  }
   handleInputChange(event) {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
@@ -88,7 +83,7 @@ class ConditionInput extends React.Component {
           [name]: value
         })
       : this.setState({
-          [name]: { value: value }
+          [name]: { value: value, timeframe: this.state.left.timeframe }
         });
 
     console.log(this.state);
@@ -251,6 +246,19 @@ class ConditionInput extends React.Component {
                   justify={"center"}
                   style={{ textAlign: "center" }}
                 >
+                  <GridItem md={1}>
+                  <CustomInput
+                    labelText={"timeframe"}
+                    // id={field[0]}
+                    formControlProps={{
+                      fullWidth: false
+                    }}
+                    inputProps={{
+                      onChange: event => this.updateTextField(event, 'timeframe'),
+                      value: this.state.left.timeframe
+                    }}
+                  />
+                  </GridItem>
                   <GridItem xs={4}>
                     <FormControl
                       fullWidth

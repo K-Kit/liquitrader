@@ -106,6 +106,8 @@ def make_verifier():
 
 
 def copy_requirements():
+    shutil.copytree('LTGUI/build', BUILD_PATH + 'static')
+
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
 

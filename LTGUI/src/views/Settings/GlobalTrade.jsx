@@ -15,7 +15,11 @@ import Tooltip from "@material-ui/core/Tooltip";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLessThanEqual } from "@fortawesome/free-solid-svg-icons";
-import { faEthereum } from "@fortawesome/free-brands-svg-icons";
+import FormLabel from "@material-ui/core/FormLabel";
+import regularFormsStyle from "../../assets/jss/material-dashboard-pro-react/views/regularFormsStyle";
+import { fetchJSON } from "./StrategyList";
+import { config_route } from "../../variables/global";
+import Button from "@material-ui/core/Button/Button";
 
 const style = theme => ({
   infoText: {
@@ -41,52 +45,60 @@ const less_than_icon = () => {
     </GridItem>
   );
 };
+const marketConditions = [
+  {
+    title: "Pair 24h Change",
+    accesor: "_change"
+  },
+  {
+    title: "ETH 1h Change",
+    accesor: "_1h_quote_change"
+  },
+  {
+    title: "ETH 24h Change",
+    accesor: "_24h_quote_change"
+  },
 
-const less_than_label = (name, form_to_right) => {
-  return (
-    <div>
-      <GridItem xs={12}>
-        <GridContainer>
-          <GridItem xs={2}>
-            <CustomInput
-              labelText=""
-              id=""
-              formControlProps={{
-                fullWidth: false
-              }}
-            />
-          </GridItem>
+  {
+    title: "Market 24h Change",
+    accesor: "_24h_quote_change"
+  }
+];
 
-          {less_than_icon()}
-
-          <GridItem xs={4}>{name}</GridItem>
-
-          {less_than_icon()}
-
-          <GridItem xs={2}>
-            <CustomInput
-              labelText=""
-              id=""
-              formControlProps={{
-                fullWidth: false
-              }}
-            />
-          </GridItem>
-        </GridContainer>
-      </GridItem>
-    </div>
-  );
-};
+let fields = [
+  ["max_pairs", "Maximum Pairs"],
+  ["dca_timeout", "DCA Timeout"],
+  ["max_spread", "Maximum Spread"],
+  ["min_buy_balance", "Buy Maintain Balance"],
+  ["dca_min_buy_balance", "DCA Maintain Balance"]
+];
 
 class GlobalTrade extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      simpleSelect: "",
-      desgin: false,
-      code: false,
-      develop: false
+      bear_override: {},
+      blacklist: ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],
+      bull_override: {},
+      dca_min_buy_balance: "",
+      dca_timeout: 60,
+      max_1h_quote_change: 0,
+      max_24h_market_change: 0,
+      max_24h_quote_change: 0,
+      min_1h_quote_change: 0,
+      min_24h_market_change: 0,
+      min_24h_quote_change: 0,
+      max_change: 0,
+      max_pairs: 10,
+      max_spread: 1,
+      min_available_volume: 0,
+      min_buy_balance: "",
+      min_change: 0,
+      whitelist: [] // ["ALL"] to allow all pairs or comma seperated list of strs
     };
+    this.updateTextField = this.updateTextField.bind(this);
+    this.load = this.load.bind(this);
+    this.save = this.save.bind(this);
   }
   sendState() {
     return this.state;
@@ -97,13 +109,36 @@ class GlobalTrade extends React.Component {
   isValidated() {
     return true;
   }
+  updateTextField(event, name, id) {
+    const target = event.target;
+    const value = target.value;
+    const strategies = [...this.state.strategies];
+    strategies[id][name] = value;
+    this.setState({
+      strategies: strategies
+    });
+    console.log(this.state);
+  }
+  save() {
+    let data = {
+      section: "global_trade_conditions",
+      data: { ...this.state, market_conditions: { ...this.state } }
+    };
+    console.log(JSON.stringify(data), data);
+    // postJSON(update_config, data);
+  }
+  componentWillMount() {
+    // This request takes longer, so prioritize it
+    fetchJSON(config_route, this.load);
+  }
+  load(config) {
+    this.setState({ ...config.global_trade, market: config.general });
+  }
   render() {
+    const { classes } = this.props;
     return (
       <div style={{ margin: "0 auto", textAlign: "center", flexGrow: "1" }}>
-        <GridContainer
-          justify="center"
-          style={{ margin: "0 auto", textAlign: "center" }}
-        >
+        <GridContainer style={{ margin: "0 auto", textAlign: "center" }}>
           <GridContainer
             style={{ textAlign: "center" }}
             justify="center"
@@ -114,106 +149,81 @@ class GlobalTrade extends React.Component {
             </GridItem>
             <br />
             <br />
-
-            {less_than_label("Pair 24h Change")}
-
-            <GridItem xs={6} sm={3}>
-              <CustomInput
-                labelText="Minimum Buy Balance"
-                id=""
-                formControlProps={{
-                  fullWidth: false
-                }}
-              />
-            </GridItem>
-            <Tooltip
-              onClose={this.handleTooltipClose}
-              onOpen={this.handleTooltipOpen}
-              open={this.state.open}
-              title="Lowest balance the bot will look to open new positions (does not apply to DCA)"
-            >
-              <Info />
-            </Tooltip>
+            {fields.map(field => {
+              return (
+                <GridItem>
+                  <CustomInput
+                    labelText={field[1]}
+                    id={field[0]}
+                    formControlProps={{
+                      fullWidth: false
+                    }}
+                    inputProps={{
+                      onChange: event => this.updateTextField(event, field[0]),
+                      value: this.state[field[0]]
+                    }}
+                  />
+                </GridItem>
+              );
+            })}
           </GridContainer>
           <GridContainer
-            style={{ textAlign: "center" }}
-            justify="center"
-            spacing={12}
+            justify={"center"}
+            style={{ margin: "0 auto", textAlign: "center" }}
           >
-            {less_than_label("ETH 1h Change")}
+            {marketConditions.map(condition => {
+              return (
+                <GridItem xs={12} md={8}>
+                  <GridContainer
+                    justify={"center"}
+                    style={{ margin: "0 auto", textAlign: "center" }}
+                  >
+                    <GridItem xs={2} lg={1}>
+                      <CustomInput
+                        formControlProps={{
+                          fullWidth: false
+                        }}
+                        inputProps={{
+                          onChange: event =>
+                            this.updateTextField(event, condition.accesor),
+                          value: this.state["min" + condition.accesor]
+                        }}
+                      />
+                    </GridItem>
 
-            <GridItem xs={3}>
-              <CustomInput
-                labelText="Max Pairs"
-                id=""
-                formControlProps={{
-                  fullWidth: false
-                }}
-              />
-            </GridItem>
-            <Tooltip
-              onClose={this.handleTooltipClose}
-              onOpen={this.handleTooltipOpen}
-              open={this.state.open}
-              title="Maximum number of trading pairs at any one time."
-            >
-              <Info />
-            </Tooltip>
+                    <GridItem xs={12} md={8} lg={3}>
+                      <FormLabel className={classes.labelHorizontal}>
+                        {less_than_icon()}
+                        &nbsp; &nbsp;
+                        {condition.title}
+                        &nbsp;
+                        {less_than_icon()}
+                      </FormLabel>
+                    </GridItem>
+                    <GridItem xs={2} lg={1}>
+                      <CustomInput
+                        labelText=""
+                        id={condition.name}
+                        formControlProps={{
+                          fullWidth: false
+                        }}
+                        inputProps={{
+                          onChange: event =>
+                            this.updateTextField(event, condition.accesor),
+                          value: this.state["max" + condition.accesor]
+                        }}
+                      />
+                    </GridItem>
+                  </GridContainer>
+                </GridItem>
+              );
+            })}
           </GridContainer>
-          <GridContainer
-            style={{ textAlign: "center" }}
-            justify="center"
-            spacing={12}
-          >
-            {less_than_label("ETH 24h Change")}
-
-            <GridItem xs={3}>
-              <CustomInput
-                labelText="DCA Timeout"
-                id=""
-                formControlProps={{
-                  fullWidth: false
-                }}
-              />
-            </GridItem>
-            <Tooltip
-              onClose={this.handleTooltipClose}
-              onOpen={this.handleTooltipOpen}
-              open={this.state.open}
-              title="Time until bot will repurchase a pair."
-            >
-              <Info />
-            </Tooltip>
-          </GridContainer>
-          <GridContainer
-            style={{ textAlign: "center" }}
-            justify="center"
-            spacing={12}
-          >
-            {less_than_label("Market 24h Change")}
-
-            <GridItem xs={3}>
-              <CustomInput
-                labelText="Max Spread"
-                id=""
-                formControlProps={{
-                  fullWidth: false
-                }}
-              />
-            </GridItem>
-            <Tooltip
-              onClose={this.handleTooltipClose}
-              onOpen={this.handleTooltipOpen}
-              open={this.state.open}
-              title="Max gap between bid and ask."
-            >
-              <Info />
-            </Tooltip>
-          </GridContainer>
+          <Button onClick={this.save}>Save</Button>
         </GridContainer>
       </div>
     );
   }
 }
 
-export default withStyles(style)(GlobalTrade);
+export default withStyles(regularFormsStyle)(GlobalTrade);

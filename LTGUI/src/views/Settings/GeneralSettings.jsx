@@ -22,7 +22,7 @@ import GridItem from "components/Grid/GridItem.jsx";
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle.jsx";
-let exchanges = ["binance", "bittrex"];
+let exchanges = ["binance"];
 let markets = ["BTC", "ETH", "BNB", "USDT"];
 class GeneralSettings extends React.Component {
   constructor(props) {

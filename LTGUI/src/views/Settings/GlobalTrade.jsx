@@ -20,6 +20,7 @@ import regularFormsStyle from "../../assets/jss/material-dashboard-pro-react/vie
 import { fetchJSON } from "./StrategyList";
 import { config_route } from "../../variables/global";
 import Button from "@material-ui/core/Button/Button";
+import TagsInput from "react-tagsinput";
 
 const style = theme => ({
   infoText: {
@@ -219,7 +220,33 @@ class GlobalTrade extends React.Component {
               );
             })}
           </GridContainer>
-          <Button onClick={this.save}>Save</Button>
+          <GridContainer>
+            <GridItem xs={12} md={6}>
+              <FormLabel className={classes.labelHorizontal}>
+                {" "}
+                Whitelist
+              </FormLabel>
+              <TagsInput
+                value={this.state.whitelist}
+                onChange={this.handleTags}
+                tagProps={{ className: "react-tagsinput-tag info" }}
+              />
+            </GridItem>
+            <GridItem>
+              <FormLabel className={classes.labelHorizontal}>
+                {" "}
+                Blacklist
+              </FormLabel>
+              <TagsInput
+                value={this.state.blacklist}
+                onChange={this.handleTags}
+                tagProps={{ className: "react-tagsinput-tag warning" }}
+              />
+            </GridItem>
+            <Button onClick={this.save} color={"primary"}>
+              Save
+            </Button>
+          </GridContainer>
         </GridContainer>
       </div>
     );

@@ -1,6 +1,4 @@
 import React from "react";
-// react component plugin for creating a beautiful datetime dropdown picker
-import Datetime from "react-datetime";
 // react component plugin for creating beatiful tags on an input
 import TagsInput from "react-tagsinput";
 // react plugin that creates slider
@@ -16,28 +14,14 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Tooltip from '@material-ui/core/Tooltip';
 import Info from "@material-ui/icons/Info";
 
-// @material-ui/icons
-import Today from "@material-ui/icons/Today";
-import LibraryBooks from "@material-ui/icons/LibraryBooks";
-import AvTimer from "@material-ui/icons/AvTimer";
 
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import CustomDropdown from "components/CustomDropdown/CustomDropdown.jsx";
-import CustomLinearProgress from "components/CustomLinearProgress/CustomLinearProgress.jsx";
-import ImageUpload from "components/CustomUpload/ImageUpload.jsx";
-import Card from "components/Card/Card.jsx";
-import CardHeader from "components/Card/CardHeader.jsx";
-import CardIcon from "components/Card/CardIcon.jsx";
-import CardBody from "components/Card/CardBody.jsx";
 
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle.jsx";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Face from "../../../node_modules/@material-ui/icons/Face";
-import RecordVoiceOver from "../../../node_modules/@material-ui/icons/RecordVoiceOver";
 let exchanges = ["binance", "bittrex"];
 let markets = ["BTC", "ETH", "BNB", "USDT"];
 class GeneralSettings extends React.Component {

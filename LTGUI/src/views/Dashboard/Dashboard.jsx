@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
 // react plugin for creating vector maps
-import { VectorMap } from "react-jvectormap";
 
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
@@ -25,12 +24,6 @@ import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 
 import { faChartLine, faPercentage } from "@fortawesome/free-solid-svg-icons";
 
-import {
-  dailySalesChart,
-  emailsSubscriptionChart,
-  completedTasksChart,
-  pieChart
-} from "variables/charts";
 import { dashboard_route } from "variables/global";
 import dashboardStyle from "assets/jss/material-dashboard-pro-react/views/dashboardStyle";
 import Typography from "@material-ui/core/Typography/Typography";

@@ -6,13 +6,9 @@ import ReactTable from "react-table";
 import withStyles from "@material-ui/core/styles/withStyles";
 // @material-ui/icons
 import Assignment from "@material-ui/icons/Assignment";
-import Dvr from "@material-ui/icons/Dvr";
-import Favorite from "@material-ui/icons/Favorite";
-import Close from "@material-ui/icons/Close";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import Button from "components/CustomButtons/Button.jsx";
 import Card from "components/Card/Card.jsx";
 import CardBody from "components/Card/CardBody.jsx";
 import CardIcon from "components/Card/CardIcon.jsx";
@@ -23,8 +19,6 @@ import { dataTable } from "variables/general.jsx";
 
 import { cardTitle } from "assets/jss/material-dashboard-pro-react.jsx";
 import { holding_route } from "variables/global";
-// const url = "https://gist.githubusercontent.com/K-Kit/9ab58d3f86ed7b59dd74a62ec395d8f1/raw/c0428e3216110a48ad2dd75f2482048908833b34/holding"
-const url = holding_route;
 
 export function fetchJSON(url, callback) {
   fetch(url)

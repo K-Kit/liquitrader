@@ -45,6 +45,12 @@ const regularFormsStyle = {
   },
   inputAdornmentIconError: {
     color: dangerColor + "!important"
+  },
+  labelHorizontal: {
+    color: "white !important",
+    display: "inline-flex",
+    fontSize: "1em",
+    paddingTop: "39px"
   }
 };
 

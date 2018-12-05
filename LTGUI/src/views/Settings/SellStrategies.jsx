@@ -3,12 +3,6 @@ import React from "react";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import Card from "components/Card/Card.jsx";
-import CardHeader from "components/Card/CardHeader.jsx";
-import CardBody from "components/Card/CardBody.jsx";
-
-import Button from "../../../node_modules/@material-ui/core/Button/Button";
-import * as PropTypes from "prop-types";
 import StrategyList from "./StrategyList";
 
 

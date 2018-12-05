@@ -116,10 +116,7 @@ class StrategyList extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
-    config = config;
-    console.log(config, "config");
-    let strategy_type =
-      this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
+    let strategy_type = this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
 
     if (!this.isCancelled) {
       this.setState({ strategies: config[strategy_type + "_strategies"] });

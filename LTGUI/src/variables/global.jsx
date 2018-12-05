@@ -1,5 +1,4 @@
-export const url = window.location.origin + "/";
-// export const url = "http://45.77.216.107:8080/";
+export const url = !process.env.NODE_ENV || process.env.NODE_ENV === 'development' ? "http://45.77.216.107:8080/": window.location.origin + "/";
 
 export const dashboard_route = url + 'dashboard_data';
 

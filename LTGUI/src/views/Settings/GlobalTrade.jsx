@@ -82,7 +82,8 @@ class GlobalTrade extends React.Component {
     this.updateTextField = this.updateTextField.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
-    this.handleTags = this.handleTags.bind(this);
+    this.handleBlacklist = this.handleBlacklist.bind(this);
+    this.handleWhitelist = this.handleWhitelist.bind(this);
   }
   sendState() {
     return this.state;
@@ -93,8 +94,11 @@ class GlobalTrade extends React.Component {
   isValidated() {
     return true;
   }
-  handleTags(regularTags) {
-    this.setState({ tags: regularTags });
+  handleWhitelist(regularTags) {
+    this.setState({ whitelist: regularTags });
+  }
+  handleBlacklist(regularTags) {
+    this.setState({ blacklist: regularTags });
   }
   updateTextField(event, name, id) {
     this.setState({ [name]: event.target.value });
@@ -237,7 +241,7 @@ class GlobalTrade extends React.Component {
               </FormLabel>
               <TagsInput
                 value={this.state.whitelist}
-                onChange={this.handleTags}
+                onChange={this.handeWhitelist}
                 tagProps={{ className: "react-tagsinput-tag info" }}
               />
             </GridItem>
@@ -248,7 +252,7 @@ class GlobalTrade extends React.Component {
               </FormLabel>
               <TagsInput
                 value={this.state.blacklist}
-                onChange={this.handleTags}
+                onChange={this.handleBlacklist}
                 tagProps={{ className: "react-tagsinput-tag warning" }}
               />
             </GridItem>

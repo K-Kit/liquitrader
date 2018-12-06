@@ -291,7 +291,6 @@ class BinanceExchange(GenericExchange):
             not_stale(now, self.last_depth_update_time),
             not_stale(now, self.last_ticker_update_time)
         ]
-        print(deltas)
         if not all(deltas):
             self.restart_sockets()
 

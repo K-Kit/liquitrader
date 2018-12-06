@@ -78,7 +78,7 @@ class BinanceExchange(GenericExchange):
         # this callback recieves all socket messages and dispatches to the appropriate handler function
         # todo add error handling, restart, check for last_update time lag on each socket
         if 'e' in msg and msg['e'] == 'error':
-            self.restart_sockets()
+            print(msg)
             return
 
         if 'kline' in msg['stream']:
@@ -291,6 +291,7 @@ class BinanceExchange(GenericExchange):
             not_stale(now, self.last_depth_update_time),
             not_stale(now, self.last_ticker_update_time)
         ]
+        print(deltas)
         if not all(deltas):
             self.restart_sockets()
 

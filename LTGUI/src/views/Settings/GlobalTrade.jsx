@@ -193,7 +193,7 @@ class GlobalTrade extends React.Component {
                           }}
                           inputProps={{
                             onChange: event =>
-                              this.updateTextField(event, condition.accesor),
+                              this.updateTextField(event, "min"+condition.accesor),
                             value: this.state["min" + condition.accesor]
                           }}
                         />
@@ -217,7 +217,7 @@ class GlobalTrade extends React.Component {
                           }}
                           inputProps={{
                             onChange: event =>
-                              this.updateTextField(event, condition.accesor),
+                              this.updateTextField(event, "max"+condition.accesor),
                             value: this.state["max" + condition.accesor]
                           }}
                         />

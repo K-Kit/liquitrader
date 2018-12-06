@@ -191,7 +191,7 @@ def get_sell_log_frame():
     cols = ['timestamp', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
 
 
-    return jsonify(df[df.side == 'sell'][cols].to_json(orient='records'))
+    return jsonify(df[df.side == 'sell'][cols].dropna().to_json(orient='records'))
 
 
 # ----
@@ -203,7 +203,7 @@ def latest_sales():
 
     df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
     cols = ['symbol', 'gain']
-    df=df[df.side == 'sell'][cols].tail(4)
+    df=df[df.side == 'sell'][cols].dropna().tail(4)
 
 
     return df.to_dict(orient="records")

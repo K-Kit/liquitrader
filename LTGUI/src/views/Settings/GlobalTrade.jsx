@@ -18,10 +18,10 @@ import { faLessThanEqual } from "@fortawesome/free-solid-svg-icons";
 import FormLabel from "@material-ui/core/FormLabel";
 import regularFormsStyle from "../../assets/jss/material-dashboard-pro-react/views/regularFormsStyle";
 import { fetchJSON } from "./StrategyList";
-import {config_route, update_config} from "../../variables/global";
+import { config_route, update_config } from "../../variables/global";
 import Button from "@material-ui/core/Button/Button";
 import TagsInput from "react-tagsinput";
-import {postJSON} from "./helpers/Helpers";
+import { postJSON } from "./helpers/Helpers";
 
 const style = theme => ({
   infoText: {
@@ -47,25 +47,6 @@ const less_than_icon = () => {
     </GridItem>
   );
 };
-const marketConditions = [
-  {
-    title: "Pair 24h Change",
-    accesor: "_change"
-  },
-  {
-    title: "ETH 1h Change",
-    accesor: "_1h_quote_change"
-  },
-  {
-    title: "ETH 24h Change",
-    accesor: "_24h_quote_change"
-  },
-
-  {
-    title: "Market 24h Change",
-    accesor: "_24h_quote_change"
-  }
-];
 
 let fields = [
   ["max_pairs", "Maximum Pairs"],
@@ -112,19 +93,16 @@ class GlobalTrade extends React.Component {
     return true;
   }
   updateTextField(event, name, id) {
-    const target = event.target;
-    const value = target.value;
-    const strategies = [...this.state.strategies];
-    strategies[id][name] = value;
-    this.setState({
-      strategies: strategies
-    });
+    this.setState({ [name]: event.target.value });
     console.log(this.state);
+
+    console.log(this.state.market_change);
+    console.log(this.state.min_24h_market_change);
   }
   save() {
     let data = {
       section: "global_trade_conditions",
-      data: { ...this.state, market_conditions: { ...this.state } }
+      data: { ...this.state, market_change: { ...this.state } }
     };
     console.log(JSON.stringify(data), data);
     postJSON(update_config, data);
@@ -134,10 +112,33 @@ class GlobalTrade extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
-    this.setState({ ...config.global_trade, market: config.general });
+    this.setState({
+      ...config.global_trade,
+      ...config.global_trade.market_change,
+      market: config.general.market
+    });
   }
   render() {
     const { classes } = this.props;
+    const marketConditions = [
+      {
+        title: "Pair 24h Change",
+        accesor: "_change"
+      },
+      {
+        title: this.state.market +" 1h Change",
+        accesor: "_1h_quote_change"
+      },
+      {
+        title: this.state.market + " 24h Change",
+        accesor: "_24h_quote_change"
+      },
+
+      {
+        title: "Market 24h Change",
+        accesor: "_24h_market_change"
+      }
+    ];
     return (
       <div style={{ margin: "0 auto", textAlign: "center", flexGrow: "1" }}>
         <GridContainer style={{ margin: "0 auto", textAlign: "center" }}>
@@ -151,77 +152,78 @@ class GlobalTrade extends React.Component {
             </GridItem>
             <br />
             <br />
-              <GridItem xs={12} md={6}>
-            {fields.map(field => {
-              return (
-                <GridItem>
-                  <CustomInput
-                    labelText={field[1]}
-                    id={field[0]}
-                    formControlProps={{
-                      fullWidth: false
-                    }}
-                    inputProps={{
-                      onChange: event => this.updateTextField(event, field[0]),
-                      value: this.state[field[0]]
-                    }}
-                  />
-                </GridItem>
-              );
-            })}
-              </GridItem>
-          <GridItem xs={12} md={6}>
-          <GridContainer
-            justify={"center"}
-            style={{ margin: "0 auto", textAlign: "center" }}
-          >
-            {marketConditions.map(condition => {
-              return (
-                  <GridContainer
-                    style={{ margin: "0 auto", textAlign: "center" }}
-                  >
-                    <GridItem xs={2} lg={1}>
-                      <CustomInput
-                        formControlProps={{
-                          fullWidth: false
-                        }}
-                        inputProps={{
-                          onChange: event =>
-                            this.updateTextField(event, condition.accesor),
-                          value: this.state["min" + condition.accesor]
-                        }}
-                      />
-                    </GridItem>
+            <GridItem xs={12} md={6}>
+              {fields.map(field => {
+                return (
+                  <GridItem>
+                    <CustomInput
+                      labelText={field[1]}
+                      id={field[0]}
+                      formControlProps={{
+                        fullWidth: false
+                      }}
+                      inputProps={{
+                        onChange: event =>
+                          this.updateTextField(event, field[0]),
+                        value: this.state[field[0]]
+                      }}
+                    />
+                  </GridItem>
+                );
+              })}
+            </GridItem>
+            <GridItem xs={12} md={6}>
+              <GridContainer
+                justify={"center"}
+                style={{ margin: "0 auto", textAlign: "center" }}
+              >
+                {marketConditions.map(condition => {
+                  return (
+                    <GridContainer
+                      style={{ margin: "0 auto", textAlign: "center" }}
+                    >
+                      <GridItem xs={2} lg={1}>
+                        <CustomInput
+                          formControlProps={{
+                            fullWidth: false
+                          }}
+                          inputProps={{
+                            onChange: event =>
+                              this.updateTextField(event, condition.accesor),
+                            value: this.state["min" + condition.accesor]
+                          }}
+                        />
+                      </GridItem>
 
-                    <GridItem xs={12} md={8} lg={3}>
-                      <FormLabel className={classes.labelHorizontal}>
-                        {less_than_icon()}
-                        &nbsp; &nbsp;
-                        {condition.title}
-                        &nbsp;
-                        {less_than_icon()}
-                      </FormLabel>
-                    </GridItem>
-                    <GridItem xs={2} lg={1}>
-                      <CustomInput
-                        labelText=""
-                        id={condition.name}
-                        formControlProps={{
-                          fullWidth: false
-                        }}
-                        inputProps={{
-                          onChange: event =>
-                            this.updateTextField(event, condition.accesor),
-                          value: this.state["max" + condition.accesor]
-                        }}
-                      />
-                    </GridItem>
-                  </GridContainer>
-                // </GridItem>
-              );
-            })}
-          </GridContainer>
-          </GridItem>
+                      <GridItem xs={12} md={8} lg={3}>
+                        <FormLabel className={classes.labelHorizontal}>
+                          {less_than_icon()}
+                          &nbsp; &nbsp;
+                          {condition.title}
+                          &nbsp;
+                          {less_than_icon()}
+                        </FormLabel>
+                      </GridItem>
+                      <GridItem xs={2} lg={1}>
+                        <CustomInput
+                          labelText=""
+                          id={condition.name}
+                          formControlProps={{
+                            fullWidth: false
+                          }}
+                          inputProps={{
+                            onChange: event =>
+                              this.updateTextField(event, condition.accesor),
+                            value: this.state["max" + condition.accesor]
+                          }}
+                        />
+                      </GridItem>
+                    </GridContainer>
+                    // </GridItem>
+                  );
+                })}
+              </GridContainer>
+            </GridItem>
           </GridContainer>
           <GridContainer>
             <GridItem xs={12} md={6}>
@@ -251,7 +253,6 @@ class GlobalTrade extends React.Component {
             </Button>
           </GridContainer>
         </GridContainer>
-
       </div>
     );
   }

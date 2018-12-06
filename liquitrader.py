@@ -604,7 +604,7 @@ class LiquiTrader:
             df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
         else:
             df = pd.DataFrame(self.trade_history)
-        df = self.calc_gains_on_df(df)
+        df = self.calc_gains_on_df(df[df.side == 'sell'])
 
         times = []
         # todo timezones

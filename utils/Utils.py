@@ -19,6 +19,7 @@ def exceeds_min_balance(balance, min_buy_balance, price, amount):
 
 #check min balance, max pairs, quote change, market change, trading enabled, blacklist, whitelist, 24h change
 def below_max_pairs(current_pairs, max_pairs):
+    max_pairs = float(max_pairs)
     return current_pairs < max_pairs or max_pairs == 0
 
 
@@ -35,7 +36,7 @@ def is_blacklisted(pair, blacklist):
 
 
 def is_whitelisted(pair, whitelist):
-    return pair in whitelist or 'ALL' in whitelist or 'all' in whitelist
+    return pair in whitelist or 'ALL' in whitelist or 'all' in whitelist or len(whitelist) == 0
 
 
 def get_average_market_change(pairs):
@@ -47,11 +48,14 @@ def get_average_market_change(pairs):
 
 
 def in_max_spread(close, fill_price, max_spread):
-    if max_spread == 0: max_spread = 1
+    max_spread = float(max_spread)
+    if max_spread == 0: max_spread = 1.5
     return abs((close - fill_price) / fill_price) <= max_spread
 
 
 def in_range(change, min, max):
+    min = float(min)
+    max = float(max)
     above_min = above_min_change(change, min)
     below_max = below_max_change(change, max)
     if min == 0:

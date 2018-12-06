@@ -442,7 +442,7 @@ class LiquiTrader:
 
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
-            self.below_max_pairs = self.is_below_max_pairs(len(self.owned), global_trade_conditions['max_pairs'])
+            self.below_max_pairs = self.is_below_max_pairs(len(self.owned), float(global_trade_conditions['max_pairs']))
             checks.append(self.below_max_pairs)
         # if not all(checks):
         #     print(pair, checks)

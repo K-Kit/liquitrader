@@ -75,13 +75,14 @@ class GlobalTrade extends React.Component {
       max_pairs: 10,
       max_spread: 1,
       min_available_volume: 0,
-      min_buy_balance: "",
+      min_buy_balance: 0,
       min_change: 0,
       whitelist: [] // ["ALL"] to allow all pairs or comma seperated list of strs
     };
     this.updateTextField = this.updateTextField.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
+    this.handleTags = this.handleTags.bind(this);
   }
   sendState() {
     return this.state;
@@ -91,6 +92,9 @@ class GlobalTrade extends React.Component {
   };
   isValidated() {
     return true;
+  }
+  handleTags(regularTags) {
+    this.setState({ tags: regularTags });
   }
   updateTextField(event, name, id) {
     this.setState({ [name]: event.target.value });

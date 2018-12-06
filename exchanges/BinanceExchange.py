@@ -78,7 +78,6 @@ class BinanceExchange(GenericExchange):
         # this callback recieves all socket messages and dispatches to the appropriate handler function
         # todo add error handling, restart, check for last_update time lag on each socket
         if 'e' in msg and msg['e'] == 'error':
-            print(msg)
             return
 
         if 'kline' in msg['stream']:

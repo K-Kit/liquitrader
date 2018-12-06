@@ -18,9 +18,10 @@ import { faLessThanEqual } from "@fortawesome/free-solid-svg-icons";
 import FormLabel from "@material-ui/core/FormLabel";
 import regularFormsStyle from "../../assets/jss/material-dashboard-pro-react/views/regularFormsStyle";
 import { fetchJSON } from "./StrategyList";
-import { config_route } from "../../variables/global";
+import {config_route, update_config} from "../../variables/global";
 import Button from "@material-ui/core/Button/Button";
 import TagsInput from "react-tagsinput";
+import {postJSON} from "./helpers/Helpers";
 
 const style = theme => ({
   infoText: {
@@ -126,7 +127,7 @@ class GlobalTrade extends React.Component {
       data: { ...this.state, market_conditions: { ...this.state } }
     };
     console.log(JSON.stringify(data), data);
-    // postJSON(update_config, data);
+    postJSON(update_config, data);
   }
   componentWillMount() {
     // This request takes longer, so prioritize it
@@ -150,6 +151,7 @@ class GlobalTrade extends React.Component {
             </GridItem>
             <br />
             <br />
+              <GridItem xs={12} md={6}>
             {fields.map(field => {
               return (
                 <GridItem>
@@ -167,16 +169,15 @@ class GlobalTrade extends React.Component {
                 </GridItem>
               );
             })}
-          </GridContainer>
+              </GridItem>
+          <GridItem xs={12} md={6}>
           <GridContainer
             justify={"center"}
             style={{ margin: "0 auto", textAlign: "center" }}
           >
             {marketConditions.map(condition => {
               return (
-                <GridItem xs={12} md={8}>
                   <GridContainer
-                    justify={"center"}
                     style={{ margin: "0 auto", textAlign: "center" }}
                   >
                     <GridItem xs={2} lg={1}>
@@ -216,9 +217,11 @@ class GlobalTrade extends React.Component {
                       />
                     </GridItem>
                   </GridContainer>
-                </GridItem>
+                // </GridItem>
               );
             })}
+          </GridContainer>
+          </GridItem>
           </GridContainer>
           <GridContainer>
             <GridItem xs={12} md={6}>
@@ -248,6 +251,7 @@ class GlobalTrade extends React.Component {
             </Button>
           </GridContainer>
         </GridContainer>
+
       </div>
     );
   }

@@ -11,9 +11,8 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Switch from "@material-ui/core/Switch";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip from "@material-ui/core/Tooltip";
 import Info from "@material-ui/icons/Info";
-
 
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
@@ -22,25 +21,44 @@ import GridItem from "components/Grid/GridItem.jsx";
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle.jsx";
-let exchanges = ["binance"];
+import {fetchJSON} from "./StrategyList";
+import {config_route, update_config} from "../../variables/global";
+import {postJSON} from "./helpers/Helpers";
+import Button from "../../../node_modules/@material-ui/core/Button/Button";
+let exchanges = ["binance", "bittrex"];
 let markets = ["BTC", "ETH", "BNB", "USDT"];
+
+const fields = [
+  ["host", "Host"],
+  ["port", "Port"],
+  ["sell_only_mode", "Sell Only Mode"],
+  ["trading_enabled", "Trading Enabled"],
+  ["timezone", "Timezone"],
+  ["starting_balance", "Starting Balance"]
+];
+
 class GeneralSettings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      checkedA: true,
-      checkedB: false,
-      marketSelect: "",
-      exchangeSelect: "",
-      multipleSelect: [],
-      blacklist: [],
-      whitelist: []
+      exchange: "binance",
+      paper_trading: false,
+      starting_balance: 3,
+      market: "ETH",
+      timezone: "US/Pacific",
+      start_delay: 0,
+      host: "0.0.0.0",
+      port: 8080,
+      use_ssl: false,
+      sell_only_mode: false,
+      trading_enabled: true
     };
     this.handleBlacklist = this.handleBlacklist.bind(this);
     this.handleWhitelist = this.handleWhitelist.bind(this);
   }
   handleSimple = event => {
     this.setState({ [event.target.name]: event.target.value });
+    console.log(this.state.exchange);
   };
   handleExchange = event => {
     this.setState({ [event.target.name]: event.target.value });
@@ -61,7 +79,21 @@ class GeneralSettings extends React.Component {
   change(event, stateName) {
     this.setState({ [stateName]: event.target.value });
   }
-
+  save() {
+    let data = {
+      section: "general",
+      data: { ...this.state}
+    };
+    console.log(JSON.stringify(data), data);
+    postJSON(update_config, data);
+  }
+  componentWillMount() {
+    // This request takes longer, so prioritize it
+    fetchJSON(config_route, this.load);
+  }
+  load(config) {
+    this.setState({ ...config.global_trade });
+  }
   render() {
     const { classes } = this.props;
     return (
@@ -73,7 +105,7 @@ class GeneralSettings extends React.Component {
               <GridItem xs={12} sm={10} md={12} lg={12}>
                 <FormControl fullWidth className={classes.selectFormControl}>
                   <InputLabel
-                    htmlFor="exchange-select"
+                    htmlFor="exchange"
                     className={classes.selectLabel}
                   >
                     Choose Exchange
@@ -85,11 +117,11 @@ class GeneralSettings extends React.Component {
                     classes={{
                       select: classes.select
                     }}
-                    value={this.state.exchangeSelect}
-                    onChange={this.handleExchange}
+                    value={this.state.exchange}
+                    onChange={this.handleSimple}
                     inputProps={{
-                      name: "exchangeSelect",
-                      id: "exchange-select"
+                      name: "exchange",
+                      id: "exchange"
                     }}
                   >
                     <MenuItem
@@ -109,7 +141,7 @@ class GeneralSettings extends React.Component {
                           }}
                           value={exchange}
                         >
-                          {exchange}
+                          {exchange.toUpperCase()}
                         </MenuItem>
                       );
                     })}
@@ -124,20 +156,17 @@ class GeneralSettings extends React.Component {
           <GridItem xs={12} sm={8} md={6}>
             <GridContainer justify="center">
               <legend>Choose your Market</legend>
-              <br/>
+              <br />
               <Tooltip
-              onClose={this.handleTooltipClose}
-              onOpen={this.handleTooltipOpen}
-              open={this.state.open}
-              title="this is the asset you trade against ex. ADA/BTC, market = BTC"
+                onClose={this.handleTooltipClose}
+                onOpen={this.handleTooltipOpen}
+                open={this.state.open}
+                title="this is the asset you trade against ex. ADA/BTC, market = BTC"
               >
-              <Info/>
+                <Info />
               </Tooltip>
-              <GridItem xs={12} sm={10} md={12} lg={12} >
-                <FormControl
-                  fullWidth
-                  className={classes.selectFormControl}
-                >
+              <GridItem xs={12} sm={10} md={12} lg={12}>
+                <FormControl fullWidth className={classes.selectFormControl}>
                   <InputLabel
                     htmlFor="market-select"
                     className={classes.selectLabel}
@@ -151,10 +180,10 @@ class GeneralSettings extends React.Component {
                     classes={{
                       select: classes.select
                     }}
-                    value={this.state.marketSelect}
+                    value={this.state.market}
                     onChange={this.handleSimple}
                     inputProps={{
-                      name: "marketSelect",
+                      name: "market",
                       id: "market-select"
                     }}
                   >
@@ -188,48 +217,39 @@ class GeneralSettings extends React.Component {
             <br />
           </GridItem>
 
-          <GridItem xs={12} md={6}>
-            <CustomInput
-              labelText="Minimum Buy Balance"
-              id="min_buy_balance"
-              formControlProps={{
-                fullWidth: true
-              }}
-              inputProps={{
-                type: "min_buy_balance",
-                onChange: event => this.change(event, "min_buy_balance")
-              }}
-            />
-          </GridItem>
-
-          <GridItem xs={12} md={6}>
-            <CustomInput
-              labelText="Max Pairs"
-              id="max_pairs"
-              formControlProps={{
-                fullWidth: true
-              }}
-              inputProps={{
-                onChange: event => this.change(event, "maxPairs"),
-                type: "maxPairs"
-              }}
-            />
-          </GridItem>
-
           <GridItem xs={12} sm={10} md={6}>
             <br />
             <GridContainer justify={"center"}>
               <br />
-              <Tooltip
-                onClose={this.handleTooltipClose}
-                onOpen={this.handleTooltipOpen}
-                open={this.state.open}
-                title="No purchases or sales will be made on your exchange account"
-              >
-                <legend>
-                  Enable Paper Trading <small>(simulated trading)</small>
-                </legend>
-              </Tooltip>
+              {/*<Tooltip*/}
+              {/*onClose={this.handleTooltipClose}*/}
+              {/*onOpen={this.handleTooltipOpen}*/}
+              {/*open={this.state.open}*/}
+              {/*title="No purchases or sales will be made on your exchange account"*/}
+              {/*>*/}
+              {/*<legend>*/}
+              {/*Enable Paper Trading <small>(simulated trading)</small>*/}
+              {/*</legend>*/}
+              {/*</Tooltip>*/}
+              {fields.map(field => {
+                return (
+                  <GridItem xs={4} md={2}>
+                    <CustomInput
+                      labelText={field[1]}
+                      id={field[0]}
+                      formControlProps={{
+                        fullWidth: false
+                      }}
+                      inputProps={{
+                        onChange: this.handleSimple,
+                        value: this.state[field[0]],
+                        name: field[0]
+                      }}
+                    />
+                  </GridItem>
+                );
+              })}
+              <br />
               <br />
               <FormControlLabel
                 control={
@@ -253,8 +273,12 @@ class GeneralSettings extends React.Component {
               />
             </GridContainer>
           </GridItem>
+
           <br />
         </GridContainer>
+        <Button onClick={this.save} color={"primary"}>
+              Save
+            </Button>
         <GridContainer />
       </div>
     );

@@ -78,7 +78,7 @@ class BinanceExchange(GenericExchange):
         # this callback recieves all socket messages and dispatches to the appropriate handler function
         # todo add error handling, restart, check for last_update time lag on each socket
         if 'e' in msg and msg['e'] == 'error':
-            print('implement socket error handleing', msg)
+            self.restart_sockets()
             return
 
         if 'kline' in msg['stream']:
@@ -274,7 +274,7 @@ class BinanceExchange(GenericExchange):
         self.last_candle_update_time = None
         self.last_depth_update_time = None
         self.last_ticker_update_time = None
-        time.sleep(1)
+        time.sleep(10) # cool down, likely caused by lots of api calls, not a major loss to shut down for a few on rare cases
         self.start_sockets()
 
     # ----

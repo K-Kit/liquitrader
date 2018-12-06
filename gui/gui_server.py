@@ -141,13 +141,14 @@ class GUIServer:
 
 
 # ----
-@_app.route("/")
-def get_index():
+@_app.route('/', defaults={'path': ''})
+@_app.route('/<path:path>')
+def get_index(path):
     return render_template('index.html')
 
 
 # ----
-@_app.route("/holding")
+@_app.route("/api/holding")
 def get_holding():
     df = LT_ENGINE.pairs_to_df(friendly=True)
 
@@ -158,7 +159,7 @@ def get_holding():
 
 
 # ----
-@_app.route("/market")
+@_app.route("/api/market")
 def get_market():
     df = LT_ENGINE.pairs_to_df(friendly=True)
 
@@ -166,7 +167,7 @@ def get_market():
 
 
 # ----
-@_app.route("/buy_log")
+@_app.route("/api/buy_log")
 def get_buy_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
@@ -179,7 +180,7 @@ def get_buy_log_frame():
 
 
 # ----
-@_app.route("/sell_log")
+@_app.route("/api/sell_log")
 def get_sell_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
@@ -209,7 +210,7 @@ def latest_sales():
 
 
 # ----
-@_app.route("/dashboard_data")
+@_app.route("/api/dashboard_data")
 def get_dashboard_data():
     balance = LT_ENGINE.exchange.balance
     pending = LT_ENGINE.get_pending_value()
@@ -265,7 +266,7 @@ def update_config():
 
 
 # ----
-@_app.route("/config")
+@_app.route("/api/config")
 def get_config():
     return LT_ENGINE.config.get_config()
 

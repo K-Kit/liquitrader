@@ -229,7 +229,6 @@ class LiquiTrader:
 
             if value['close'] * value['total'] > self.exchange.get_min_cost(pair):
                 self.owned.append(pair)
-                print(self.owned)
 
         return pending + self.exchange.balance
 

@@ -741,7 +741,6 @@ def main():
         api_key = keys['public']
 
         start = time.perf_counter()
-        # TODO URGENT DOES NOT RETURN ANYTHING, DOES NOT TERMINATE ON INVALID KEY
         strategic_tools.verify(license_key, api_key) 
 
         if (time.perf_counter() - start) < .01:

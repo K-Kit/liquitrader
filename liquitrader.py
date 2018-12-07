@@ -227,7 +227,7 @@ class LiquiTrader:
 
             pending += value['close'] * value['total']
 
-            if value['close'] * value['total'] > 0:
+            if value['close'] * value['total'] > self.exchange.get_min_cost(pair):
                 self.owned.append(pair)
 
         return pending + self.exchange.balance
@@ -448,7 +448,8 @@ class LiquiTrader:
         #     print(pair, checks)
         return all(checks)
 
-    def is_below_max_pairs(self, current_pairs, max_pairs):
+    @staticmethod
+    def is_below_max_pairs(current_pairs, max_pairs):
         below_max_pairs = current_pairs < max_pairs or max_pairs == 0
         return below_max_pairs
 

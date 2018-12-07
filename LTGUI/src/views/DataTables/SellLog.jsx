@@ -120,9 +120,9 @@ class ReactTables extends React.Component {
                           return date.toLocaleString()
                       }},
                   { Header: "Symbol", accessor: "symbol" },
-                  { Header: "Bought Price", accessor: "bought_price",
+                  { Header: "Bought Cost", accessor: "bought_cost",
                       Cell: ci => ci.value.toFixed(8) },
-                  { Header: "Sold Price", accessor: "price",
+                  { Header: "Sold Value", accessor: "cost",
                       Cell: ci => ci.value.toFixed(8) },
                   { Header: "Amount", accessor: "filled" ,
                       Cell: ci => ci.value.toFixed(2)},

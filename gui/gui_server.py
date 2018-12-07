@@ -186,9 +186,9 @@ def get_sell_log_frame():
 
     if 'bought_price' not in df:
         return jsonify([])
-
-    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
-    cols = ['timestamp', 'symbol', 'bought_price', 'price', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    df['bought_cost'] = df.bought_price * df.filled
+    df['gain'] = (df.cost - df.bought_cost) / df.bought_cost * 100
+    cols = ['timestamp', 'symbol', 'bought_price', 'price','cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
 
 
     return jsonify(df[df.side == 'sell'][cols].dropna().to_json(orient='records'))
@@ -200,8 +200,8 @@ def latest_sales():
 
     if 'bought_price' not in df:
         return []
-
-    df['gain'] = (df.price - df.bought_price) / df.bought_price * 100
+    df['bought_cost'] = df.bought_price * df.filled
+    df['gain'] = (df.cost - df.bought_cost) / df.bought_cost * 100
     cols = ['symbol', 'gain']
     df=df[df.side == 'sell'][cols].dropna().tail(4)
 
@@ -254,7 +254,7 @@ def get_dashboard_data():
 
 
 # ----
-@_app.route('/update_config', methods=['POST'])
+@_app.route('/api/update_config', methods=['POST'])
 def update_config():
     print("hello")
     import json

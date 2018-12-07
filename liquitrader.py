@@ -229,6 +229,7 @@ class LiquiTrader:
 
             if value['close'] * value['total'] > self.exchange.get_min_cost(pair):
                 self.owned.append(pair)
+                print(self.owned)
 
         return pending + self.exchange.balance
 
@@ -432,7 +433,7 @@ class LiquiTrader:
 
         min_balance = min_balance if not isinstance(min_balance, str) \
             else percentToFloat(min_balance) * self.get_tcv()
-
+        self.below_max_pairs = self.is_below_max_pairs(len(self.owned), int(global_trade_conditions['max_pairs']))
         checks = [not exceeds_min_balance(balance, min_balance, price, amount),
                   below_max_change(change, global_trade_conditions['max_change']),
                   above_min_change(change, global_trade_conditions['min_change']),
@@ -442,16 +443,13 @@ class LiquiTrader:
 
         if not dca:
             checks.append(self.exchange.pairs[pair]['total'] < 0.8 * amount)
-            self.below_max_pairs = self.is_below_max_pairs(len(self.owned), float(global_trade_conditions['max_pairs']))
             checks.append(self.below_max_pairs)
-        # if not all(checks):
-        #     print(pair, checks)
         return all(checks)
 
     @staticmethod
     def is_below_max_pairs(current_pairs, max_pairs):
-        below_max_pairs = current_pairs < max_pairs or max_pairs == 0
-        return below_max_pairs
+        return current_pairs < max_pairs or max_pairs == 0
+
 
     # ----
     def global_buy_checks(self):
@@ -459,6 +457,8 @@ class LiquiTrader:
         quote_change_info = self.exchange.quote_change_info
         market_change = self.config.global_trade_conditions['market_change']
         self.market_change_24h = get_average_market_change(self.exchange.pairs)
+        self.below_max_pairs = self.is_below_max_pairs(len(self.owned),
+                                                       int(self.config.global_trade_conditions['max_pairs']))
         self.check_24h_quote_change = in_range(quote_change_info['24h'],
                                           market_change['min_24h_quote_change'],
                                           market_change['max_24h_quote_change'])

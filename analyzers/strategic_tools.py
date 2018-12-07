@@ -198,12 +198,12 @@ def verify(license_key, api_key):
             break
 
         except requests.exceptions.ReadTimeout:
-            print(str(counter), end='')
+            print(f'\r{counter}', end='')
             counter += 1
 
         if counter >= 5:
-            print('Failed to connect to LiquiTrader license server. Check your network connection.\n')
-            sys.exit(0)
+            print('\nFailed to connect to LiquiTrader license server. Check your network connection.\n')
+            sys.exit(1)
 
     if counter > 1:
         print()
@@ -220,7 +220,7 @@ def verify(license_key, api_key):
             print('If have not received a message about being rate limited, please contact support;')
             print('otherwise, your 10 minutes is not yet up.')
 
-        return
+        sys.exit(1)
 
     received_verifier_data = server_response.get('verifier_data', None)
     license_time_remaining = server_response.get('expires_in', None)
@@ -233,7 +233,7 @@ def verify(license_key, api_key):
         else:
             print(f'Verification error ({"8" if error is None else error})')
 
-        return None
+        sys.exit(1)
 
     received_data = verification(received_verifier_data)
 
@@ -241,3 +241,4 @@ def verify(license_key, api_key):
         if data != received_data:
             print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
                   'please stop trying to crack our license system. This is how we keep food on our tables.)')
+            sys.exit(1)

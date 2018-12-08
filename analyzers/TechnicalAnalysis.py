@@ -67,6 +67,13 @@ def get_indicators(df, indicator_name, candle_period=0):
 
         else:
             res /= 100000000
+    else:
+        if isinstance(res, list):
+            for i in range(len(res)):
+                res[i][len(res[i])-1]= round(res[i][len(res[i])-1], 2)
+        else:
+            res[len(res) - 1] = round(res[len(res) - 1], 2)
+        
 
     i = 0
     if not isinstance(res,list):

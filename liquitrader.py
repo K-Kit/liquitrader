@@ -157,7 +157,7 @@ class LiquiTrader:
         timeframes_changed = old_timeframes != self.config.timeframes
         if timeframes_changed:
             print("timeframe_changed")
-            self.exchange.load_all_candle_histories()
+            self.exchange.reload_candles()
 
     # ----
     def initialize_exchange(self):
@@ -271,7 +271,6 @@ class LiquiTrader:
                     if pair not in possible_trades or possible_trades[pair] > result:
                         possible_trades[pair] = result
         self.possible_trades = possible_trades
-        print(self.indicators)
         return possible_trades
 
     # ----
@@ -708,7 +707,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
 
 # ----
-def main():
+def main(ipython=False):
     def err_msg():
         sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
         sys.stdout.write(
@@ -847,5 +846,5 @@ def main():
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)
 #
-# if __name__ == '__main__':
-#     lt= main()
+if __name__ == '__main__':
+    lt= main(ipython=True)

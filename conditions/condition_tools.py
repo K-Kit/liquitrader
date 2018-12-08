@@ -117,7 +117,7 @@ def isPriceLike(indicator_name):
 
 
 def ind_dict_to_full_name(indicator: dict):
-    if 'candle_period' in indicator:
+    if 'candle_period' in indicator and indicator['candle_period'] != '':
         return "_".join([indicator['value'], str(indicator['candle_period']), indicator['timeframe']])
     else:
         return "_".join([indicator['value'], indicator['timeframe']])
@@ -127,7 +127,11 @@ def translate(operand: dict, inputs):
     # if the value is a talib indicators, its full name
     if operand['value'] in talib_indicators or operand['value'] in PATTERNS:
         indicator = ind_dict_to_full_name(operand)
-        if indicator not in inputs: return None
+        if indicator not in inputs:
+            if indicator.replace('__', '_') in inputs:
+                indicator = indicator.replace('__', '_')
+            else:
+                return None
         if 'change_over' in operand and operand['change_over'] != "":
             return calculate_indicator_change(inputs[indicator], operand['change_over'], isPriceLike(operand['value']))
         else:

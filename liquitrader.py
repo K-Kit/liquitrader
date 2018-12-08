@@ -154,7 +154,11 @@ class LiquiTrader:
         self.timeframes = self.config.timeframes
         self.load_strategies()
         self.indicators = self.config.get_indicators()
-        timeframes_changed = old_timeframes != self.config.timeframes
+        #todo fix and make more efficient, currently always updating
+        timeframes_changed = False
+        for tf in self.config.timeframes:
+            if tf not in old_timeframes:
+                timeframes_changed
         if timeframes_changed:
             print("timeframe_changed")
             self.exchange.reload_candles()

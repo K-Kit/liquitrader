@@ -26,6 +26,8 @@ import Table from "components/Table/Table.jsx";
 import { cardTitle } from "assets/jss/material-dashboard-pro-react.jsx";
 import ReactTable from "react-table";
 import CardBody from "../../components/Card/CardBody";
+import Badge from "components/Badge/Badge.jsx";
+import CardHeader from "../../components/Card/CardHeader";
 
 export function fetchJSON(url, callback) {
   fetch(url)
@@ -42,61 +44,70 @@ const styles = {
   }
 };
 const accessors = ["symbol", "trail_from", "trail_to", "close", "stats"];
+const headers = ["Symbol", "Trail From", "Trail To", "Price", "Statistics"];
 
 const tabs = ["trailing", "statistics", "strategy"];
+const cardstyle = {
+  background: "#904bff",
+  textAlign: "center",
+  justify: "center",
+  padding: "10px 10px"
+};
 
 const analyzerCard = props => {
   let analyzer = props.analyzer;
-  console.log(analyzer);
   let pairs = Object.values(analyzer.pairs_trailing);
   pairs = typeof pairs !== "undefined" ? pairs : [];
-  console.log(pairs, "pairs");
+  console.log(analyzer);
   return (
     <div>
       <Card>
+        <CardHeader>{analyzer.conditions_list.map(condition => {
+
+        })}</CardHeader>
         <CardBody>
-          <GridContainer justify={"center"}>
-            {pairs.map(pair => {
+          <Table
+            tableHead={headers}
+            tableData={pairs.map(pair => {
               return accessors.map(accesor => {
-                if (accesor !== "stats") {
+                if (accesor === "stats") {
                   return (
-                    <GridItem lg={2}>
-                      <small>{accesor} : </small>
-                      {accesor === "symbol"
-                        ? pair[accesor]
-                        : pair[accesor].toFixed(8)}
-                    </GridItem>
-                  );
-                } else {
-                  return (
-                    <GridItem lg={4}>
-                      <GridContainer>
-                        {pair.stats.map(stat => {
-                          return (
-                            <GridItem xs={4}>
-                              {stat[0]}:{" "}
+                    <GridContainer justify={"center"}>
+                      {pair.stats.map(stat => {
+                        return (
+                          <GridItem>
+                            <Button style={cardstyle}>
+                              {stat[0]}: &nbsp; &nbsp;
                               {stat[1] === null
                                 ? "n/a"
                                 : stat[1].toString().length > 5
                                   ? stat[1].toFixed(8)
                                   : stat[1].toFixed(2)}
-                            </GridItem>
-                          );
-                        })}
-                      </GridContainer>
-                    </GridItem>
+                            </Button>
+                          </GridItem>
+                        );
+                      })}
+                    </GridContainer>
+                  );
+                } else {
+                  return (
+                    <label>
+                      {accesor === "symbol"
+                        ? pair[accesor]
+                        : pair[accesor].toFixed(8)}
+                    </label>
                   );
                 }
               });
             })}
-          </GridContainer>
+          />
         </CardBody>
       </Card>
     </div>
   );
 };
 
-class BuyAnalyzer extends React.Component {
+class GenericAnalyzer extends React.Component {
   constructor(props) {
     super(props);
     this.state = { analyzers: [] };
@@ -108,21 +119,27 @@ class BuyAnalyzer extends React.Component {
   }
   load(analyzers) {
     console.log(analyzers);
-    let analyzerType = "buy";
-
+    let analyzerType = this.props.analyzerType;
     this.setState({ analyzers: analyzers[analyzerType] });
-
-    console.log(analyzers[analyzerType]);
   }
   render() {
+    let i = 0;
     return (
       <div>
         {this.state.analyzers.map(analyzer => {
-          return analyzerCard({ analyzer: analyzer });
+          i++;
+
+          return (
+            <div>
+              <legend>Strategy: {i}</legend>
+
+              {analyzerCard({ analyzer: analyzer })}
+            </div>
+          );
         })}
       </div>
     );
   }
 }
 
-export default withStyles(styles)(BuyAnalyzer);
+export default withStyles(styles)(GenericAnalyzer);

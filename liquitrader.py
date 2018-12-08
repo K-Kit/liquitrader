@@ -803,7 +803,6 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
-    return lt_engine
     # ----
     # Main thread loop
     while True:
@@ -850,6 +849,6 @@ def main():
 
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)
-
-if __name__ == '__main__':
-    lt= main()
+#
+# if __name__ == '__main__':
+#     lt= main()

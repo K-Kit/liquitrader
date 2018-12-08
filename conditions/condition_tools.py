@@ -91,6 +91,10 @@ def percentToFloat(x):
 
 def calculate_indicator_change(array, change_period, asPercent=False):
     try:
+        change_period = int(change_period)
+    except ValueError:
+        return None
+    try:
         if asPercent:
             return (array[-1] - array[-1 - change_period]) / array[-1 - change_period] * 100
         else:
@@ -121,7 +125,7 @@ def translate(operand: dict, inputs):
     if operand['value'] in talib_indicators:
         indicator = ind_dict_to_full_name(operand)
         if indicator not in inputs: return None
-        if 'change_over' in operand:
+        if 'change_over' in operand and operand['change_over'] != "":
             return calculate_indicator_change(inputs[indicator], operand['change_over'], isPriceLike(operand['value']))
         else:
             return inputs[indicator]
@@ -137,8 +141,11 @@ def translate(operand: dict, inputs):
     elif '%' in operand['value']:
         return percentToFloat(operand['value'])
     else:
-        print('bad value or unimplemented: {}'.format(operand))
-        return None
+        try:
+            return float(operand['value'])
+        except Exception as ex:
+            print('condition analyzer 143: ', ex)
+            return None
 
 
 # get the value for the indicator, if its a list or numpy array get last element, if its static return the value

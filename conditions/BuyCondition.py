@@ -44,7 +44,7 @@ class BuyCondition(Condition):
         if price >= trail_to and not trail_to is None:
             return get_buy_value(self.buy_value, balance)/price
 
-"""
+
 if __name__ == '__main__':
     from conditions.examples import *
     strategy = {}
@@ -65,4 +65,6 @@ if __name__ == '__main__':
 
     print(cond.evaluate(pair1,indicators1, 1))
     print(cond.pairs_trailing)
-"""
+    print(vars(cond))
+    print(vars(cond))
+

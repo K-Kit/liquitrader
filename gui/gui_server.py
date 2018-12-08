@@ -274,6 +274,9 @@ def get_config():
 # ----
 @_app.route("/api/analyzers")
 def get_analyzers():
+    import json
+    import numpy
     return jsonify(LT_ENGINE.get_trailing_pairs())
+
 
 

@@ -37,7 +37,7 @@ def get_inputs(df):
 
 
 def append_candle_period(candle_period, indicator):
-    if candle_period == 0:
+    if candle_period == 0 or candle_period == '':
         return indicator
     return '{}_{}'.format(indicator, candle_period)
 

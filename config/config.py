@@ -85,7 +85,7 @@ class Config:
     # ----
     def parse_indicators_from_strategy(self, strategies):
         for strategy in strategies:
-            strategy['indicators'] = {}
+            self.timeframes = set(self.timeframes)
             for condition in strategy['conditions']:
                 for key, part in condition.items():
                     if isinstance(part, dict):
@@ -96,10 +96,8 @@ class Config:
                                 # store in dict since we couldnt store a set of dicts
                                 hashvalue = "{}{}".format(*indicator.values())
                                 self.indicators[hashvalue] = indicator
-                                strategy['indicators'][hashvalue] = indicator
                                 if 'timeframe' in part:
                                     self.timeframes.add(part['timeframe'])
-            strategy['indicators'] = list(strategy['indicators'].values())
             print(strategy['indicators'])
         return self.indicators
 

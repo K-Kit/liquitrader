@@ -5,6 +5,8 @@ import pandas as pd
 from talib.abstract import *
 import operator as py_operators
 import numpy
+
+import traceback
 # a op b
 PATTERNS = [
     "CDL2CROWS",
@@ -70,7 +72,7 @@ PATTERNS = [
     "CDLXSIDEGAP3METHODS",
 ]
 # note change over will no longer be usable in cross
-talib_indicators = ['MFI']
+talib_indicators = ta.get_functions()
 op_translate = {'<': py_operators.lt, '<=': py_operators.le,
                 '>': py_operators.gt, '>=': py_operators.ge,
                 '=': py_operators.eq, '==': py_operators.eq}
@@ -100,7 +102,8 @@ def calculate_indicator_change(array, change_period, asPercent=False):
         else:
             return array[-1] - array[-1 - change_period]
     except Exception as ex:
-        print('calculate indicator change line 37: ', ex)
+        print(array, change_period)
+        print('calculate indicator change line 37: {}'.format(traceback.format_exc()))
         return None
 
 
@@ -122,7 +125,7 @@ def ind_dict_to_full_name(indicator: dict):
 
 def translate(operand: dict, inputs):
     # if the value is a talib indicators, its full name
-    if operand['value'] in talib_indicators:
+    if operand['value'] in talib_indicators or operand['value'] in PATTERNS:
         indicator = ind_dict_to_full_name(operand)
         if indicator not in inputs: return None
         if 'change_over' in operand and operand['change_over'] != "":
@@ -144,7 +147,7 @@ def translate(operand: dict, inputs):
         try:
             return float(operand['value'])
         except Exception as ex:
-            print('condition analyzer 143: ', ex)
+            print('condition analyzer 143: ', ex, operand)
             return None
 
 
@@ -203,11 +206,18 @@ def handle_gain_strat(pair, part, is_buy):
     else:
         return pair.price >= scaled_value
 
+
+failcounter=0
+
 # TODO GAIN and other strats
 def evaluate_condition(cond, pair, indicators, is_buy = True):
+    global failcounter
     inputs = {**pair, **indicators}
     if cond['left']['value'] in PATTERNS:
         a = getCurrentValue(cond['left'], inputs)
+        if a is None:
+            print(cond, indicators.keys())
+            return False
         if 'inverse' in cond and cond['inverse']:
             return a < 0
         else:

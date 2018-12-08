@@ -227,6 +227,8 @@ class LiquiTrader:
 
             if value['close'] * value['total'] > self.exchange.get_min_cost(pair):
                 self.owned.append(pair)
+            else:
+                value['dca_level'] = 0
 
         return pending + self.exchange.balance
 
@@ -801,7 +803,7 @@ def main():
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
-    # return lt_engine
+    return lt_engine
     # ----
     # Main thread loop
     while True:
@@ -849,5 +851,5 @@ def main():
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    lt= main()

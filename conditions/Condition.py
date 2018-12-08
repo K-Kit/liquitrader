@@ -16,13 +16,15 @@ class Condition:
 
     @staticmethod
     def trail_to(start, end, pair, indicators):
-        return {'trail_from': start,
-                'trail_to': end,
-                "pair_data": {**pair},
-                "stats": list(map(
-                    lambda x: x[len(x) - 1],
-                    indicators.values()
-                ))
+        import numpy as np
+        return {'trail_from': round(start, 10),
+                'trail_to': round(end, 10),
+                **pair,
+                "stats": list(map(lambda x:
+                                  [x[0],
+                                       round(float(x[1][len(x)-1]), 8) if np.isfinite(x[1][len(x)-1]) else None
+                                   ],
+                                  indicators.items()))
                 }
 
     def evaluate(self, pair: dict, indicators: dict, balance):

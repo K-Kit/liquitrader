@@ -25,6 +25,8 @@ class Condition:
                     if 'value' in part:
                         if part['value'] in talib_funcs:
                             period = 0 if "candle_period" not in part else part["candle_period"]
+                            if isinstance(period, str) and period == '':
+                                period = 0
                             if period is not None and int(period) > 0:
                                 indicators.add(
                                     "{}_{}_{}".format(part['value'], period, part['timeframe'])

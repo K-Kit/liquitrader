@@ -271,3 +271,9 @@ def get_config():
     return LT_ENGINE.config.get_config()
 
 
+# ----
+@_app.route("/api/analyzers")
+def get_config():
+    return LT_ENGINE.config.get_trailing_pairs()
+
+

@@ -18,10 +18,10 @@ class Condition:
         else:
             self.trailing_value = 0
         self.pairs_trailing = {}
-        self.indicators = list(self.get_indicators())
+        self.indicators = self.get_indicators()
 
     def get_indicators(self):
-        indicators = set()
+        indicators = []
         for condition in self.conditions_list:
             for key, part in condition.items():
                 if isinstance(part, dict):
@@ -29,15 +29,16 @@ class Condition:
                         if part['value'] in talib_funcs:
                             period = 0 if "candle_period" not in part else part["candle_period"]
                             if isinstance(period, str) and period == '':
-                                period = 0
+                                period = None
                             if period is not None and int(period) > 0:
-                                indicators.add(
+                                indicators.append(
                                     "{}_{}_{}".format(part['value'], period, part['timeframe'])
                                 )
                             else:
-                                indicators.add(
+                                indicators.append(
                                     "{}_{}".format(part['value'], part['timeframe'])
                                 )
+        self.indicators = indicators
         return indicators
 
 

@@ -272,9 +272,12 @@ def get_config():
 # ----
 @_app.route("/api/analyzers")
 def get_analyzers():
-    import json
-    import numpy
     return jsonify(LT_ENGINE.get_trailing_pairs())
+
+# ----
+@_app.route("/api/stats")
+def get_statistics():
+    return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
 
 
 

@@ -28,7 +28,6 @@ from utils.Utils import *
 from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
-
 LT_ENGINE = None
 
 APP_DIR = ''
@@ -40,8 +39,8 @@ if hasattr(sys, 'frozen'):
 else:
     APP_DIR = pathlib.Path(os.path.dirname(__file__))
 
-
-DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost', 'current_value', 'dca_level', 'total', 'percentage']
+DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost',
+                   'current_value', 'dca_level', 'total', 'percentage']
 
 # FRIENDLY_HOLDING_COLUMNS =  ['Last Purchase Time', 'Symbol', 'Price', 'Bought Price', '% Change', 'Volume',
 #                              'Bought Value', 'Current Value', 'DCA Level', 'Amount', '24h Change']
@@ -57,7 +56,6 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
                   'total': 'Amount',
                   'percentage': '24h Change'
                   }
-
 
 FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
                            'Amount', '24h Change']
@@ -324,20 +322,20 @@ class LiquiTrader:
                 # lowest cost trade-able
                 min_cost = exchange.get_min_cost(pair)
                 current_price = exch_pair['close']
-    
+
                 # get orderbook, if time since last orderbook check is too soon, it will return none
                 orderbook = exchange.get_depth(pair, 'BUY')
                 if orderbook is None:
                     continue
-    
+
                 # get viable trade, returns None if none available
                 price_info = self.check_for_viable_trade(current_price, orderbook, remaining_amount, min_cost,
                                                          config.global_trade_conditions['max_spread'])
-    
+
                 # Check to see if amount remaining to buy is greater than min trade quantity for pair
                 if price_info is None or price_info.amount * price_info.average_price < min_cost:
                     continue
-    
+
                 # place order
                 order = exchange.place_order(pair, 'limit', 'buy', price_info.amount, price_info.price)
                 # store order in trade history
@@ -349,7 +347,7 @@ class LiquiTrader:
         # Alleviate lookup cost
         exchange = self.exchange
         exchange_pairs = exchange.pairs
-        
+
         for pair in possible_sells:
             exch_pair = exchange_pairs[pair]
 
@@ -376,7 +374,7 @@ class LiquiTrader:
                 continue
 
             current_value = exch_pair['total'] * price.average_price
-            
+
             # profits.append(
             #     (current_value - exch_pair['total_cost']) / exch_pair['total_cost'] * 100)
             order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], price.price)
@@ -393,7 +391,7 @@ class LiquiTrader:
         dca_timeout = float(config.global_trade_conditions['dca_timeout']) * 60
         for pair in possible_buys:
             exch_pair = exchange_pairs[pair]
-            
+
             # lowest cost trade-able
             min_cost = exchange.get_min_cost(pair)
 
@@ -449,7 +447,6 @@ class LiquiTrader:
     def is_below_max_pairs(current_pairs, max_pairs):
         return current_pairs < max_pairs or max_pairs == 0
 
-
     # ----
     def global_buy_checks(self):
         # Alleviate lookup cost
@@ -459,16 +456,16 @@ class LiquiTrader:
         self.below_max_pairs = self.is_below_max_pairs(len(self.owned),
                                                        int(self.config.global_trade_conditions['max_pairs']))
         self.check_24h_quote_change = in_range(quote_change_info['24h'],
-                                          market_change['min_24h_quote_change'],
-                                          market_change['max_24h_quote_change'])
+                                               market_change['min_24h_quote_change'],
+                                               market_change['max_24h_quote_change'])
 
         self.check_1h_quote_change = in_range(quote_change_info['1h'],
-                                         market_change['min_1h_quote_change'],
-                                         market_change['max_1h_quote_change'])
+                                              market_change['min_1h_quote_change'],
+                                              market_change['max_1h_quote_change'])
 
         self.check_24h_market_change = in_range(self.market_change_24h,
-                                           market_change['min_24h_market_change'],
-                                           market_change['max_24h_market_change'])
+                                                market_change['min_24h_market_change'],
+                                                market_change['max_24h_market_change'])
 
         return all((
             self.check_1h_quote_change,
@@ -535,17 +532,17 @@ class LiquiTrader:
         # try:
         import arrow
         times = []
-        
+
         for t in df.last_order_time.values:
             times.append(arrow.get(t).to(self.config.general_settings['timezone']).datetime)
 
         df.last_order_time = pd.DatetimeIndex(times)
-        #)
+        # )
 
         # except Exception as ex:
         #     print(f'error parsing timezone in pairs to df {ex}')
         if 'total_cost' in df and 'close' in df:
-            df['current_value'] = df.close * df.total * (1-(fee/100))
+            df['current_value'] = df.close * df.total * (1 - (fee / 100))
             df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
 
         if friendly:
@@ -597,8 +594,7 @@ class LiquiTrader:
             df['percent_gain'] = 0
             return df
 
-
-        # ----
+    # ----
     def get_daily_profit_data(self):
         if len(self.trade_history) < 1:
             df = pd.DataFrame(self.trade_history + [PaperBinance.create_paper_order(0, 0, 'sell', 0, 0, 0)])
@@ -652,7 +648,20 @@ class LiquiTrader:
     def get_cumulative_profit(self):
         df = self.get_daily_profit_data().cumsum()
         return df[df.percent_gain < 9999]
-    #     (current_value - self.exchange.pairs[pair]['total_cost']) / self.exchange.pairs[pair]['total_cost'] * 100)
+
+    # ----
+    def get_trailing_pairs(self):
+        return {
+            "buy": list(map(vars,
+                        self.buy_strategies)),
+
+            "sell": list(map(vars,
+                        self.sell_strategies)),
+
+            "dca": list(map(vars,
+                        self.dca_buy_strategies))
+        }
+
 
 
 # ----
@@ -702,7 +711,8 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 def main():
     def err_msg():
         sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
-        sys.stdout.write('We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
+        sys.stdout.write(
+            'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
         sys.stdout.flush()
 
     print('Starting LiquiTrader...\n')
@@ -742,7 +752,7 @@ def main():
 
         start = time.perf_counter()
         # TODO URGENT DOES NOT RETURN ANYTHING, DOES NOT TERMINATE ON INVALID KEY
-        strategic_tools.verify(license_key, api_key) 
+        strategic_tools.verify(license_key, api_key)
 
         if (time.perf_counter() - start) < .01:
             print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
@@ -838,7 +848,6 @@ def main():
 
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)
-
 
 # if __name__ == '__main__':
 #     main()

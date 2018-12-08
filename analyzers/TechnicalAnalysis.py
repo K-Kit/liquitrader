@@ -54,7 +54,8 @@ def get_indicators(df, indicator_name, candle_period=0):
         is_price = 'Output scale same as input' in Function(indicator_name).info['function_flags']\
                    or 'MACD' in indicator_name
 
-
+    if isinstance(candle_period, str) and candle_period == '':
+        candle_period=0
     try:
         if candle_period is not None and int(candle_period) > 0:
             res = indicator_calculation(inputs, timeperiod=int(candle_period))
@@ -62,8 +63,8 @@ def get_indicators(df, indicator_name, candle_period=0):
             res = indicator_calculation(inputs)
 
     except Exception as ex:
+        print("hello world")
         res = indicator_calculation(inputs)
-        print(candle_period)
         print(ex)
 
 

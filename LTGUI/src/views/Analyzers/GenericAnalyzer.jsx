@@ -112,10 +112,12 @@ class GenericAnalyzer extends React.Component {
     super(props);
     this.state = { analyzers: [] };
     this.load = this.load.bind(this);
+    this.auto_update_frequency = 10 * 1000; // x * 1000 = x seconds
   }
   componentWillMount() {
     // This request takes longer, so prioritize it
     fetchJSON(analyzer_route, this.load);
+    this.auto_update = setInterval(this.load, this.auto_update_frequency);
   }
   load(analyzers) {
     console.log(analyzers);

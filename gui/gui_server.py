@@ -141,9 +141,9 @@ class GUIServer:
 
 
 # ----
-@_app.route('/', defaults={'path': ''})
+@_app.route('/')
 @_app.route('/<path:path>')
-def get_index(path):
+def get_index(path=None):
     return render_template('index.html')
 
 

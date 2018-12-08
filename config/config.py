@@ -130,7 +130,7 @@ class Config:
         config_update_cases[section](data)
         if self.update_lt_callback is not None:
             print("updating config")
-            self.update_lt_callback()
+            self.update_lt_callback(strategies='strategies' in section)
 
     def get_config(self):
         self.timeframes = list(self.timeframes)

@@ -229,7 +229,6 @@ class LiquiTrader:
 
             if value['close'] * value['total'] > self.exchange.get_min_cost(pair):
                 self.owned.append(pair)
-                print(self.owned)
 
         return pending + self.exchange.balance
 
@@ -391,7 +390,7 @@ class LiquiTrader:
         config = self.config
         exchange_pairs = exchange.pairs
         
-        dca_timeout = config.global_trade_conditions['dca_timeout'] * 60
+        dca_timeout = float(config.global_trade_conditions['dca_timeout']) * 60
         for pair in possible_buys:
             exch_pair = exchange_pairs[pair]
             

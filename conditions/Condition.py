@@ -13,7 +13,10 @@ class Condition:
 
     def __init__(self, condition_config: dict):
         self.conditions_list = condition_config['conditions']
-        self.trailing_value = condition_config['trailing %']
+        if 'trailing %' in condition_config:
+            self.trailing_value = float(condition_config['trailing %'])
+        else:
+            self.trailing_value = 0
         self.pairs_trailing = {}
         self.indicators = list(self.get_indicators())
 

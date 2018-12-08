@@ -14,6 +14,17 @@ class Condition:
         self.trailing_value = condition_config['trailing %']
         self.pairs_trailing = {}
 
+    @staticmethod
+    def trail_to(start, end, pair, indicators):
+        return {'trail_from': start,
+                'trail_to': end,
+                "pair_data": {**pair},
+                "stats": list(map(
+                    lambda x: x[len(x) - 1],
+                    indicators.values()
+                ))
+                }
+
     def evaluate(self, pair: dict, indicators: dict, balance):
         """
         evaluate single pair against conditions

@@ -55,10 +55,17 @@ def get_indicators(df, indicator_name, candle_period=0):
                    or 'MACD' in indicator_name
 
 
-    if candle_period > 0:
-        res = indicator_calculation(inputs, timeperiod=candle_period)
-    else:
+    try:
+        if candle_period is not None and int(candle_period) > 0:
+            res = indicator_calculation(inputs, timeperiod=int(candle_period))
+        else:
+            res = indicator_calculation(inputs)
+
+    except Exception as ex:
         res = indicator_calculation(inputs)
+        print(candle_period)
+        print(ex)
+
 
     if is_price:
         if type(res) == list:

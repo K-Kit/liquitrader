@@ -256,8 +256,6 @@ def get_dashboard_data():
 # ----
 @_app.route('/api/update_config', methods=['POST'])
 def update_config():
-    print("hello")
-    import json
     data = flask.request.get_json(force=True)
     print(data)
     LT_ENGINE.config.update_config(data['section'], data['data'])

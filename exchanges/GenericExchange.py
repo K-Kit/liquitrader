@@ -265,6 +265,10 @@ class GenericExchange:
         # increment or decrement 'total' (quantity owned)
         self.pairs[symbol]['total'] += filled if side == 'buy' else - filled
 
+        # if total cost is none set to 0 to avoid nonetype + float err
+        if self.pairs[symbol]['total_cost'] is None:
+            self.pairs[symbol]['total_cost'] = 0
+
         # increment or decrement total cost
         self.pairs[symbol]['total_cost'] += order['cost'] if side == 'buy' else - order['cost']
 

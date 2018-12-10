@@ -141,9 +141,9 @@ class GUIServer:
 
 
 # ----
-@_app.route('/', defaults={'path': ''})
+@_app.route('/')
 @_app.route('/<path:path>')
-def get_index(path):
+def get_index(path=None):
     return render_template('index.html')
 
 
@@ -256,8 +256,6 @@ def get_dashboard_data():
 # ----
 @_app.route('/api/update_config', methods=['POST'])
 def update_config():
-    print("hello")
-    import json
     data = flask.request.get_json(force=True)
     print(data)
     LT_ENGINE.config.update_config(data['section'], data['data'])
@@ -269,5 +267,17 @@ def update_config():
 @_app.route("/api/config")
 def get_config():
     return LT_ENGINE.config.get_config()
+
+
+# ----
+@_app.route("/api/analyzers")
+def get_analyzers():
+    return jsonify(LT_ENGINE.get_trailing_pairs())
+
+# ----
+@_app.route("/api/stats")
+def get_statistics():
+    return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
+
 
 

@@ -37,7 +37,7 @@ def get_inputs(df):
 
 
 def append_candle_period(candle_period, indicator):
-    if candle_period == 0:
+    if candle_period == 0 or candle_period == '':
         return indicator
     return '{}_{}'.format(indicator, candle_period)
 
@@ -54,11 +54,19 @@ def get_indicators(df, indicator_name, candle_period=0):
         is_price = 'Output scale same as input' in Function(indicator_name).info['function_flags']\
                    or 'MACD' in indicator_name
 
+    if isinstance(candle_period, str) and candle_period == '':
+        candle_period=0
+    try:
+        if candle_period is not None and int(candle_period) > 0:
+            res = indicator_calculation(inputs, timeperiod=int(candle_period))
+        else:
+            res = indicator_calculation(inputs)
 
-    if candle_period > 0:
-        res = indicator_calculation(inputs, timeperiod=candle_period)
-    else:
+    except Exception as ex:
+        print("hello world")
         res = indicator_calculation(inputs)
+        print(ex)
+
 
     if is_price:
         if type(res) == list:
@@ -67,6 +75,13 @@ def get_indicators(df, indicator_name, candle_period=0):
 
         else:
             res /= 100000000
+    else:
+        if isinstance(res, list):
+            for i in range(len(res)):
+                res[i][len(res[i])-1]= round(res[i][len(res[i])-1], 2)
+        else:
+            res[len(res) - 1] = round(res[len(res) - 1], 2)
+        
 
     i = 0
     if not isinstance(res,list):

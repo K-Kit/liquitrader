@@ -9,7 +9,7 @@ GLOBAL_TRADE_CONDITION_PATH = 'config/GlobalTradeConditions.json'
 PAIR_SPECIFIC_SETTINGS_PATH = 'config/PairSpecificSettings.json'
 SELL_STRATEGIES_PATH = 'config/SellStrategies.json'
 
-
+talib_funcs = get_talib_functions()
 
 class Config:
 
@@ -85,11 +85,12 @@ class Config:
     # ----
     def parse_indicators_from_strategy(self, strategies):
         for strategy in strategies:
+            self.timeframes = set(self.timeframes)
             for condition in strategy['conditions']:
                 for key, part in condition.items():
                     if isinstance(part, dict):
                         if 'value' in part:
-                            if part['value'] in get_talib_functions():
+                            if part['value'] in talib_funcs:
                                 period = 0 if "candle_period" not in part else part["candle_period"]
                                 indicator = { "name": part['value'], "candle_period": period}
                                 # store in dict since we couldnt store a set of dicts
@@ -97,6 +98,7 @@ class Config:
                                 self.indicators[hashvalue] = indicator
                                 if 'timeframe' in part:
                                     self.timeframes.add(part['timeframe'])
+            print(strategy['indicators'])
         return self.indicators
 
     # ----
@@ -126,7 +128,7 @@ class Config:
         config_update_cases[section](data)
         if self.update_lt_callback is not None:
             print("updating config")
-            self.update_lt_callback()
+            self.update_lt_callback(strategies='strategies' in section)
 
     def get_config(self):
         self.timeframes = list(self.timeframes)

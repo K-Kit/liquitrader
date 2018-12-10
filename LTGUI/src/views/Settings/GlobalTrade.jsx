@@ -241,7 +241,7 @@ class GlobalTrade extends React.Component {
               </FormLabel>
               <TagsInput
                 value={this.state.whitelist}
-                onChange={this.handeWhitelist}
+                onChange={this.handleWhitelist}
                 tagProps={{ className: "react-tagsinput-tag info" }}
               />
             </GridItem>

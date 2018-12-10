@@ -134,6 +134,10 @@ class GenericExchange:
         self._loop.run_forever()
 
     # ----
+    def reload_candles(self):
+        self._loop.create_task(self.load_all_candle_histories())
+
+    # ----
     async def restart(self):
         await self.stop()
 

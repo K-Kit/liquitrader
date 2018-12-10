@@ -294,7 +294,7 @@ class Dashboard extends React.Component {
                           }}
                         >
                           {" "}
-                          {value["gain"].toFixed(2)}%
+                          {value["gain"].toFixed(2)}<small>%</small>
                         </span>
                       ];
                     })}

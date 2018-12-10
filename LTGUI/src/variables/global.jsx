@@ -1,6 +1,6 @@
 export const url =
   !process.env.NODE_ENV || process.env.NODE_ENV === "development"
-    ? "http://45.77.216.107:8080/api/"
+    ? "http://localhost:8080/api/"
     : window.location.origin + "/api/";
 
 export const dashboard_route = url + "dashboard_data";
@@ -11,4 +11,5 @@ export const buys_route = url + "buy_log";
 export const sells_route = url + "sell_log";
 export const config_route = url + "config";
 export const update_config = url + "update_config";
+export const analyzer_route = url + "analyzers";
 export const HEADERS = { mode: "no-cors" };

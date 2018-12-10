@@ -158,7 +158,7 @@ class LiquiTrader:
         timeframes_changed = False
         for tf in self.config.timeframes:
             if tf not in old_timeframes:
-                timeframes_changed
+                timeframes_changed = True
         if timeframes_changed:
             print("timeframe_changed")
             self.exchange.reload_candles()

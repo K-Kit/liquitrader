@@ -69,12 +69,12 @@ class DCABuyCondition(Condition):
             current_marker = self.pairs_trailing[symbol]['trail_from']
             marker = price if price < current_marker else current_marker
             trail_to = marker * (1 + (self.trailing_value/100))
-            self.pairs_trailing[symbol] = {'trail_from': marker, 'trail_to':trail_to }
+            self.pairs_trailing[symbol] = self.trail_to(marker, trail_to, pair, indicators)
 
         # if its not trailing, add to trailing pairs, set trail_to
         elif res:
             trail_to = price * (1 + (self.trailing_value / 100))
-            self.pairs_trailing[symbol] = {'trail_from': price, 'trail_to':trail_to}
+            self.pairs_trailing[symbol] = self.trail_to(price, trail_to, pair, indicators)
 
         # coniditions are false, remove pair from trailing if needed
         elif not res:

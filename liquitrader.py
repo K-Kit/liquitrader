@@ -549,7 +549,7 @@ class LiquiTrader:
         #     print(f'error parsing timezone in pairs to df {ex}')
         if 'total_cost' in df and 'close' in df:
             df['current_value'] = df.close * df.total * (1 - (fee / 100))
-            df['gain'] = (df.close - df.avg_price) / df.avg_price * 100 - fee
+            df['gain'] = (df.bid - df.avg_price) / df.avg_price * 100 - fee
 
         if friendly:
             try:

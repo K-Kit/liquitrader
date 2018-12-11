@@ -24,7 +24,7 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-const STRATEGYBASE = { conditions: [] };
+const STRATEGYBASE = { conditions: [], dca_strategy: { default: {} } };
 
 export function fetchJSON(url, callback) {
   fetch(url)
@@ -43,9 +43,9 @@ class StrategyList extends React.Component {
       strategies: exampleDCAStrategies,
       open: false,
       targetStrategy: 0,
-        leftValue: {},
-        rightValue: {},
-        op: ""
+      leftValue: {},
+      rightValue: {},
+      op: ""
     };
     this.updateTextField = this.updateTextField.bind(this);
     this.addCondition = this.addCondition.bind(this);
@@ -54,6 +54,9 @@ class StrategyList extends React.Component {
     this.removeStrategy = this.removeStrategy.bind(this);
     this.editCondition = this.editCondition.bind(this);
     this.handleOpen = this.handleOpen.bind(this);
+    this.removeDCALevel = this.removeDCALevel.bind(this);
+    this.editDCALevel = this.editDCALevel.bind(this);
+    this.addDCALevel = this.addDCALevel.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
   }
@@ -71,6 +74,37 @@ class StrategyList extends React.Component {
   removeStrategy(id) {
     const strategies = [...this.state.strategies];
     strategies.splice(id, 1);
+    this.setState({
+      strategies: strategies
+    });
+  }
+  removeDCALevel(strategyID, dcaLvl) {
+    const strategies = [...this.state.strategies];
+
+    console.log(strategies)
+    delete strategies[strategyID].dca_strategy[dcaLvl];
+    console.log(strategies[strategyID][dcaLvl], dcaLvl)
+    this.setState({
+      strategies: strategies
+    });
+  }
+  editDCALevel(event, strategyID, dcaLvl, field) {
+    const target = event.target;
+    const strategies = [...this.state.strategies];
+    console.log(strategies[strategyID].dca_strategy[dcaLvl][field]);
+    strategies[strategyID].dca_strategy[dcaLvl][field] = target.value;
+
+    console.log(strategies[strategyID].dca_strategy[dcaLvl][field]);
+    this.setState({
+      strategies: strategies
+    });
+  }
+  addDCALevel(strategyID, dcaLvl, trigger, percent) {
+    const strategies = [...this.state.strategies];
+    console.log(strategies[strategyID].dca_strategy[dcaLvl]);
+    strategies[strategyID].dca_strategy[dcaLvl] = {trigger: trigger, percentage: percent};
+
+    console.log(strategies[strategyID].dca_strategy[dcaLvl]);
     this.setState({
       strategies: strategies
     });
@@ -96,15 +130,15 @@ class StrategyList extends React.Component {
     const strategies = [...this.state.strategies];
     const strategy = strategies[strategyID];
     let conditions = [...strategy.conditions];
-    let condition = conditions[conditionID]
+    let condition = conditions[conditionID];
     this.setState({
       open: true,
-        leftValue: condition.left,
-        rightValue: condition.right,
-        op: condition.op
+      leftValue: condition.left,
+      rightValue: condition.right,
+      op: condition.op
     });
-    console.log(this.state)
-      console.log(condition)
+    console.log(this.state);
+    console.log(condition);
   }
   addCondition(condition) {
     const strategies = [...this.state.strategies];
@@ -140,7 +174,8 @@ class StrategyList extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
-    let strategy_type = this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
+    let strategy_type =
+      this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
 
     if (!this.isCancelled) {
       this.setState({ strategies: config[strategy_type + "_strategies"] });
@@ -188,6 +223,9 @@ class StrategyList extends React.Component {
                     editCondition={this.editCondition}
                     strategyType={this.props.strategyType}
                     removeStrategy={this.removeStrategy}
+                    removeDCALvl={this.removeDCALevel}
+                    editDCALevel={this.editDCALevel}
+                    addDCALevel={this.addDCALevel}
                   />
                 </div>
               );

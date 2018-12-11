@@ -66,8 +66,21 @@ const FIELDS = {
 };
 
 class StrategyCard extends React.Component {
-  state = { expanded: false };
+  constructor(props) {
+    super(props);
+    this.state = { expanded: false };
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
 
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
+    console.log(this.state)
+    this.setState({
+      [name]: value
+    });
+  }
   handleExpandClick = () => {
     this.setState(state => ({ expanded: !state.expanded }));
   };
@@ -80,7 +93,10 @@ class StrategyCard extends React.Component {
     let removeCondition = props.removeCondition;
     let handleOpen = props.handleOpen;
     let removeStrategy = props.removeStrategy;
+    let removeDCALvl = props.removeDCALvl;
     let editCondition = props.editCondition;
+    let editDCALevel = props.editDCALevel;
+    let addDCALevel = props.addDCALevel;
     let id = props.id;
     let conditionID = 0;
     let fields = FIELDS[props.strategyType];
@@ -96,7 +112,11 @@ class StrategyCard extends React.Component {
                 return (
                   <div>
                     <GridItem xs={12}>
-                      {condition(item, () => removeCondition(id, item.id),  () => editCondition(id, item.id))}
+                      {condition(
+                        item,
+                        () => removeCondition(id, item.id),
+                        () => editCondition(id, item.id)
+                      )}
                     </GridItem>
                   </div>
                 );
@@ -126,148 +146,143 @@ class StrategyCard extends React.Component {
               );
             })}
           </GridContainer>
+          <br />
+          <br />
           {props.strategyType === "dca" ? (
-            <div>
-              <GridContainer justify="center" style={{ textAlign: "center" }}>
-                <GridItem xs={12}>
-                  DCA
-                  <IconButton
-                    className={classnames(classes.expand, {
-                      [classes.expandOpen]: this.state.expanded
-                    })}
-                    onClick={this.handleExpandClick}
-                    aria-expanded={this.state.expanded}
-                    aria-label="Show more"
+            <GridContainer justify="center" style={{ textAlign: "center" }}>
+              <GridContainer justify="center">
+                <GridItem xs={2}>Level</GridItem>
+                <GridItem xs={2}>Trigger</GridItem>
+                <GridItem xs={2}>Percent</GridItem>
+                <GridItem xs={2}>Add/Remove</GridItem>
+              </GridContainer>
+
+              {Object.entries(strategy.dca_strategy).map(item => {
+                return (
+                  <GridContainer
+                    justify={"center"}
+                    style={{ textAlign: "center" }}
                   >
-                    <ExpandMoreIcon />
-                  </IconButton>
+                    <GridItem xs={2}>
+                      {" "}
+                      <CustomInput
+                        labelText={"trigger"}
+                        id={"trigger"}
+                        disabled
+                        formControlProps={{
+                          fullWidth: false
+                        }}
+                        inputProps={{
+                          value: item[0],
+                          disabled: true
+                        }}
+                      />{" "}
+                    </GridItem>
+                    <GridItem xs={2}>
+                      {" "}
+                      <CustomInput
+                        labelText={"trigger"}
+                        id={"trigger"}
+                        formControlProps={{
+                          fullWidth: false
+                        }}
+                        inputProps={{
+                          onChange: event =>
+                            editDCALevel(event, id, item[0], "trigger"),
+                          value: item[1].trigger
+                        }}
+                      />{" "}
+                    </GridItem>
+
+                    <GridItem xs={2}>
+                      <CustomInput
+                        labelText={"percentage"}
+                        id={"percentage"}
+                        formControlProps={{
+                          fullWidth: false
+                        }}
+                        inputProps={{
+                          onChange: event =>
+                            editDCALevel(event, id, item[0], "percentage"),
+                          value: item[1].percentage
+                        }}
+                      />{" "}
+                    </GridItem>
+                    <GridItem xs={2}>
+                      {" "}
+                      <Button
+                        color={"warning"}
+                        onClick={() => removeDCALvl(id, item[0])}
+                      >
+                        {" "}
+                        -{" "}
+                      </Button>{" "}
+                    </GridItem>
+                  </GridContainer>
+                );
+              })}
+              {/* add dca level */}
+              <GridContainer justify={"center"} style={{ textAlign: "center" }}>
+                <GridItem xs={2}>
+                  {" "}
+                  <CustomInput
+                    labelText={"Level"}
+                    id={"lvl"}
+                    formControlProps={{
+                      fullWidth: false
+                    }}
+                    inputProps={{
+                      onChange: this.handleInputChange,
+                      value: this.state.level,
+                        name: "level"
+                    }}
+                  />{" "}
+                </GridItem>
+                <GridItem xs={2}>
+                  {" "}
+                  <CustomInput
+                    labelText={"trigger"}
+                    id={"trigger"}
+                    formControlProps={{
+                      fullWidth: false
+                    }}
+                    inputProps={{
+                      onChange: this.handleInputChange,
+                      value: this.state.trigger,
+                        name: "trigger"
+                    }}
+                  />{" "}
+                </GridItem>
+
+                <GridItem xs={2}>
+                  <CustomInput
+                    labelText={"percentage"}
+                    id={"percentage"}
+                    formControlProps={{
+                      fullWidth: false
+                    }}
+                    inputProps={{
+                      onChange: this.handleInputChange,
+                      value: this.state.percentage,
+                        name: "percentage"
+                    }}
+                  />{" "}
+                </GridItem>
+                <GridItem xs={2}>
+                  {" "}
+                  <Button color={"success"} onClick={() => addDCALevel(id, this.state.level, this.state.trigger, this.state.percent)}>
+                    {" "}
+                    +{" "}
+                  </Button>{" "}
                 </GridItem>
               </GridContainer>
-              <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
-                <GridContainer justify="center">
-                  <GridItem xs={3}>Level</GridItem>
-                  <GridItem xs={3}>Trigger</GridItem>
-                  <GridItem xs={3}>Percent</GridItem>
-                </GridContainer>
-
-                <GridContainer justify="center">
-                  <GridItem xs={3}>
-                    <p style={{ padding: "20px" }}> Default </p>
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText="%"
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                </GridContainer>
-
-                <GridContainer justify="center">
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText="%"
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                </GridContainer>
-
-                <GridContainer justify="center">
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText="%"
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                </GridContainer>
-
-                <GridContainer justify="center">
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText=""
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                  <GridItem xs={3}>
-                    <CustomInput
-                      labelText="%"
-                      id=""
-                      formControlProps={{
-                        fullWidth: false
-                      }}
-                    />
-                  </GridItem>
-                </GridContainer>
-              </Collapse>{" "}
-            </div>
+            </GridContainer>
           ) : null}
         </GridContainer>
-          <Button color={"warning"} onClick={() => removeStrategy(id)}> DELETE STRATEGY </Button>
+        <Button color={"warning"} onClick={() => removeStrategy(id)}>
+          {" "}
+          DELETE STRATEGY{" "}
+        </Button>
       </Card>
     );
   }

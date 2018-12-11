@@ -79,6 +79,8 @@ class StrategyCard extends React.Component {
     let updateTextField = props.updateTextField;
     let removeCondition = props.removeCondition;
     let handleOpen = props.handleOpen;
+    let removeStrategy = props.removeStrategy;
+    let editCondition = props.editCondition;
     let id = props.id;
     let conditionID = 0;
     let fields = FIELDS[props.strategyType];
@@ -94,7 +96,7 @@ class StrategyCard extends React.Component {
                 return (
                   <div>
                     <GridItem xs={12}>
-                      {condition(item, () => removeCondition(id, item.id))}
+                      {condition(item, () => removeCondition(id, item.id),  () => editCondition(id, item.id))}
                     </GridItem>
                   </div>
                 );
@@ -265,6 +267,7 @@ class StrategyCard extends React.Component {
             </div>
           ) : null}
         </GridContainer>
+          <Button color={"warning"} onClick={() => removeStrategy(id)}> DELETE STRATEGY </Button>
       </Card>
     );
   }
@@ -276,7 +279,7 @@ const cardstyle = {
   justify: "center",
   padding: "10px 10px"
 };
-const condition = (props, remove) => {
+const condition = (props, remove, edit) => {
   return (
     <div>
       <Button style={cardstyle}>
@@ -285,7 +288,7 @@ const condition = (props, remove) => {
         {props.right.timeframe} {props.right.value} {props.right.candle_period}{" "}
         {props.inverse ? "inverse" : null}
         <Tooltip id="tooltip-top" title="Edit" placement="top">
-          <IconButton aria-label="Edit">
+          <IconButton aria-label="Edit" onClick={edit}>
             <Edit />
           </IconButton>
         </Tooltip>

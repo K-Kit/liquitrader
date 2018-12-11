@@ -56,7 +56,7 @@ class DCABuyCondition(Condition):
         percent_change = get_percent_change(current_value, total_cost)
 
         # check percent change, if above trigger return none
-        above_trigger = percent_change > self.get_dca_trigger(dca_level)
+        above_trigger = percent_change > float(self.get_dca_trigger(dca_level))
 
         # evaluate all conditions return list of bools
         analysis = [evaluate_condition(condition, pair, indicators) for condition in self.conditions_list]
@@ -82,7 +82,7 @@ class DCABuyCondition(Condition):
             return None
         # finally if we're above trail_to, return amount to buy
         if price >= trail_to and not trail_to is None:
-            return self.get_dca_percent(dca_level)/100 *pair['total']
+            return float(self.get_dca_percent(dca_level)/100 *pair['total'])
 
     # get DCA trigger for the level, if not specified return default
     def get_dca_trigger(self, level):

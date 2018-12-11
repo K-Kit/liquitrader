@@ -76,7 +76,7 @@ class StrategyCard extends React.Component {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
-    console.log(this.state)
+    console.log(this.state);
     this.setState({
       [name]: value
     });
@@ -234,7 +234,7 @@ class StrategyCard extends React.Component {
                     inputProps={{
                       onChange: this.handleInputChange,
                       value: this.state.level,
-                        name: "level"
+                      name: "level"
                     }}
                   />{" "}
                 </GridItem>
@@ -249,7 +249,7 @@ class StrategyCard extends React.Component {
                     inputProps={{
                       onChange: this.handleInputChange,
                       value: this.state.trigger,
-                        name: "trigger"
+                      name: "trigger"
                     }}
                   />{" "}
                 </GridItem>
@@ -264,13 +264,28 @@ class StrategyCard extends React.Component {
                     inputProps={{
                       onChange: this.handleInputChange,
                       value: this.state.percentage,
-                        name: "percentage"
+                      name: "percentage"
                     }}
                   />{" "}
                 </GridItem>
                 <GridItem xs={2}>
                   {" "}
-                  <Button color={"success"} onClick={() => addDCALevel(id, this.state.level, this.state.trigger, this.state.percent)}>
+                  <Button
+                    color={"success"}
+                    onClick={() => {
+                      addDCALevel(
+                        id,
+                        this.state.level,
+                        this.state.trigger,
+                        this.state.percent
+                      );
+                      this.setState({
+                        trigger: "",
+                        percentage: "",
+                        level: ""
+                      });
+                    }}
+                  >
                     {" "}
                     +{" "}
                   </Button>{" "}

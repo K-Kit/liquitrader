@@ -209,7 +209,7 @@ class Dashboard extends React.Component {
                       {this.state.total_current_value} {this.state.market}
                     </h4>
                     <small style={lightgreyfont}>
-                      {this.state.usd_balance_info.split("/")[1]}
+                      {this.state.usd_balance_info.split("/")[0]}
                     </small>
                   </CardHeader>
                 </Card>

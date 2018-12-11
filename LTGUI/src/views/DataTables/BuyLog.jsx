@@ -100,7 +100,7 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-            <CardHeader color="primary" icon>
+            <CardHeader icon>
               <CardIcon color="primary">
                 <Assignment />
               </CardIcon>

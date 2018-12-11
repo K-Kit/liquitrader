@@ -42,12 +42,17 @@ class StrategyList extends React.Component {
     this.state = {
       strategies: exampleDCAStrategies,
       open: false,
-      targetStrategy: 0
+      targetStrategy: 0,
+        leftValue: {},
+        rightValue: {},
+        op: ""
     };
     this.updateTextField = this.updateTextField.bind(this);
     this.addCondition = this.addCondition.bind(this);
     this.addStrategy = this.addStrategy.bind(this);
     this.removeCondition = this.removeCondition.bind(this);
+    this.removeStrategy = this.removeStrategy.bind(this);
+    this.editCondition = this.editCondition.bind(this);
     this.handleOpen = this.handleOpen.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
@@ -63,7 +68,13 @@ class StrategyList extends React.Component {
     });
     console.log(this.state);
   }
-  removeStrategy(id) {}
+  removeStrategy(id) {
+    const strategies = [...this.state.strategies];
+    strategies.splice(id, 1);
+    this.setState({
+      strategies: strategies
+    });
+  }
   addStrategy() {
     const strategies = [...this.state.strategies, STRATEGYBASE];
     this.setState({
@@ -81,7 +92,20 @@ class StrategyList extends React.Component {
       strategies: strategies
     });
   }
-  editCondition(strategyID, conditionID, condition) {}
+  editCondition(strategyID, conditionID) {
+    const strategies = [...this.state.strategies];
+    const strategy = strategies[strategyID];
+    let conditions = [...strategy.conditions];
+    let condition = conditions[conditionID]
+    this.setState({
+      open: true,
+        leftValue: condition.left,
+        rightValue: condition.right,
+        op: condition.op
+    });
+    console.log(this.state)
+      console.log(condition)
+  }
   addCondition(condition) {
     const strategies = [...this.state.strategies];
     const strategy = strategies[this.state.targetStrategy];
@@ -140,6 +164,9 @@ class StrategyList extends React.Component {
           <ConditionInput
             addCondition={this.addCondition}
             targetStrategy={this.state.targetStrategy}
+            leftValue={this.state.leftValue}
+            rightValue={this.state.rightValue}
+            op={this.state.op}
           />
         </Dialog>
         <GridContainer justify="center">
@@ -158,7 +185,9 @@ class StrategyList extends React.Component {
                     addCondition={this.addCondition}
                     handleOpen={this.handleOpen}
                     removeCondition={this.removeCondition}
+                    editCondition={this.editCondition}
                     strategyType={this.props.strategyType}
+                    removeStrategy={this.removeStrategy}
                   />
                 </div>
               );

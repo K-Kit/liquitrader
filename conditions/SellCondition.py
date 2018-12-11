@@ -10,8 +10,7 @@ class SellCondition(Condition):
         super().__init__(condition_config)
         self.sell_value = float(condition_config['sell_value'])
 
-    def get_lowest_sell_price(self, total_cost, amount, fee):
-        bought_price = total_cost/amount
+    def get_lowest_sell_price(self, bought_price, fee):
         return bought_price * ((1 + self.sell_value + fee) / 100)
 
     def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
@@ -24,13 +23,13 @@ class SellCondition(Condition):
         :return:
         """
         symbol = pair['symbol']
-        if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair:
+        if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair or 'avg_price' not in pair or pair['avg_price'] is None:
             return None
 
         price = float(pair['bid'])
         trail_to = None
         current_value = pair['total'] * price
-        total_cost = pair['total_cost']
+        total_cost = pair['avg_price'] * pair['total']
         if total_cost is None:
             return None
         percent_change = get_percent_change(current_value, total_cost) - fee
@@ -38,7 +37,7 @@ class SellCondition(Condition):
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
         # check percent change, if above trigger return none
-        res = False not in analysis and percent_change > self.sell_value
+        res = False not in analysis and percent_change > self.sell_value if self.sell_value >= 0 else percent_change < self.sell_value
 
         if res and symbol in self.pairs_trailing:
             current_marker = self.pairs_trailing[symbol]['trail_from']
@@ -55,7 +54,7 @@ class SellCondition(Condition):
             return None
 
         if price <= trail_to and not trail_to is None:
-            return self.get_lowest_sell_price(pair['total_cost'], pair['total'], fee)
+            return self.get_lowest_sell_price(pair['avg_price'], fee)
 
 
 if __name__ == '__main__':

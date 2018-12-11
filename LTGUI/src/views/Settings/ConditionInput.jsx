@@ -3,7 +3,6 @@ import React from "react";
 import withStyles from "@material-ui/core/styles/withStyles";
 import Checkbox from "@material-ui/core/Checkbox";
 
-
 import Button from "components/CustomButtons/Button.jsx";
 
 import GridContainer from "components/Grid/GridContainer.jsx";
@@ -26,34 +25,30 @@ function Transition(props) {
   return <Slide direction="down" {...props} />;
 }
 
-let mfi = { value: "MFI", timeframe: "5m", candle_period: 30 };
-let staticval = { value: 30 };
-let mfo = { left: mfi, op: ">", right: staticval };
-
-let cup = { left: mfi, op: "cross_up", right: staticval };
-let conditions = [cup, mfo];
 let opList = [">", "<", "cross_up", "cross_down", "GAIN"];
 
 class ConditionInput extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      left: {},
-      right: {},
-      op: ""
+      left: this.props.leftValue,
+      right: this.props.rightValue,
+      op: this.props.op
     };
     this.handleInputChange = this.handleInputChange.bind(this);
 
     this.handleLeft = this.handleLeft.bind(this);
     this.handleRight = this.handleRight.bind(this);
     this.updateTextField = this.updateTextField.bind(this);
+    // this.handleLeft(props.lef)
+    console.log("editor", this.state);
   }
 
   updateTextField(event, name) {
     const target = event.target;
     const value = target.value;
     let left = this.state.left;
-    left[name] = value
+    left[name] = value;
     this.setState({
       left: left
     });
@@ -139,6 +134,15 @@ class ConditionInput extends React.Component {
         </FormControl>
       </div>
     );
+    let leftOperand = (
+      <Operand callback={this.handleLeft} initialState={this.props.leftValue} />
+    );
+    let rightOperand = (
+      <Operand
+        callback={this.handleRight}
+        initialState={this.props.rightValue}
+      />
+    );
     return (
       <div>
         {console.log(this.state)}
@@ -150,13 +154,9 @@ class ConditionInput extends React.Component {
               tabName: "Indicator vs Indicator",
               tabContent: (
                 <GridContainer spacing={16} justify={"center"}>
-                  <GridItem xs={5}>
-                    <Operand callback={this.handleLeft} />
-                  </GridItem>
+                  <GridItem xs={5}>{leftOperand}</GridItem>
                   <GridItem xs={2}>{opselect}</GridItem>
-                  <GridItem xs={5}>
-                    <Operand callback={this.handleRight} />
-                  </GridItem>
+                  <GridItem xs={5}>{rightOperand}</GridItem>
                   <Button
                     onClick={() => {
                       this.props.addCondition(this.state);
@@ -171,9 +171,7 @@ class ConditionInput extends React.Component {
               tabName: "Indicator vs Number",
               tabContent: (
                 <GridContainer spacing={16} justify={"center"}>
-                  <GridItem xs={5}>
-                    <Operand callback={this.handleLeft} />
-                  </GridItem>
+                  <GridItem xs={5}>{leftOperand}</GridItem>
                   <GridItem xs={2}>{opselect}</GridItem>
                   <GridItem xs={5}>
                     {indicatorInput("right", "Number", this.handleInputChange)}
@@ -232,17 +230,18 @@ class ConditionInput extends React.Component {
                   style={{ textAlign: "center" }}
                 >
                   <GridItem md={1}>
-                  <CustomInput
-                    labelText={"timeframe"}
-                    // id={field[0]}
-                    formControlProps={{
-                      fullWidth: false
-                    }}
-                    inputProps={{
-                      onChange: event => this.updateTextField(event, 'timeframe'),
-                      value: this.state.left.timeframe
-                    }}
-                  />
+                    <CustomInput
+                      labelText={"timeframe"}
+                      // id={field[0]}
+                      formControlProps={{
+                        fullWidth: false
+                      }}
+                      inputProps={{
+                        onChange: event =>
+                          this.updateTextField(event, "timeframe"),
+                        value: this.state.left.timeframe
+                      }}
+                    />
                   </GridItem>
                   <GridItem xs={4}>
                     <FormControl

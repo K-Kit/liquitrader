@@ -25,6 +25,12 @@ class Config:
         self.update_lt_callback = lt_callback
 
     # ----
+    def load_pair_settings(self):
+        with open(PAIR_SPECIFIC_SETTINGS_PATH, 'r') as f:
+            self.pair_specific_settings = json.load(f)
+        return self.pair_specific_settings
+
+    # ----
     def load_buy_strategies(self):
         with open(BUY_STRATEGY_PATH, 'r') as f:
             self.buy_strategies = json.load(f)

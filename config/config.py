@@ -104,7 +104,6 @@ class Config:
                                 self.indicators[hashvalue] = indicator
                                 if 'timeframe' in part:
                                     self.timeframes.add(part['timeframe'])
-            print(strategy['indicators'])
         return self.indicators
 
     # ----

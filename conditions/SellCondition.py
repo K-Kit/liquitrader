@@ -6,8 +6,8 @@ import time
 
 class SellCondition(Condition):
 
-    def __init__(self, condition_config: dict):
-        super().__init__(condition_config)
+    def __init__(self, condition_config: dict, pair_settings=None):
+        super().__init__(condition_config, pair_settings)
         self.sell_value = float(condition_config['sell_value'])
 
     def get_lowest_sell_price(self, bought_price, fee, sell_value=None):

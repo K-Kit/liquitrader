@@ -3,8 +3,8 @@ from conditions.condition_tools import evaluate_condition, get_buy_value
 
 class BuyCondition(Condition):
 
-    def __init__(self, condition_config: dict):
-        super().__init__(condition_config)
+    def __init__(self, condition_config: dict, pair_settings=None):
+        super().__init__(condition_config, pair_settings)
         self.buy_value = condition_config['buy_value']
 
     def apply_pair_settings(self, pair, balance):
@@ -56,7 +56,7 @@ class BuyCondition(Condition):
             return None
 
         if price >= trail_to and not trail_to is None:
-            return self.apply_pair_settings(symbol) / price
+            return self.apply_pair_settings(symbol, balance) / price
 
 
 if __name__ == '__main__':

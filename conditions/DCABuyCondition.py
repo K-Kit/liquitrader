@@ -19,8 +19,8 @@ class DCABuyCondition(Condition):
     level 4+ same as 1 and 2
     """
 
-    def __init__(self, condition_config: dict):
-        super().__init__(condition_config)
+    def __init__(self, condition_config: dict, pair_settings=None):
+        super().__init__(condition_config, pair_settings)
         self.dca_strategy = condition_config['dca_strategy']
         self.max_dca_level = condition_config['max_dca_level']
 

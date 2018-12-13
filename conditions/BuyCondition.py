@@ -1,12 +1,24 @@
 from conditions.Condition import Condition
 from conditions.condition_tools import evaluate_condition, get_buy_value
 
-
 class BuyCondition(Condition):
 
     def __init__(self, condition_config: dict):
         super().__init__(condition_config)
         self.buy_value = condition_config['buy_value']
+
+    def apply_pair_settings(self, pair, balance):
+        pair_settings = self.pair_settings
+        id = pair.split("/")[0]
+        if pair_settings is None or id not in pair_settings or "buy" not in pair_settings[id]:
+            get_buy_value(self.buy_value, balance)
+
+        elif pair_settings[id]["buy"]["method"] == "modify":
+            return float(pair_settings[id]["buy"]["value"]) * get_buy_value(self.buy_value, balance)
+        elif pair_settings[id]["buy"]["method"] == "override":
+            return get_buy_value(pair_settings[id]["buy"]["value"], balance)
+
+
 
     def evaluate(self, pair: dict, indicators: dict, balance):
         """
@@ -44,7 +56,7 @@ class BuyCondition(Condition):
             return None
 
         if price >= trail_to and not trail_to is None:
-            return get_buy_value(self.buy_value, balance) / price
+            return self.apply_pair_settings(symbol) / price
 
 
 if __name__ == '__main__':

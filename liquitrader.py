@@ -24,6 +24,7 @@ from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
+from conditions.condition_tools import get_buy_value
 
 from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
@@ -232,7 +233,7 @@ class LiquiTrader:
             if value['close'] * value['total'] > self.exchange.get_min_cost(pair):
                 self.owned.append(pair)
             else:
-                value['dca_level'] = 0
+                self.exchange.pairs[pair]['dca_level'] = 0
 
         return pending + self.exchange.balance
 
@@ -242,15 +243,15 @@ class LiquiTrader:
         # instantiate strategies
         buy_strategies = []
         for strategy in self.config.buy_strategies:
-            buy_strategies.append(BuyCondition(strategy))
+            buy_strategies.append(BuyCondition(strategy, pair_settings=self.config.pair_specific_settings))
 
         dca_buy_strategies = []
         for strategy in self.config.dca_buy_strategies:
-            dca_buy_strategies.append(DCABuyCondition(strategy))
+            dca_buy_strategies.append(DCABuyCondition(strategy, pair_settings=self.config.pair_specific_settings))
 
         sell_strategies = []
         for strategy in self.config.sell_strategies:
-            sell_strategies.append(SellCondition(strategy))
+            sell_strategies.append(SellCondition(strategy, pair_settings=self.config.pair_specific_settings))
 
         self.buy_strategies = buy_strategies
         self.sell_strategies = sell_strategies
@@ -533,7 +534,7 @@ class LiquiTrader:
         with open(fp, 'r') as f:
             self.trade_history = json.load(f)
 
-    def pairs_to_df(self, basic=True, friendly=False, fee=0.075):
+    def pairs_to_df(self, basic=True, friendly=False, holding=False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
         # try:
         import arrow
@@ -550,6 +551,8 @@ class LiquiTrader:
         if 'total_cost' in df and 'close' in df:
             df['current_value'] = df.close * df.total * (1 - (fee / 100))
             df['gain'] = (df.bid - df.avg_price) / df.avg_price * 100 - fee
+            if holding:
+                df = df[df.total_cost > 0.002]
 
         if friendly:
             try:

@@ -150,12 +150,12 @@ def get_index(path=None):
 # ----
 @_app.route("/api/holding")
 def get_holding():
-    df = LT_ENGINE.pairs_to_df(friendly=True)
+    df = LT_ENGINE.pairs_to_df(friendly=True, holding=True)
 
     if 'Amount' not in df:
         return jsonify([])
 
-    return jsonify(df[df['Amount'] > 0].dropna().to_json(orient='records'))
+    return jsonify(df.dropna().to_json(orient='records'))
 
 
 # ----

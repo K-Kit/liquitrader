@@ -44,7 +44,6 @@ class DCABuyCondition(Condition):
 
         # check to make sure we're below max dca level (# of times DCA'd)
         if dca_level >= self.max_dca_level:
-            print('cannot dca {}: max dca level'.format(symbol))
             return None
 
         # get current value, then use to calc percent change
@@ -82,7 +81,7 @@ class DCABuyCondition(Condition):
             return None
         # finally if we're above trail_to, return amount to buy
         if price >= trail_to and not trail_to is None:
-            return float(self.get_dca_percent(dca_level)/100 *pair['total'])
+            return float(float(self.get_dca_percent(dca_level))/100 *pair['total'])
 
     # get DCA trigger for the level, if not specified return default
     def get_dca_trigger(self, level):

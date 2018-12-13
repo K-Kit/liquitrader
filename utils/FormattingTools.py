@@ -12,7 +12,7 @@ def time_format(val):
 
 # use with functools  partial and pass quote price
 def decimal_with_usd(value, quote_price=0, dec=8):
-    return "{} (${})".format(eight_decimal_format(value), round(quote_price*value, dec))
+    return "{} (${})".format(eight_decimal_format(value), round(quote_price*value, 2))
 
 COLUMN_FORMATS = {'last_order_time': str,
                  'symbol': None,

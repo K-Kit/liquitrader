@@ -10,8 +10,20 @@ class SellCondition(Condition):
         super().__init__(condition_config)
         self.sell_value = float(condition_config['sell_value'])
 
-    def get_lowest_sell_price(self, bought_price, fee):
-        return bought_price * ((1 + self.sell_value + fee) / 100)
+    def get_lowest_sell_price(self, bought_price, fee, sell_value=None):
+        if sell_value is None:
+            return bought_price * ((1 + self.sell_value + fee) / 100)
+        else:
+            return bought_price * ((1 + float(sell_value) + fee) / 100)
+
+    def get_sell_value(self, pair):
+        pair_settings = self.pair_settings
+        id = pair.split("/")[0]
+        if pair_settings is None or id not in pair_settings or "sell" not in pair_settings[id]:
+            return self.sell_value
+        else:
+            return pair_settings[id]["sell"]["value"]
+
 
     def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
         """
@@ -23,6 +35,8 @@ class SellCondition(Condition):
         :return:
         """
         symbol = pair['symbol']
+        sell_value = self.get_sell_value(symbol)
+
         if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair or 'avg_price' not in pair or pair['avg_price'] is None:
             return None
 
@@ -37,7 +51,7 @@ class SellCondition(Condition):
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
         # check percent change, if above trigger return none
-        res = False not in analysis and percent_change > self.sell_value if self.sell_value >= 0 else percent_change < self.sell_value
+        res = False not in analysis and percent_change > sell_value if sell_value >= 0 else percent_change < sell_value
 
         if res and symbol in self.pairs_trailing:
             current_marker = self.pairs_trailing[symbol]['trail_from']

@@ -3,7 +3,9 @@ This will take in a list of conditions
 """
 import numpy
 from talib import get_functions as get_talib_functions
+
 talib_funcs = get_talib_functions()
+
 
 class Condition:
     """
@@ -11,7 +13,7 @@ class Condition:
     Holds a dict of pairs, along with their floor/ceiling depending on condition type
     """
 
-    def __init__(self, condition_config: dict):
+    def __init__(self, condition_config: dict, pair_settings=None):
         self.conditions_list = condition_config['conditions']
         if 'trailing %' in condition_config:
             self.trailing_value = float(condition_config['trailing %'])
@@ -19,6 +21,7 @@ class Condition:
             self.trailing_value = 0
         self.pairs_trailing = {}
         self.indicators = self.get_indicators()
+        self.pair_settings = pair_settings
 
     def get_indicators(self):
         indicators = []
@@ -40,8 +43,6 @@ class Condition:
                                 )
         self.indicators = indicators
         return indicators
-
-
 
     @staticmethod
     def get_last(arr):

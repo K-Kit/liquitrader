@@ -61,7 +61,8 @@ const FIELDS = {
   dca: [
     ["min_volume", "Minimum Volume"],
     ["trailing %", "Trailing Value (%)"],
-    ["min_price", "Minimum Price"]
+    ["min_price", "Minimum Price"],
+    ["max_dca_level", "Max DCA level"]
   ]
 };
 

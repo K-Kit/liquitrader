@@ -25,6 +25,7 @@ import {
   SellAnalyzer,
   DCAAnalyzer
 } from "views/Analyzers/Analyzers";
+import PairSettings from "../views/Settings/PairSettings";
 
 var dashRoutes = [
   {
@@ -66,6 +67,12 @@ var dashRoutes = [
     name: "DCA Analyzer",
     icon: DateRange,
     component: DCAAnalyzer
+  },
+  {
+    path: "/pairSettings",
+    name: "pairSettings",
+    icon: DateRange,
+    component: PairSettings
   },
   // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
   {

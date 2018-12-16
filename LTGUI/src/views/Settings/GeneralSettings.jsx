@@ -55,6 +55,8 @@ class GeneralSettings extends React.Component {
     };
     this.handleBlacklist = this.handleBlacklist.bind(this);
     this.handleWhitelist = this.handleWhitelist.bind(this);
+    this.load = this.load.bind(this);
+    this.save = this.save.bind(this);
   }
   handleSimple = event => {
     this.setState({ [event.target.name]: event.target.value });

@@ -100,7 +100,7 @@ class GenericExchange:
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': True,
-            'parseOrderToPrecision': True
+            'parseOrderToPrecision': True,
         })
 
         async_params = {
@@ -109,7 +109,7 @@ class GenericExchange:
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': False,
-            'asyncio_loop': self._loop
+            'asyncio_loop': self._loop,
         }
 
         if hasattr(sys, 'frozen'):

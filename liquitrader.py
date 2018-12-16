@@ -142,6 +142,7 @@ class LiquiTrader:
         self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
+        self.config.load_pair_settings()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
@@ -150,8 +151,7 @@ class LiquiTrader:
         old_timeframes = self.timeframes
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
-
-
+        self.config.load_pair_settings()
         self.timeframes = self.config.timeframes
         self.load_strategies()
         self.indicators = self.config.get_indicators()
@@ -426,7 +426,8 @@ class LiquiTrader:
                     continue
 
                 order = exchange.place_order(pair, 'limit', 'buy', possible_buys[pair], exch_pair['close'])
-                exch_pair['dca_level'] += 1
+                if order['cost'] > min_cost:
+                    exch_pair['dca_level'] += 1
                 self.trade_history.append(order)
                 self.save_trade_history()
 
@@ -552,7 +553,8 @@ class LiquiTrader:
             df['current_value'] = df.close * df.total * (1 - (fee / 100))
             df['gain'] = (df.bid - df.avg_price) / df.avg_price * 100 - fee
             if holding:
-                df = df[df.total_cost > 0.002]
+                dust = 0.02 if self.config.general_settings['market'].upper() == 'ETH' else 0.002
+                df = df[df.total_cost > dust]
 
         if friendly:
             try:

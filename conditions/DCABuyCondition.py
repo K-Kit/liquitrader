@@ -22,7 +22,7 @@ class DCABuyCondition(Condition):
     def __init__(self, condition_config: dict, pair_settings=None):
         super().__init__(condition_config, pair_settings)
         self.dca_strategy = condition_config['dca_strategy']
-        self.max_dca_level = condition_config['max_dca_level']
+        self.max_dca_level = float(condition_config['max_dca_level'])
 
     def evaluate(self, pair: dict, indicators: dict, balance):
         """

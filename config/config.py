@@ -142,7 +142,8 @@ class Config:
             "sell_strategies": self.sell_strategies,
             "dca_buy_strategies": self.dca_buy_strategies,
             "global_trade": self.global_trade_conditions,
-            "general": self.general_settings
+            "general": self.general_settings,
+            "pair_specific": self.pair_specific_settings
 
         })
 

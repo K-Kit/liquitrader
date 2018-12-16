@@ -11,7 +11,7 @@ class BuyCondition(Condition):
         pair_settings = self.pair_settings
         id = pair.split("/")[0]
         if pair_settings is None or id not in pair_settings or "buy" not in pair_settings[id]:
-            get_buy_value(self.buy_value, balance)
+            return get_buy_value(self.buy_value, balance)
 
         elif pair_settings[id]["buy"]["method"] == "modify":
             return float(pair_settings[id]["buy"]["value"]) * get_buy_value(self.buy_value, balance)
@@ -32,7 +32,9 @@ class BuyCondition(Condition):
         :return:
         """
         symbol = pair['symbol']
-
+        if symbol is None:
+            print(pair)
+            return None
         if 'close' not in pair:
             return None
 

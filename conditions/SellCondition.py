@@ -6,13 +6,24 @@ import time
 
 class SellCondition(Condition):
 
-    def __init__(self, condition_config: dict):
-        super().__init__(condition_config)
+    def __init__(self, condition_config: dict, pair_settings=None):
+        super().__init__(condition_config, pair_settings)
         self.sell_value = float(condition_config['sell_value'])
 
-    def get_lowest_sell_price(self, total_cost, amount, fee):
-        bought_price = total_cost/amount
-        return bought_price * ((1 + self.sell_value + fee) / 100)
+    def get_lowest_sell_price(self, bought_price, fee, sell_value=None):
+        if sell_value is None:
+            return bought_price * ((1 + self.sell_value + fee) / 100)
+        else:
+            return bought_price * ((1 + float(sell_value) + fee) / 100)
+
+    def get_sell_value(self, pair):
+        pair_settings = self.pair_settings
+        id = pair.split("/")[0]
+        if pair_settings is None or id not in pair_settings or "sell" not in pair_settings[id]:
+            return self.sell_value
+        else:
+            return pair_settings[id]["sell"]["value"]
+
 
     def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):
         """
@@ -24,13 +35,15 @@ class SellCondition(Condition):
         :return:
         """
         symbol = pair['symbol']
-        if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair:
+        sell_value = self.get_sell_value(symbol)
+
+        if 'total' not in pair or 'bid' not in pair or 'total_cost' not in pair or 'avg_price' not in pair or pair['avg_price'] is None:
             return None
 
         price = float(pair['bid'])
         trail_to = None
         current_value = pair['total'] * price
-        total_cost = pair['total_cost']
+        total_cost = pair['avg_price'] * pair['total']
         if total_cost is None:
             return None
         percent_change = get_percent_change(current_value, total_cost) - fee
@@ -38,24 +51,24 @@ class SellCondition(Condition):
         analysis = [evaluate_condition(condition, pair, indicators, is_buy=False) for condition in self.conditions_list]
 
         # check percent change, if above trigger return none
-        res = False not in analysis and percent_change > self.sell_value
+        res = False not in analysis and percent_change > sell_value if sell_value >= 0 else percent_change < sell_value
 
         if res and symbol in self.pairs_trailing:
             current_marker = self.pairs_trailing[symbol]['trail_from']
             marker = price if price > current_marker else current_marker
             trail_to = marker * (1 - (self.trailing_value/100))
-            self.pairs_trailing[symbol] = {'trail_from':marker, 'trail_to':trail_to }
+            self.pairs_trailing[symbol] = self.trail_to(marker, trail_to, pair, indicators)
 
         elif res:
             trail_to = price * (1 - (self.trailing_value / 100))
-            self.pairs_trailing[symbol] = {'trail_from': price, 'trail_to':trail_to}
+            self.pairs_trailing[symbol] = self.trail_to(price, trail_to, pair, indicators)
 
         elif not res:
             if symbol in self.pairs_trailing: self.pairs_trailing.pop(symbol)
             return None
 
         if price <= trail_to and not trail_to is None:
-            return self.get_lowest_sell_price(pair['total_cost'], pair['total'], fee)
+            return self.get_lowest_sell_price(pair['avg_price'], fee)
 
 
 if __name__ == '__main__':

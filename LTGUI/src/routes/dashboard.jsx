@@ -16,11 +16,16 @@ import BuyStrategies from "views/Settings/BuyStrategies.jsx";
 import DCAStrategies from "views/Settings/DCAStrategies.jsx";
 import SellStrategies from "views/Settings/SellStrategies.jsx";
 
-
-import Holding from "../views/DataTables/Holding";
-import BuyLog from "../views/DataTables/BuyLog";
-import SellLog from "../views/DataTables/SellLog";
-import Market from "../views/DataTables/Market";
+import Holding from "views/DataTables/Holding";
+import BuyLog from "views/DataTables/BuyLog";
+import SellLog from "views/DataTables/SellLog";
+import Market from "views/DataTables/Market";
+import {
+  BuyAnalyzer,
+  SellAnalyzer,
+  DCAAnalyzer
+} from "views/Analyzers/Analyzers";
+import PairSettings from "../views/Settings/PairSettings";
 
 var dashRoutes = [
   {
@@ -44,6 +49,30 @@ var dashRoutes = [
     name: "Sales Log",
     icon: DateRange,
     component: SellLog
+  },
+  {
+    path: "/buyAnalyzer",
+    name: "Buy Analyzer",
+    icon: DateRange,
+    component: BuyAnalyzer
+  },
+  {
+    path: "/sellAnalyzer",
+    name: "Sell Analyzer",
+    icon: DateRange,
+    component: SellAnalyzer
+  },
+  {
+    path: "/dcaAnalyzer",
+    name: "DCA Analyzer",
+    icon: DateRange,
+    component: DCAAnalyzer
+  },
+  {
+    path: "/pairSettings",
+    name: "pairSettings",
+    icon: DateRange,
+    component: PairSettings
   },
   // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
   {
@@ -71,12 +100,12 @@ var dashRoutes = [
         mini: "BS",
         component: BuyStrategies
       },
-        {
-            path: "/Settings/DCAStrategies",
-            name: "DCA Strategies",
-            mini: "DCA",
-            component: DCAStrategies
-        },
+      {
+        path: "/Settings/DCAStrategies",
+        name: "DCA Strategies",
+        mini: "DCA",
+        component: DCAStrategies
+      },
       {
         path: "/Settings/SellStrategies",
         name: "Sell Strategies",

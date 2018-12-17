@@ -14,8 +14,6 @@ import CardBody from "components/Card/CardBody.jsx";
 import CardIcon from "components/Card/CardIcon.jsx";
 import CardHeader from "components/Card/CardHeader.jsx";
 
-import { dataTable } from "variables/general.jsx";
-
 import { cardTitle } from "assets/jss/material-dashboard-pro-react.jsx";
 import { buys_route } from "variables/global";
 // const url = "https://gist.githubusercontent.com/K-Kit/9ab58d3f86ed7b59dd74a62ec395d8f1/raw/c0428e3216110a48ad2dd75f2482048908833b34/holding"
@@ -102,7 +100,7 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-            <CardHeader color="primary" icon>
+            <CardHeader icon>
               <CardIcon color="primary">
                 <Assignment />
               </CardIcon>

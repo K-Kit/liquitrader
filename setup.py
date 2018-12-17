@@ -111,6 +111,10 @@ def make_verifier():
 
 
 def copy_requirements():
+    try:
+        shutil.rmtree(BUILD_PATH + 'static')
+    except Exception as ex:
+        print(ex)
     shutil.copytree('LTGUI/build', BUILD_PATH + 'static')
 
     if sys.platform == 'win32':

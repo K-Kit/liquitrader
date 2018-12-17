@@ -19,10 +19,10 @@ class DCABuyCondition(Condition):
     level 4+ same as 1 and 2
     """
 
-    def __init__(self, condition_config: dict):
-        super().__init__(condition_config)
+    def __init__(self, condition_config: dict, pair_settings=None):
+        super().__init__(condition_config, pair_settings)
         self.dca_strategy = condition_config['dca_strategy']
-        self.max_dca_level = condition_config['max_dca_level']
+        self.max_dca_level = float(condition_config['max_dca_level'])
 
     def evaluate(self, pair: dict, indicators: dict, balance):
         """
@@ -44,7 +44,6 @@ class DCABuyCondition(Condition):
 
         # check to make sure we're below max dca level (# of times DCA'd)
         if dca_level >= self.max_dca_level:
-            print('cannot dca {}: max dca level'.format(symbol))
             return None
 
         # get current value, then use to calc percent change
@@ -56,7 +55,7 @@ class DCABuyCondition(Condition):
         percent_change = get_percent_change(current_value, total_cost)
 
         # check percent change, if above trigger return none
-        above_trigger = percent_change > self.get_dca_trigger(dca_level)
+        above_trigger = percent_change > float(self.get_dca_trigger(dca_level))
 
         # evaluate all conditions return list of bools
         analysis = [evaluate_condition(condition, pair, indicators) for condition in self.conditions_list]
@@ -69,12 +68,12 @@ class DCABuyCondition(Condition):
             current_marker = self.pairs_trailing[symbol]['trail_from']
             marker = price if price < current_marker else current_marker
             trail_to = marker * (1 + (self.trailing_value/100))
-            self.pairs_trailing[symbol] = {'trail_from': marker, 'trail_to':trail_to }
+            self.pairs_trailing[symbol] = self.trail_to(marker, trail_to, pair, indicators)
 
         # if its not trailing, add to trailing pairs, set trail_to
         elif res:
             trail_to = price * (1 + (self.trailing_value / 100))
-            self.pairs_trailing[symbol] = {'trail_from': price, 'trail_to':trail_to}
+            self.pairs_trailing[symbol] = self.trail_to(price, trail_to, pair, indicators)
 
         # coniditions are false, remove pair from trailing if needed
         elif not res:
@@ -82,7 +81,7 @@ class DCABuyCondition(Condition):
             return None
         # finally if we're above trail_to, return amount to buy
         if price >= trail_to and not trail_to is None:
-            return self.get_dca_percent(dca_level)/100 *pair['total']
+            return float(float(self.get_dca_percent(dca_level))/100 *pair['total'])
 
     # get DCA trigger for the level, if not specified return default
     def get_dca_trigger(self, level):

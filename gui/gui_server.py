@@ -65,14 +65,33 @@ class GUIServer:
         csp = {
             'default-src': '\'self\'',
             'style-src': [
+                '\'self\'',
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com',
+                'https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css',
+                'https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.4/jquery-jvectormap.css',
+                'https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css',
+                '\'unsafe-inline\''
+            ],
+            'font-src': [
+                '\'self\'',
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com',
+                '\'unsafe-inline\''
+            ],
+            'img-src': [
+                '\'self\'',
+                'data:',
                 'use.fontawesome.com',
                 'fonts.googleapis.com',
                 'fonts.gstatic.com'
             ],
-            'font-src': [
-                'use.fontawesome.com',
-                'fonts.googleapis.com',
-                'fonts.gstatic.com'
+            'script-src': [
+                '\'self\'',
+                '\'unsafe-inline\'',
+                'https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
             ]
         }
 

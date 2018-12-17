@@ -17,7 +17,7 @@ import flask_compress
 import flask_login
 
 from flask_bootstrap import Bootstrap
-from flask_cors import CORS
+from flask_talisman import Talisman
 from flask_otp import OTP
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm
@@ -62,9 +62,23 @@ class GUIServer:
 
         self._login_man = flask_login.LoginManager(_app)
 
+        csp = {
+            'default-src': '\'self\'',
+            'style-src': [
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com'
+            ],
+            'font-src': [
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com'
+            ]
+        }
+
         otp = OTP()
         otp.init_app(_app)
-        CORS(_app)
+        Talisman(_app, force_https=ssl, content_security_policy=csp)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -141,11 +155,16 @@ class GUIServer:
 
 
 # ----
-@_app.route('/', defaults={'path': ''})
-@_app.route('/<path:path>')
-def get_index(path):
+@_app.route('/')
+def get_index():
     return render_template('index.html')
 
+
+# ----
+@_app.route('/<path:path>')
+def get_file(path=''):
+    path = path.replace('..', '')
+    return flask.send_from_directory('.', path)
 
 # ----
 @_app.route("/api/holding")

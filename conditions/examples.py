@@ -1,7 +1,7 @@
-mfi_30_change_3_5m = {'value': 'MFI', 'change_over': 3, 'candle_count': 30, 'candle_period': '5m'}
-mfi_30_15m = {'value': 'MFI', 'candle_count': "30", 'candle_period': '15m'}
-mfi_30m = {'value': 'MFI', 'candle_period': '30m'}
-lowerband_5m = {'value': 'lowerband', 'candle_period': '5m'}
+mfi_30_change_3_5m = {'value': 'MFI', 'change_over': 3, 'candle_period': 30, 'timeframe': '5m'}
+mfi_30_15m = {'value': 'MFI', 'candle_period': "30", 'timeframe': '15m'}
+mfi_30m = {'value': 'MFI', 'timeframe': '30m'}
+lowerband_5m = {'value': 'lowerband', 'timeframe': '5m'}
 staticval = {'value': 4}
 percentval = {'value': '5%'}
 price = {'value': 'price'}

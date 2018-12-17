@@ -532,15 +532,20 @@ class LiquiTrader:
 
     def pairs_to_df(self, basic=True, friendly=False, fee=0.075):
         df = pd.DataFrame.from_dict(self.exchange.pairs, orient='index')
-        # try:
-        import arrow
         times = []
-        
+
+        timezone = self.config.general_settings['timezone']
+        try:
+            arrow.utcnow().to(timezone)  # Try to parse timezone
+
+        except arrow.parser.ParserError:
+            print('Invalid timezone in config, defaulting to UTC')
+            timezone = 'UTC'
+
         for t in df.last_order_time.values:
-            times.append(arrow.get(t).to(self.config.general_settings['timezone']).datetime)
+            times.append(arrow.get(t).to(timezone).datetime)
 
         df.last_order_time = pd.DatetimeIndex(times)
-        #)
 
         # except Exception as ex:
         #     print(f'error parsing timezone in pairs to df {ex}')

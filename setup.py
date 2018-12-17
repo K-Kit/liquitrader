@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 import shutil
 import datetime
@@ -20,6 +21,7 @@ BUILD_UPDATER = False
 
 
 BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
+BUILD_PATH = pathlib.Path(BUILD_PATH)
 
 
 def cythonize_liquitrader(target_packages):
@@ -110,17 +112,35 @@ def make_verifier():
     shutil.move(new_verifier, verifier_outpath)
 
 
+def rmtree(pth: pathlib.Path):
+    for sub in pth.iterdir():
+        if sub.is_dir():
+            rmtree(sub)
+        else:
+            sub.unlink()
+
+    while True:
+        try:
+            pth.rmdir()
+            break
+        except OSError:  # Folder not yet empty, wait for OS to catch up
+            time.sleep(.05)
+
+
 def copy_requirements():
-    shutil.copytree('LTGUI/build', BUILD_PATH + 'static')
+    if os.path.exists(BUILD_PATH / 'static'):
+        rmtree(BUILD_PATH / 'static')
+
+    shutil.copytree('LTGUI/build', BUILD_PATH / 'static')
 
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
 
     else:
         # Copy so's
-        lib_dir = BUILD_PATH + 'lib/'
-        cffi_dir = lib_dir + '.libs_cffi_backend/'
-        libffi_dll = lib_dir + [_ for _ in os.listdir(lib_dir) if 'libffi' in _][0]
+        lib_dir = BUILD_PATH / 'lib/'
+        cffi_dir = lib_dir / '.libs_cffi_backend'
+        libffi_dll = lib_dir / [_ for _ in os.listdir(lib_dir) if 'libffi' in _][0]
 
         os.makedirs(cffi_dir, exist_ok=True)
 
@@ -186,7 +206,7 @@ if __name__ == '__main__':
                 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
 
-            'bin_includes': ['openblas', 'libgfortran', 'libffi'],
+            'bin_includes': ['openblas', 'libgfortran', 'libffi', 'numpy'],
 
             'include_files': [('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
@@ -208,16 +228,16 @@ if __name__ == '__main__':
                 'appdirs',
                 'cheroot',
                 'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
-                'flask_compress', 'flask_sslify', 'flask_cors',
+                'flask_compress', 'flask_sslify', 'flask_talisman',
                 'OpenSSL',
-                'arrow',
+                'arrow', 'dateutil', 'dateutil.tz', 'dateutil.zoneinfo',
                 'jinja2',
                 'sqlalchemy',
                 'pyqrcode',
                 'onetimepass',
                 'wtforms',
                 'requests',
-                'numpy', 'numpy.core.numeric',
+                'numpy', 'numpy.core.numeric', 'numpy.core.multiarray',
                 'pandas',
                 'json_minify',
                 'packaging',
@@ -273,7 +293,7 @@ if __name__ == '__main__':
 
     from cx_Freeze import setup, Executable
 
-    os.makedirs(BUILD_PATH + 'setup/', exist_ok=True)
+    os.makedirs(BUILD_PATH / 'setup', exist_ok=True)
 
     if sys.platform == 'win32':
         executables = [Executable('runner.py',
@@ -317,7 +337,7 @@ if __name__ == '__main__':
               executables=[Executable('updater.py')],
               options={
                   'build_exe': {
-                      'build_exe': BUILD_PATH + 'updater/',
+                      'build_exe': BUILD_PATH / 'updater',
                       'packages': ['ctypes', '_ctypes', 'requests', 'idna', 'idna.idnadata', 'psutil'],
                       'include_files': [(requests.certs.where(), 'lib/cacert.pem')],
                       # 'zip_include_packages': '*',
@@ -336,10 +356,10 @@ if __name__ == '__main__':
     # ----
     copy_requirements()
 
-    try:
-        os.remove(BUILD_PATH + 'webserver/static/main.js.map')
-    except FileNotFoundError:
-        pass
+    try: os.remove(BUILD_PATH / 'static' / 'static' / 'js' / 'main.js.map')
+    except FileNotFoundError: pass
+    try: os.remove(BUILD_PATH / 'static' / 'static' / 'css' / 'main.css.map')
+    except FileNotFoundError: pass
 
     # ----
     monkey_patcher.do_postbuild_patches()

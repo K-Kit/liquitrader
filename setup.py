@@ -356,10 +356,13 @@ if __name__ == '__main__':
     # ----
     copy_requirements()
 
+    # Remove map files (for prod)
+    """
     try: os.remove(BUILD_PATH / 'static' / 'static' / 'js' / 'main.js.map')
     except FileNotFoundError: pass
     try: os.remove(BUILD_PATH / 'static' / 'static' / 'css' / 'main.css.map')
     except FileNotFoundError: pass
+    """
 
     # ----
     monkey_patcher.do_postbuild_patches()

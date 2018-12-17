@@ -3,7 +3,7 @@ import GridContainer from "../../components/Grid/GridContainer";
 import GridItem from "../../components/Grid/GridItem";
 import CustomInput from "../../components/CustomInput/CustomInput";
 
-export const indicatorInput = (id, label, callback) => {
+export const indicatorInput = (id, label, callback, value) => {
   return (
     <div>
       <CustomInput
@@ -14,7 +14,8 @@ export const indicatorInput = (id, label, callback) => {
         }}
         inputProps={{
           onChange: event => callback(event),
-          name: id
+          name: id,
+            value: value
         }}
       />
     </div>
@@ -25,11 +26,9 @@ export default class Operand extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: "",
-      candle_period: "",
-      candle_count: "",
-      change_over: ""
+        ...this.props.initialState
     };
+    console.log('operand', this.state)
     this.handleInputChange = this.handleInputChange.bind(this);
   }
 
@@ -49,20 +48,21 @@ export default class Operand extends React.Component {
       <div>
         <GridContainer>
           <GridItem md={3}>
-            {indicatorInput("timeframe", "period", this.handleInputChange)}
+            {indicatorInput("timeframe", "period", this.handleInputChange, this.state.timeframe)}
           </GridItem>
           <GridItem md={6}>
-            {indicatorInput("value", "Indicator", this.handleInputChange)}
+            {indicatorInput("value", "Indicator", this.handleInputChange, this.state.value)}
           </GridItem>
           <GridItem md={3}>
-            {indicatorInput("candle_period", "count", this.handleInputChange)}
+            {indicatorInput("candle_period", "period", this.handleInputChange, this.state.candle_period)}
           </GridItem>
 
           <GridItem md={6}>
             {indicatorInput(
               "change_over",
               "Change (optional)",
-              this.handleInputChange
+              this.handleInputChange,
+                this.state.change_over
             )}
           </GridItem>
         </GridContainer>

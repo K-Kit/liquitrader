@@ -100,7 +100,7 @@ class GenericExchange:
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': True,
-            'parseOrderToPrecision': True
+            'parseOrderToPrecision': True,
         })
 
         async_params = {
@@ -109,7 +109,7 @@ class GenericExchange:
             'secret': self._access_keys['secret'],
             'timeout': 50000,
             'enableRateLimit': False,
-            'asyncio_loop': self._loop
+            'asyncio_loop': self._loop,
         }
 
         if hasattr(sys, 'frozen'):
@@ -132,6 +132,10 @@ class GenericExchange:
         self._loop.create_task(self._quote_change_upkeep())
         self._loop.create_task(self._balances_upkeep())
         self._loop.run_forever()
+
+    # ----
+    def reload_candles(self):
+        self._loop.create_task(self.load_all_candle_histories())
 
     # ----
     async def restart(self):
@@ -260,6 +264,10 @@ class GenericExchange:
 
         # increment or decrement 'total' (quantity owned)
         self.pairs[symbol]['total'] += filled if side == 'buy' else - filled
+
+        # if total cost is none set to 0 to avoid nonetype + float err
+        if self.pairs[symbol]['total_cost'] is None:
+            self.pairs[symbol]['total_cost'] = 0
 
         # increment or decrement total cost
         self.pairs[symbol]['total_cost'] += order['cost'] if side == 'buy' else - order['cost']

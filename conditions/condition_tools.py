@@ -5,6 +5,8 @@ import pandas as pd
 from talib.abstract import *
 import operator as py_operators
 import numpy
+
+import traceback
 # a op b
 PATTERNS = [
     "CDL2CROWS",
@@ -70,7 +72,7 @@ PATTERNS = [
     "CDLXSIDEGAP3METHODS",
 ]
 # note change over will no longer be usable in cross
-talib_indicators = ['MFI']
+talib_indicators = ta.get_functions()
 op_translate = {'<': py_operators.lt, '<=': py_operators.le,
                 '>': py_operators.gt, '>=': py_operators.ge,
                 '=': py_operators.eq, '==': py_operators.eq}
@@ -91,12 +93,17 @@ def percentToFloat(x):
 
 def calculate_indicator_change(array, change_period, asPercent=False):
     try:
+        change_period = int(change_period)
+    except ValueError:
+        return None
+    try:
         if asPercent:
             return (array[-1] - array[-1 - change_period]) / array[-1 - change_period] * 100
         else:
             return array[-1] - array[-1 - change_period]
     except Exception as ex:
-        print('calculate indicator change line 37: ', ex)
+        print(array, change_period)
+        print('calculate indicator change line 37: {}'.format(traceback.format_exc()))
         return None
 
 
@@ -110,7 +117,7 @@ def isPriceLike(indicator_name):
 
 
 def ind_dict_to_full_name(indicator: dict):
-    if 'candle_period' in indicator:
+    if 'candle_period' in indicator and indicator['candle_period'] != '':
         return "_".join([indicator['value'], str(indicator['candle_period']), indicator['timeframe']])
     else:
         return "_".join([indicator['value'], indicator['timeframe']])
@@ -118,10 +125,14 @@ def ind_dict_to_full_name(indicator: dict):
 
 def translate(operand: dict, inputs):
     # if the value is a talib indicators, its full name
-    if operand['value'] in talib_indicators:
+    if operand['value'] in talib_indicators or operand['value'] in PATTERNS:
         indicator = ind_dict_to_full_name(operand)
-        if indicator not in inputs: return None
-        if 'change_over' in operand:
+        if indicator not in inputs:
+            if indicator.replace('__', '_') in inputs:
+                indicator = indicator.replace('__', '_')
+            else:
+                return None
+        if 'change_over' in operand and operand['change_over'] != "":
             return calculate_indicator_change(inputs[indicator], operand['change_over'], isPriceLike(operand['value']))
         else:
             return inputs[indicator]
@@ -137,8 +148,11 @@ def translate(operand: dict, inputs):
     elif '%' in operand['value']:
         return percentToFloat(operand['value'])
     else:
-        print('bad value or unimplemented: {}'.format(operand))
-        return None
+        try:
+            return float(operand['value'])
+        except Exception as ex:
+            print('condition analyzer 143: ', ex, operand)
+            return None
 
 
 # get the value for the indicator, if its a list or numpy array get last element, if its static return the value
@@ -196,11 +210,18 @@ def handle_gain_strat(pair, part, is_buy):
     else:
         return pair.price >= scaled_value
 
+
+failcounter=0
+
 # TODO GAIN and other strats
 def evaluate_condition(cond, pair, indicators, is_buy = True):
+    global failcounter
     inputs = {**pair, **indicators}
     if cond['left']['value'] in PATTERNS:
         a = getCurrentValue(cond['left'], inputs)
+        if a is None:
+            print(cond, indicators.keys())
+            return False
         if 'inverse' in cond and cond['inverse']:
             return a < 0
         else:

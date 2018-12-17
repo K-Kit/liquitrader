@@ -1,5 +1,6 @@
 arrow
 autobahn>=18.6.1
+appdirs
 
 binance
 
@@ -20,12 +21,15 @@ flask_sslify
 flask_wtf
 
 json_minify
-
+lxml
+encodings
+psutil
 numpy
 
 onetimepass
 pyopenssl
 
+packaging
 pandas
 persistent
 pyasn1

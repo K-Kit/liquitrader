@@ -185,15 +185,16 @@ def get_file(path=''):
     path = path.replace('..', '')
     return flask.send_from_directory('.', path)
 
+
 # ----
 @_app.route("/api/holding")
 def get_holding():
-    df = LT_ENGINE.pairs_to_df(friendly=True)
+    df = LT_ENGINE.pairs_to_df(friendly=True, holding=True)
 
     if 'Amount' not in df:
         return jsonify([])
 
-    return jsonify(df[df['Amount'] > 0].to_json(orient='records'))
+    return jsonify(df.dropna().to_json(orient='records'))
 
 
 # ----
@@ -227,8 +228,6 @@ def get_sell_log_frame():
     df['bought_cost'] = df.bought_price * df.filled
     df['gain'] = (df.cost - df.bought_cost) / df.bought_cost * 100
     cols = ['timestamp', 'symbol', 'bought_price', 'price','cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
-
-
     return jsonify(df[df.side == 'sell'][cols].dropna().to_json(orient='records'))
 
 
@@ -294,8 +293,6 @@ def get_dashboard_data():
 # ----
 @_app.route('/api/update_config', methods=['POST'])
 def update_config():
-    print("hello")
-    import json
     data = flask.request.get_json(force=True)
     print(data)
     LT_ENGINE.config.update_config(data['section'], data['data'])
@@ -307,5 +304,17 @@ def update_config():
 @_app.route("/api/config")
 def get_config():
     return LT_ENGINE.config.get_config()
+
+
+# ----
+@_app.route("/api/analyzers")
+def get_analyzers():
+    return jsonify(LT_ENGINE.get_trailing_pairs())
+
+# ----
+@_app.route("/api/stats")
+def get_statistics():
+    return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
+
 
 

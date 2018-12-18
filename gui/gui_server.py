@@ -63,7 +63,10 @@ class GUIServer:
         self._login_man = flask_login.LoginManager(_app)
 
         csp = {
-            'default-src': '\'self\'',
+            'default-src': [
+                '\'self\'',
+                # ''  #  Kyle: put your server IP here
+            ],
             'style-src': [
                 '\'self\'',
                 'use.fontawesome.com',

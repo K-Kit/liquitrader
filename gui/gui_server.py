@@ -69,9 +69,9 @@ class GUIServer:
                 'use.fontawesome.com',
                 'fonts.googleapis.com',
                 'fonts.gstatic.com',
-                'https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css',
+                'http://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css',
                 'https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.4/jquery-jvectormap.css',
-                'https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css',
+                'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css',
                 '\'unsafe-inline\''
             ],
             'font-src': [
@@ -91,7 +91,7 @@ class GUIServer:
             'script-src': [
                 '\'self\'',
                 '\'unsafe-inline\'',
-                'https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
+                'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
             ]
         }
 
@@ -304,6 +304,7 @@ def update_config():
 @_app.route("/api/config")
 def get_config():
     return LT_ENGINE.config.get_config()
+    #return jsonify(LT_ENGINE.config.get_config())  TODO :: Make frontend receive JSON
 
 
 # ----
@@ -315,6 +316,3 @@ def get_analyzers():
 @_app.route("/api/stats")
 def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
-
-
-

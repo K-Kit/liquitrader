@@ -68,12 +68,6 @@ var dashRoutes = [
     icon: DateRange,
     component: DCAAnalyzer
   },
-  {
-    path: "/pairSettings",
-    name: "pairSettings",
-    icon: DateRange,
-    component: PairSettings
-  },
   // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
   {
     collapse: true,
@@ -111,7 +105,14 @@ var dashRoutes = [
         name: "Sell Strategies",
         mini: "SS",
         component: SellStrategies
-      }
+      },
+
+  {
+    path: "/pairSettings",
+    name: "Pair Specific Settings",
+    icon: DateRange,
+    component: PairSettings
+  },
     ]
   },
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }

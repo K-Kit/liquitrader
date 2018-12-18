@@ -87,6 +87,12 @@ class Config:
         with open(GLOBAL_TRADE_CONDITION_PATH, 'w') as f:
             json.dump(json_data, f)
             self.global_trade_conditions = json_data
+            
+    # ----
+    def update_pair_settings(self, json_data):
+        with open(PAIR_SPECIFIC_SETTINGS_PATH, 'w') as f:
+            json.dump(json_data, f)
+            self.pair_specific_settings = json_data
 
     # ----
     def parse_indicators_from_strategy(self, strategies):
@@ -128,7 +134,7 @@ class Config:
             "dca_buy_strategies": self.update_dca_buy_strategies,
             "general": self.update_general_settings,
             "global_trade_conditions": self.update_global_trade_conditions,
-            "pair_specific": self.update_global_trade_conditions,
+            "pair_specific": self.update_pair_settings,
         }
         config_update_cases[section](data)
         if self.update_lt_callback is not None:

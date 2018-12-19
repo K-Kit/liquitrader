@@ -48,7 +48,7 @@ export default class Operand extends React.Component {
       <div>
         <GridContainer>
           <GridItem md={3}>
-            {indicatorInput("timeframe", "period", this.handleInputChange, this.state.timeframe)}
+            {indicatorInput("timeframe", "timeframe", this.handleInputChange, this.state.timeframe)}
           </GridItem>
           <GridItem md={6}>
             {indicatorInput("value", "Indicator", this.handleInputChange, this.state.value)}

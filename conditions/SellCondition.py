@@ -22,7 +22,7 @@ class SellCondition(Condition):
         if pair_settings is None or id not in pair_settings or "sell" not in pair_settings[id]:
             return self.sell_value
         else:
-            return pair_settings[id]["sell"]["value"]
+            return float(pair_settings[id]["sell"]["value"])
 
 
     def evaluate(self, pair: dict, indicators: dict, balance: float=None, fee=0.075):

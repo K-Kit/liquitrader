@@ -416,7 +416,7 @@ class Dashboard extends React.Component {
                         />
                       </CardHeader>
                       <CardBody>
-                        <h4 className={classes.cardTitle}>Cumulative Profit</h4>
+                        <h4 className={classes.cardTitle}>Daily Profit</h4>
                       </CardBody>
                     </Card>
                   </GridItem>

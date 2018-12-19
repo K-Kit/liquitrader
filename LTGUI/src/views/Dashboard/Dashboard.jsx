@@ -209,7 +209,7 @@ class Dashboard extends React.Component {
                       {this.state.total_current_value} {this.state.market}
                     </h4>
                     <small style={lightgreyfont}>
-                      {this.state.usd_balance_info.split("/")[0]}
+                      {this.state.usd_current_value}
                     </small>
                   </CardHeader>
                 </Card>
@@ -364,6 +364,8 @@ class Dashboard extends React.Component {
                     <h4 className={classes.cardTitle}>
                       24h {this.state.market} Change
                     </h4>
+
+                    <small> ${this.state.quote_price} </small>
                   </CardBody>
                 </Card>
               </GridItem>

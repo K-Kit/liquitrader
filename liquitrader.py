@@ -167,6 +167,7 @@ class LiquiTrader:
     # ----
     def initialize_exchange(self):
         general_settings = self.config.general_settings
+        general_settings['starting_balance'] = float(general_settings['starting_balance'])
         keys = get_keys()
         if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',

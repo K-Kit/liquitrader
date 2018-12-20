@@ -13,7 +13,7 @@ cython
 flask
 flask_bootstrap
 flask_compress
-flask_cors
+flask_talisman
 flask_login
 flask_otp
 flask_sqlalchemy

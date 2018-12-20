@@ -17,7 +17,7 @@ import flask_compress
 import flask_login
 
 from flask_bootstrap import Bootstrap
-from flask_cors import CORS
+from flask_talisman import Talisman
 from flask_otp import OTP
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm
@@ -62,9 +62,45 @@ class GUIServer:
 
         self._login_man = flask_login.LoginManager(_app)
 
+        csp = {
+            'default-src': [
+                '\'self\'',
+                # ''  #  Kyle: put your server IP here
+            ],
+            'style-src': [
+                '\'self\'',
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com',
+                'http://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css',
+                'https://cdnjs.cloudflare.com/ajax/libs/jvectormap/2.0.4/jquery-jvectormap.css',
+                'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css',
+                '\'unsafe-inline\''
+            ],
+            'font-src': [
+                '\'self\'',
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com',
+                '\'unsafe-inline\''
+            ],
+            'img-src': [
+                '\'self\'',
+                'data:',
+                'use.fontawesome.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com'
+            ],
+            'script-src': [
+                '\'self\'',
+                '\'unsafe-inline\'',
+                'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
+            ]
+        }
+
         otp = OTP()
         otp.init_app(_app)
-        CORS(_app)
+        Talisman(_app, force_https=ssl, content_security_policy=csp)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -142,9 +178,15 @@ class GUIServer:
 
 # ----
 @_app.route('/')
-@_app.route('/<path:path>')
-def get_index(path=None):
+def get_index():
     return render_template('index.html')
+
+
+# ----
+@_app.route('/<path:path>')
+def get_file(path=''):
+    path = path.replace('..', '')
+    return flask.send_from_directory('.', path)
 
 
 # ----
@@ -267,6 +309,7 @@ def update_config():
 @_app.route("/api/config")
 def get_config():
     return LT_ENGINE.config.get_config()
+    #return jsonify(LT_ENGINE.config.get_config())  TODO :: Make frontend receive JSON
 
 
 # ----
@@ -278,6 +321,3 @@ def get_analyzers():
 @_app.route("/api/stats")
 def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
-
-
-

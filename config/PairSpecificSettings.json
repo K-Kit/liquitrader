@@ -1,3 +1,1 @@
-{
-  "OMG": {"buy": {"method": "modify", "value": 1}, "sell": {"value": 2}}
-}
+{"editor": {"pair": "LOOM", "buy": {"method": "modify", "value": 1}, "sell": {"value": "1.5"}}, "OMG": {"buy": {"method": "modify", "value": 1}, "sell": {"value": 2}}, "LOOM": {"buy": {"method": "modify", "value": 1}, "sell": {"value": "1.5"}}}

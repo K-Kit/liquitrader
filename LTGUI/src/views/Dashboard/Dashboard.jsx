@@ -233,7 +233,7 @@ class Dashboard extends React.Component {
             </GridContainer>
           </GridItem>
         </GridContainer>
-        <GridContainer>
+        <GridContainer alignItems={"stretch"}>
           <GridItem xs={12} sm={12} md={3}>
             <Card>
               <CardHeader color="danger" stats icon>
@@ -245,7 +245,7 @@ class Dashboard extends React.Component {
                 </p>
               </CardHeader>
               <CardBody>
-                <GridContainer spacing={0} justify="center" alignItems="center">
+                <GridContainer spacing={0} justify="center" alignItems="stretch">
                   <Typography noWrap>
                     {this.state.market_conditions.map(condition => {
                       return (
@@ -304,7 +304,7 @@ class Dashboard extends React.Component {
             </Card>
           </GridItem>
           <GridItem xs={12} md={6}>
-            <GridContainer>
+            <GridContainer alignItems="stretch">
               <GridItem xs={12} sm={12} md={6}>
                 <Card>
                   <CardHeader color="danger" stats icon>
@@ -372,7 +372,7 @@ class Dashboard extends React.Component {
             </GridContainer>
           </GridItem>
         </GridContainer>
-        <GridContainer>
+        <GridContainer alignItems="stretch">
           <GridItem xs={12}>
             <Card>
               <CardHeader color="success" icon>
@@ -384,7 +384,7 @@ class Dashboard extends React.Component {
                 </h4>
               </CardHeader>
               <CardBody>
-                <GridContainer justify="space-between">
+                <GridContainer justify="space-between" alignItems="stretch">
                   <GridItem xs={12} sm={12} md={8}>
                     <Table
                       tableHead={["Date", "Bought Value", "Sold Value", "Gain"]}

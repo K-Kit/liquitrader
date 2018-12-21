@@ -165,6 +165,24 @@ class GUIServer:
         user_id = payload['identity']
         return self._user.query.filter_by(id=user_id).first().id
 
+    def user_exists(self, user_id):
+        """
+        Check if a user exists
+        :return: Bool
+        """
+
+        user = self._user.query.get(user_id)
+        return user is not None
+
+    def users_exist(self):
+        """
+        Check if any users exist
+        :return: Bool
+        """
+
+        users = self._user.query.all()
+        return len(users) > 0
+
 
 
     # ----

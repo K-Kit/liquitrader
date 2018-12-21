@@ -1,3 +1,7 @@
+export function loginUserSuccess(token) {
+  localStorage.setItem("token", token);
+}
+
 export function fetchErrorHandler(response, error = false) {
   if (error) {
     console.log(error);
@@ -7,7 +11,10 @@ export function fetchErrorHandler(response, error = false) {
 }
 
 export function fetchJSON(uri, callback, log_error = true) {
-  fetch(uri, { credentials: "include" })
+  fetch(uri, {
+    credentials: "include",
+    headers: { Authorization: localStorage.getItem("token") }
+  })
     .then(response => {
       if (log_error) {
         fetchErrorHandler(response);

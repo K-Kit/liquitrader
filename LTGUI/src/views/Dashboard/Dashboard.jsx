@@ -28,6 +28,9 @@ import { dashboard_route } from "variables/global";
 import dashboardStyle from "assets/jss/material-dashboard-pro-react/views/dashboardStyle";
 import Typography from "@material-ui/core/Typography/Typography";
 
+import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+
+
 const lightgreyfont = {
   color: "gray"
 };
@@ -55,17 +58,6 @@ let getData = data => {
   });
   return coordinates;
 };
-
-export function fetchJSON(url, callback) {
-  fetch(url)
-    .then(resp => {
-      return resp.json();
-    })
-    .then(data => callback(data))
-    .catch(function(error) {
-      console.log(error);
-    });
-}
 
 class Dashboard extends React.Component {
   constructor(props) {
@@ -118,6 +110,7 @@ class Dashboard extends React.Component {
   componentWillMount() {
     // This request takes longer, so prioritize it
     console.log("will mount");
+
     this.update();
     console.log("fetched");
     this.isCancelled = false;
@@ -128,6 +121,7 @@ class Dashboard extends React.Component {
   componentWillUnmount() {
     this.isCancelled = true;
     clearInterval(this.auto_update);
+
   }
 
   render() {
@@ -162,6 +156,7 @@ class Dashboard extends React.Component {
     };
     return (
       <div>
+
         <GridContainer alignItems={"stretch"}>
           {cum_profit_chart(getData(temp_cum))}
           <GridItem md={6}>

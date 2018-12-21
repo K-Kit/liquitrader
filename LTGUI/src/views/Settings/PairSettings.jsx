@@ -21,9 +21,8 @@ import GridItem from "components/Grid/GridItem.jsx";
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle.jsx";
-import { fetchJSON } from "./StrategyList";
 import { config_route, update_config } from "../../variables/global";
-import { postJSON } from "./helpers/Helpers";
+import { fetchJSON, postJSON } from "./helpers/Helpers";
 import Button from "../../../node_modules/@material-ui/core/Button/Button";
 import Card from "../../components/Card/Card";
 let exchanges = ["binance", "bittrex"];

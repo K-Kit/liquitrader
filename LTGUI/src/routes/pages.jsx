@@ -15,6 +15,12 @@ const pagesRoutes = [
     mini: "LP",
     icon: Fingerprint,
     component: LoginPage
+  },
+  {
+    redirect: true,
+    path: "/pages",
+    pathTo: "/pages/login-page",
+    name: "Register Page"
   }
 ];
 

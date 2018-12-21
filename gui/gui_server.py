@@ -1,3 +1,5 @@
+# TODO: redirect to /login on failed jwt_required check
+
 import binascii
 import os
 # from io import BytesIO
@@ -227,8 +229,7 @@ def get_index():
 # ----
 @_app.route('/<path:path>')
 def get_file(path=''):
-    path = path.replace('..', '')
-    return flask.send_from_directory('.', path)
+    return render_template('index.html')
 
 
 # ----
@@ -268,6 +269,7 @@ def get_buy_log_frame():
 
 # ----
 @_app.route("/api/sell_log")
+@jwt_required()
 def get_sell_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
@@ -296,6 +298,7 @@ def latest_sales():
 
 # ----
 @_app.route("/api/dashboard_data")
+@jwt_required()
 def get_dashboard_data():
     balance = LT_ENGINE.exchange.balance
     pending = LT_ENGINE.get_pending_value()
@@ -342,6 +345,7 @@ def get_dashboard_data():
 
 # ----
 @_app.route('/api/update_config', methods=['POST'])
+@jwt_required()
 def update_config():
     data = flask.request.get_json(force=True)
     print(data)
@@ -352,6 +356,7 @@ def update_config():
 
 # ----
 @_app.route("/api/config")
+@jwt_required()
 def get_config():
     return LT_ENGINE.config.get_config()
     #return jsonify(LT_ENGINE.config.get_config())  TODO :: Make frontend receive JSON
@@ -359,11 +364,13 @@ def get_config():
 
 # ----
 @_app.route("/api/analyzers")
+@jwt_required()
 def get_analyzers():
     return jsonify(LT_ENGINE.get_trailing_pairs())
 
 # ----
 @_app.route("/api/stats")
+@jwt_required()
 def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
 

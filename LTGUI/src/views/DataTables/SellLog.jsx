@@ -69,17 +69,15 @@ class ReactTables extends React.Component {
   }
 
   update() {
-    fetchJSON(this.props.url, this.update_rows_callback);
+    fetchJSON(url, this.update_rows_callback);
   }
 
   componentWillMount() {
     this.isCancelled = false;
 
     // This request takes longer, so prioritize it
-    fetchJSON(this.props.url, this.update_rows_callback);
+    fetchJSON(url, this.update_rows_callback);
 
-    // Only update columns once
-    fetchJSON(this.props.url + "_cols", this.update_cols_callback);
 
     this.auto_update = setInterval(this.update, this.auto_update_frequency);
   }

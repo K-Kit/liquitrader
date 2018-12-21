@@ -25,7 +25,6 @@ import loginPageStyle from "assets/jss/material-dashboard-pro-react/views/loginP
 
 import Wizard from "views/Forms/Wizard.jsx";
 
-
 import { postJSON } from "views/Settings/helpers/Helpers.jsx";
 import { auth_route } from "variables/global";
 
@@ -35,8 +34,8 @@ class LoginPage extends React.Component {
     // we use this to make the card to appear after the page has been rendered
     this.state = {
       cardAnimaton: "cardHidden",
-        password: "",
-        username: ""
+      password: "",
+      username: ""
     };
     this.handleInputChange = this.handleInputChange.bind(this);
   }
@@ -53,9 +52,9 @@ class LoginPage extends React.Component {
     clearTimeout(this.timeOutFunction);
     this.timeOutFunction = null;
   }
-   handleInputChange(event) {
+  handleInputChange(event) {
     const target = event.target;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
 
     this.setState({
@@ -75,7 +74,6 @@ class LoginPage extends React.Component {
                   color="rose"
                 >
                   <h4 className={classes.cardTitle}>Log in</h4>
-
                 </CardHeader>
                 <CardBody>
                   <CustomInput
@@ -86,7 +84,7 @@ class LoginPage extends React.Component {
                     }}
                     inputProps={{
                       name: "username",
-                        onChange: this.handleInputChange,
+                      onChange: this.handleInputChange,
                       value: this.state.username,
                       endAdornment: (
                         <InputAdornment position="end">
@@ -104,7 +102,7 @@ class LoginPage extends React.Component {
                     }}
                     inputProps={{
                       name: "password",
-                        onChange: this.handleInputChange,
+                      onChange: this.handleInputChange,
                       value: this.state.password,
                       endAdornment: (
                         <InputAdornment position="end">
@@ -117,19 +115,29 @@ class LoginPage extends React.Component {
                   />
                 </CardBody>
                 <CardFooter className={classes.justifyContentCenter}>
-                  <Button color="rose" simple size="lg" block onClick={
-                      () => {
-
-                        postJSON('/auth', {
+                  <Button
+                    color="rose"
+                    simple
+                    size="lg"
+                    block
+                    onClick={() => {
+                      postJSON("/auth", {
                         username: this.state.username,
-                          password: this.state.password
+                        password: this.state.password
                       }).then(token => {
-                          token = JSON.parse(token)
-                            localStorage.setItem('token', 'JWT ' + token.access_token);
-                        })
-
-                      }
-                  }>
+                        token = JSON.parse(token);
+                        console.log(token);
+                        console.log(token.access_token);
+                        if (Object.values(token)[0] !== undefined) {
+                          localStorage.setItem(
+                            "token",
+                            "JWT " + Object.values(token)[0]
+                          );
+                          window.location.pathname = "dashboard";
+                        }
+                      });
+                    }}
+                  >
                     Log in
                   </Button>
                 </CardFooter>

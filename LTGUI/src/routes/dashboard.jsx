@@ -26,13 +26,22 @@ import {
   DCAAnalyzer
 } from "views/Analyzers/Analyzers";
 import PairSettings from "../views/Settings/PairSettings";
-
+import pagesRoutes from "./pages.jsx";
+var pages = pagesRoutes
 var dashRoutes = [
   {
     path: "/dashboard",
     name: "Dashboard",
     icon: DashboardIcon,
     component: Dashboard
+  },
+    {
+    collapse: true,
+    path: "-page",
+    name: "Pages",
+    state: "openPages",
+    icon: Image,
+    views: pages
   },
   { path: "/market", name: "Market", icon: WidgetsIcon, component: Market },
   { path: "/holding", name: "Holding", icon: Timeline, component: Holding },

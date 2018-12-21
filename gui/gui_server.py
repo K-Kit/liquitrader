@@ -77,6 +77,10 @@ class GUIServer:
         csp = {
             'default-src': [
                 '\'self\'',
+                'http://45.77.216.107:3000',
+                '45.77.216.107',
+                '45.77.216.107:3000',
+                'localhost'
             ],
             'style-src': [
                 '\'self\'',
@@ -111,7 +115,9 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        # Talisman(_app, force_https=ssl, content_security_policy=csp)
+        Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # from flask_cors import CORS
+        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 

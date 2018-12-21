@@ -12,6 +12,9 @@ from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
 from flask import jsonify, Response, render_template
+from flask_jwt import JWT, jwt_required, current_identity
+
+import database_models
 
 import flask_compress
 import flask_login
@@ -57,15 +60,21 @@ class GUIServer:
         database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
         _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
         _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
 
         self._database = SQLAlchemy(_app)
+        self._user = database_models.create_user_database_model(self._database)
+        self._keyStore = database_models.create_keystore_database_model(self._database)
+        self._flaskStore = database_models.create_flask_database_model(self._database)
+        self._database.create_all()
+        # Perform any necessary database structure updates
+        database_models.migrate_table(self._database)
 
         self._login_man = flask_login.LoginManager(_app)
 
         csp = {
             'default-src': [
                 '\'self\'',
-                # ''  #  Kyle: put your server IP here
             ],
             'style-src': [
                 '\'self\'',
@@ -100,7 +109,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # Talisman(_app, force_https=ssl, content_security_policy=csp)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -116,6 +125,39 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
+        jwt = JWT(_app, self.authenticate, self.identity)
+
+    def add_user(self, username, password, role='admin'):
+        """
+        Adds a user to the database
+        Returns True on success, False on failure (user existed)
+        """
+        User = self._user
+        username = username.lower()
+
+        user = User.query.filter_by(username=username).first()
+
+        if user is not None:
+            return False
+
+        self._database.session.add(User(username=username, password=password, role=role))
+        self._database.session.commit()
+
+        return True
+
+    def authenticate(self, username=None, password=None):
+        user = self._user.query.filter_by(username=username).first()
+
+        if user is None or not user.verify_password(password):
+            return False
+
+        return user
+
+    def identity(self, payload):
+        user_id = payload['identity']
+        return self._user.query.filter_by(id=user_id).first().id
+
+
 
     # ----
     def _create_self_signed_cert(self):
@@ -191,6 +233,7 @@ def get_file(path=''):
 
 # ----
 @_app.route("/api/holding")
+@jwt_required()
 def get_holding():
     df = LT_ENGINE.pairs_to_df(friendly=True, holding=True)
 
@@ -202,6 +245,7 @@ def get_holding():
 
 # ----
 @_app.route("/api/market")
+@jwt_required()
 def get_market():
     df = LT_ENGINE.pairs_to_df(friendly=True)
 
@@ -210,6 +254,7 @@ def get_market():
 
 # ----
 @_app.route("/api/buy_log")
+@jwt_required()
 def get_buy_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
@@ -321,3 +366,8 @@ def get_analyzers():
 @_app.route("/api/stats")
 def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
+
+
+if __name__ == '__main__':
+    gui = GUIServer(shutdown_handler=None)
+    _app.run()

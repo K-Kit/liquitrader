@@ -47,7 +47,7 @@ bearpuncher_dir = abs_path
 if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
-    dist_path = abs_path / 'LTGUI' / 'build'
+    dist_path = abs_path / 'LTGUI' / 'dist'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
@@ -154,7 +154,7 @@ class GUIServer:
         return True
 
     def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username).first()
+        user = self._user.query.filter_by(username=username.lower()).first()
 
         if user is None or not user.verify_password(password):
             return False

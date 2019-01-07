@@ -30,7 +30,6 @@ import Typography from "@material-ui/core/Typography/Typography";
 
 import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
 
-
 const lightgreyfont = {
   color: "gray"
 };
@@ -94,13 +93,16 @@ class Dashboard extends React.Component {
 
   update() {
     fetchJSON(dashboard_route, this.update_state);
+    {
+      console.log("profit", this.state);
+    }
   }
 
   update_state(data) {
     // data = JSON.parse(data);
-      console.log(data);
+    console.log(data);
     if (data.status_code === 401) {
-      window.location.pathname = '/login'
+      window.location.pathname = "/login";
     }
     this.setState(data);
     return data;
@@ -124,7 +126,6 @@ class Dashboard extends React.Component {
   componentWillUnmount() {
     this.isCancelled = true;
     clearInterval(this.auto_update);
-
   }
 
   render() {
@@ -159,7 +160,6 @@ class Dashboard extends React.Component {
     };
     return (
       <div>
-
         <GridContainer alignItems={"stretch"}>
           {cum_profit_chart(getData(temp_cum))}
           <GridItem md={6}>
@@ -243,7 +243,11 @@ class Dashboard extends React.Component {
                 </p>
               </CardHeader>
               <CardBody>
-                <GridContainer spacing={0} justify="center" alignItems="stretch">
+                <GridContainer
+                  spacing={0}
+                  justify="center"
+                  alignItems="stretch"
+                >
                   <Typography noWrap>
                     {this.state.market_conditions.map(condition => {
                       return (
@@ -292,7 +296,8 @@ class Dashboard extends React.Component {
                           }}
                         >
                           {" "}
-                          {value["gain"].toFixed(2)}<small>%</small>
+                          {value["gain"].toFixed(2)}
+                          <small>%</small>
                         </span>
                       ];
                     })}
@@ -335,18 +340,23 @@ class Dashboard extends React.Component {
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
                   <CardHeader color="danger">
-                    {console.log(this.state.quote_candles.map(item => {
-                      let date = new Date(item.timestamp);
-                      return date;
-                    }), 'qc')}
+                    {console.log(
+                      this.state.quote_candles.map(item => {
+                        let date = new Date(item.timestamp);
+                        return date;
+                      }),
+                      "qc"
+                    )}
                     <ChartistGraph
                       className="ct-chart-white-colors"
                       data={{
                         labels: this.state.quote_candles.map(item => {
-                          let date = new Date(item.timestamp).toLocaleTimeString();
+                          let date = new Date(
+                            item.timestamp
+                          ).toLocaleTimeString();
                           let split = date.split(" ");
-                          let time = split[0].slice(0,-3);
-                          return  time;
+                          let time = split[0].slice(0, -3);
+                          return time;
                         }),
                         series: [
                           this.state.quote_candles.map(item => {

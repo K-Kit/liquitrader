@@ -5,6 +5,8 @@ export function loginUserSuccess(token) {
 export function fetchErrorHandler(response, error = false) {
   if (error) {
     console.log(error);
+
+  window.location.pathname= '/login';
   }
 
   return response;
@@ -12,7 +14,7 @@ export function fetchErrorHandler(response, error = false) {
 
 export function fetchJSON(uri, callback, log_error = true) {
   fetch(uri, {
-    credentials: "include",
+    // credentials: "include",
     headers: { Authorization: localStorage.getItem("token") }
   })
     .then(response => {
@@ -56,7 +58,7 @@ export function fetchData(uri, callback) {
 
 export function postJSON(uri, data, callback) {
   return fetch(uri, {
-    credentials: "include",
+    // credentials: "include",
     method: "post",
     headers: {
       Accept: "application/json, text/plain, */*",

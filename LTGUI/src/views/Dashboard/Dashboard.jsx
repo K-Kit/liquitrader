@@ -98,7 +98,10 @@ class Dashboard extends React.Component {
 
   update_state(data) {
     // data = JSON.parse(data);
-
+      console.log(data);
+    if (data.status_code === 401) {
+      window.location.pathname = '/login'
+    }
     this.setState(data);
     return data;
   }

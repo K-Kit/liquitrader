@@ -1,13 +1,22 @@
+export function loginUserSuccess(token) {
+  localStorage.setItem("token", token);
+}
+
 export function fetchErrorHandler(response, error = false) {
   if (error) {
     console.log(error);
+
+  window.location.pathname= '/login';
   }
 
   return response;
 }
 
 export function fetchJSON(uri, callback, log_error = true) {
-  fetch(uri, { credentials: "include" })
+  fetch(uri, {
+    // credentials: "include",
+    headers: { Authorization: localStorage.getItem("token") }
+  })
     .then(response => {
       if (log_error) {
         fetchErrorHandler(response);
@@ -49,7 +58,7 @@ export function fetchData(uri, callback) {
 
 export function postJSON(uri, data, callback) {
   return fetch(uri, {
-    credentials: "include",
+    // credentials: "include",
     method: "post",
     headers: {
       Accept: "application/json, text/plain, */*",

@@ -16,7 +16,10 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
 import Slide from "@material-ui/core/Slide";
 import { config_route, update_config } from "variables/global";
-import { postJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON, postJSON } from "views/Settings/helpers/Helpers.jsx";
+
+
+
 function Transition(props) {
   return <Slide direction="down" {...props} />;
 }
@@ -26,16 +29,6 @@ function capitalizeFirstLetter(string) {
 
 const STRATEGYBASE = { conditions: [], dca_strategy: { default: {} } };
 
-export function fetchJSON(url, callback) {
-  fetch(url)
-    .then(resp => {
-      return resp.json();
-    })
-    .then(callback)
-    .catch(function(error) {
-      console.log(error);
-    });
-}
 class StrategyList extends React.Component {
   constructor(props) {
     super(props);

@@ -29,6 +29,8 @@ from conditions.condition_tools import get_buy_value
 from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
+import getpass
+
 LT_ENGINE = None
 
 APP_DIR = ''
@@ -678,6 +680,37 @@ class LiquiTrader:
         }
 
 
+def print_line(text=''):
+    sys.stdout.write(text + '\n')
+
+def get_password():
+    while True:
+        password = input('Password: ')
+        confirm = input('Confirm: ')
+
+        if password == '':
+            print_line('Password cannot be empty')
+        elif password == confirm:
+            break
+        else:
+            print_line('Passwords did not match\n')
+
+    return password
+
+
+def get_username():
+    while 1:
+        username = input('Username: ')
+
+        if username != '':
+            break
+        else:
+            print_line('Username cannot be empty')
+
+    return username
+
+
+
 
 # ----
 def trader_thread_loop(lt_engine, _shutdown_handler):
@@ -718,6 +751,23 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     _shutdown_handler.remove_task()
 
+def firsttime_init(server):
+    """
+    Create user account on first run
+    """
+
+    print_line("\n###########################################")
+    if input('Do you agree to the LiquiTrader terms of service as found in TOS.txt? (y/n): ') == 'n':
+        print_line('\nWe\'re sorry to hear that. Agreeing to the ToS is mandatory, so we\'ll have to call it quits.')
+        print_line('Have a great day!\n')
+        sys.exit(0)
+
+    print_line('\nFirst time configuration\n')
+
+    username = get_username()
+    password = get_password()
+    server.add_user(username, password)
+    return
 
 # ----
 def main(ipython=False):
@@ -776,6 +826,23 @@ def main(ipython=False):
     lt_engine = LiquiTrader(shutdown_handler)
     lt_engine.initialize_config()
 
+    # ----
+    import gui.gui_server
+
+    gui.gui_server.LT_ENGINE = lt_engine
+
+    # get config from lt
+    config = lt_engine.config
+
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                          host=config.general_settings['host'],
+                                          port=config.general_settings['port'],
+                                          ssl=config.general_settings['use_ssl'],
+                                          )
+
+    if not gui_server.users_exist():
+        firsttime_init(gui_server)
+
     try:
         lt_engine.load_trade_history()
     except FileNotFoundError:
@@ -790,19 +857,6 @@ def main(ipython=False):
 
     lt_engine.load_strategies()
 
-    # ----
-    import gui.gui_server
-
-    gui.gui_server.LT_ENGINE = lt_engine
-
-    # get config from lt
-    config = lt_engine.config
-
-    gui_server = gui.gui_server.GUIServer(shutdown_handler,
-                                          host=config.general_settings['host'],
-                                          port=config.general_settings['port'],
-                                          ssl=config.general_settings['use_ssl'],
-                                          )
 
     # ----
     trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))

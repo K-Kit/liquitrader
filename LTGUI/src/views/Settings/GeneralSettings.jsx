@@ -21,9 +21,8 @@ import GridItem from "components/Grid/GridItem.jsx";
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle.jsx";
-import {fetchJSON} from "./StrategyList";
-import {config_route, update_config} from "../../variables/global";
-import {postJSON} from "./helpers/Helpers";
+import { config_route, update_config } from "../../variables/global";
+import { fetchJSON, postJSON } from "../helpers/Helpers";
 import Button from "../../../node_modules/@material-ui/core/Button/Button";
 let exchanges = ["binance", "bittrex"];
 let markets = ["BTC", "ETH", "BNB", "USDT"];
@@ -84,7 +83,7 @@ class GeneralSettings extends React.Component {
   save() {
     let data = {
       section: "general",
-      data: { ...this.state}
+      data: { ...this.state }
     };
     console.log(JSON.stringify(data), data);
     postJSON(update_config, data);
@@ -256,9 +255,9 @@ class GeneralSettings extends React.Component {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={this.state.checkedA}
-                    onChange={this.handleChange("checkedA")}
-                    value="checkedA"
+                    checked={this.state.paper_trading}
+                    onChange={this.handleChange("paper_trading")}
+                    value="paper_trading"
                     classes={{
                       switchBase: classes.switchBase,
                       checked: classes.switchChecked,
@@ -279,8 +278,8 @@ class GeneralSettings extends React.Component {
           <br />
         </GridContainer>
         <Button onClick={this.save} color={"primary"}>
-              Save
-            </Button>
+          Save
+        </Button>
         <GridContainer />
       </div>
     );

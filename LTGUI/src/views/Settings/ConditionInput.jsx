@@ -21,10 +21,6 @@ import { PATTERNS } from "views/Settings/data/Indicators.jsx";
 import FormControl from "@material-ui/core/FormControl/FormControl";
 import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 
-function Transition(props) {
-  return <Slide direction="down" {...props} />;
-}
-
 let opList = [">", "<", "cross_up", "cross_down", "GAIN"];
 
 class ConditionInput extends React.Component {
@@ -33,7 +29,8 @@ class ConditionInput extends React.Component {
     this.state = {
       left: this.props.leftValue,
       right: this.props.rightValue,
-      op: this.props.op
+      op: this.props.op,
+      cross_candles: 1
     };
     this.handleInputChange = this.handleInputChange.bind(this);
 
@@ -131,6 +128,20 @@ class ConditionInput extends React.Component {
               );
             })}
           </Select>
+          {this.state.op.split("_")[0] === "cross" ? (
+            <CustomInput
+              labelText={"cross_candles"}
+              id={"cross_candles"}
+              formControlProps={{
+                fullWidth: true
+              }}
+              inputProps={{
+                onChange: event => this.handleInputChange(event),
+                name: "cross_candles",
+                value: this.state.cross_candles
+              }}
+            />
+          ) : null}
         </FormControl>
       </div>
     );

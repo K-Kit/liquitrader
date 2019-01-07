@@ -80,7 +80,7 @@ def make_verifier():
         signature_tools.generate_private_key()
 
     exclude = ['strategic_analysis']
-    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg']
+    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg', '.db']
     to_sign = []
     for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
         bad = False
@@ -221,14 +221,14 @@ if __name__ == '__main__':
                               ],
 
             'packages': TARGET_PACKAGES + [  # LiquiTrader internal packages
-                'os', 'asyncio', 'configparser', 'datetime', 'io', 'json',
+                'os', 'asyncio', 'configparser', 'datetime', 'io', 'json', 'database_models',
                 'pkg_resources._vendor',
                 'cffi', '_cffi_backend',
                 'encodings', 'encodings.cp949', 'encodings.utf_8', 'encodings.ascii',
                 'appdirs',
                 'cheroot',
                 'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
-                'flask_compress', 'flask_sslify', 'flask_talisman',
+                'flask_compress', 'flask_sslify', 'flask_talisman', 'flask_jwt',
                 'OpenSSL',
                 'arrow', 'dateutil', 'dateutil.tz', 'dateutil.zoneinfo',
                 'jinja2',

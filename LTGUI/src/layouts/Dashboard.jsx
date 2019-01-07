@@ -20,6 +20,7 @@ import appStyle from "assets/jss/material-dashboard-pro-react/layouts/dashboardS
 
 import logo from "assets/img/logo-white.svg";
 
+
 const switchRoutes = (
   <Switch>
     {dashboardRoutes.map((prop, key) => {
@@ -46,8 +47,13 @@ class Dashboard extends React.Component {
       miniActive: false
     };
     this.resizeFunction = this.resizeFunction.bind(this);
+
+
   }
   componentDidMount() {
+    if (localStorage.getItem('token') === null) {
+      window.location.pathname = 'login'
+    }
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(this.refs.mainPanel, {
         suppressScrollX: true,

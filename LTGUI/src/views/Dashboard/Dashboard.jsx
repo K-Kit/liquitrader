@@ -28,6 +28,8 @@ import { dashboard_route } from "variables/global";
 import dashboardStyle from "assets/jss/material-dashboard-pro-react/views/dashboardStyle";
 import Typography from "@material-ui/core/Typography/Typography";
 
+import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+
 const lightgreyfont = {
   color: "gray"
 };
@@ -55,17 +57,6 @@ let getData = data => {
   });
   return coordinates;
 };
-
-export function fetchJSON(url, callback) {
-  fetch(url)
-    .then(resp => {
-      return resp.json();
-    })
-    .then(data => callback(data))
-    .catch(function(error) {
-      console.log(error);
-    });
-}
 
 class Dashboard extends React.Component {
   constructor(props) {
@@ -102,11 +93,17 @@ class Dashboard extends React.Component {
 
   update() {
     fetchJSON(dashboard_route, this.update_state);
+    {
+      console.log("profit", this.state);
+    }
   }
 
   update_state(data) {
     // data = JSON.parse(data);
-
+    console.log(data);
+    if (data.status_code === 401) {
+      window.location.pathname = "/login";
+    }
     this.setState(data);
     return data;
   }
@@ -118,6 +115,7 @@ class Dashboard extends React.Component {
   componentWillMount() {
     // This request takes longer, so prioritize it
     console.log("will mount");
+
     this.update();
     console.log("fetched");
     this.isCancelled = false;
@@ -233,7 +231,7 @@ class Dashboard extends React.Component {
             </GridContainer>
           </GridItem>
         </GridContainer>
-        <GridContainer>
+        <GridContainer alignItems={"stretch"}>
           <GridItem xs={12} sm={12} md={3}>
             <Card>
               <CardHeader color="danger" stats icon>
@@ -245,7 +243,11 @@ class Dashboard extends React.Component {
                 </p>
               </CardHeader>
               <CardBody>
-                <GridContainer spacing={0} justify="center" alignItems="center">
+                <GridContainer
+                  spacing={0}
+                  justify="center"
+                  alignItems="stretch"
+                >
                   <Typography noWrap>
                     {this.state.market_conditions.map(condition => {
                       return (
@@ -294,7 +296,8 @@ class Dashboard extends React.Component {
                           }}
                         >
                           {" "}
-                          {value["gain"].toFixed(2)}<small>%</small>
+                          {value["gain"].toFixed(2)}
+                          <small>%</small>
                         </span>
                       ];
                     })}
@@ -304,7 +307,7 @@ class Dashboard extends React.Component {
             </Card>
           </GridItem>
           <GridItem xs={12} md={6}>
-            <GridContainer>
+            <GridContainer alignItems="stretch">
               <GridItem xs={12} sm={12} md={6}>
                 <Card>
                   <CardHeader color="danger" stats icon>
@@ -337,18 +340,23 @@ class Dashboard extends React.Component {
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
                   <CardHeader color="danger">
-                    {console.log(this.state.quote_candles.map(item => {
-                      let date = new Date(item.timestamp);
-                      return date;
-                    }), 'qc')}
+                    {console.log(
+                      this.state.quote_candles.map(item => {
+                        let date = new Date(item.timestamp);
+                        return date;
+                      }),
+                      "qc"
+                    )}
                     <ChartistGraph
                       className="ct-chart-white-colors"
                       data={{
                         labels: this.state.quote_candles.map(item => {
-                          let date = new Date(item.timestamp).toLocaleTimeString();
+                          let date = new Date(
+                            item.timestamp
+                          ).toLocaleTimeString();
                           let split = date.split(" ");
-                          let time = split[0].slice(0,-3);
-                          return  time;
+                          let time = split[0].slice(0, -3);
+                          return time;
                         }),
                         series: [
                           this.state.quote_candles.map(item => {
@@ -372,7 +380,7 @@ class Dashboard extends React.Component {
             </GridContainer>
           </GridItem>
         </GridContainer>
-        <GridContainer>
+        <GridContainer alignItems="stretch">
           <GridItem xs={12}>
             <Card>
               <CardHeader color="success" icon>
@@ -384,7 +392,7 @@ class Dashboard extends React.Component {
                 </h4>
               </CardHeader>
               <CardBody>
-                <GridContainer justify="space-between">
+                <GridContainer justify="space-between" alignItems="stretch">
                   <GridItem xs={12} sm={12} md={8}>
                     <Table
                       tableHead={["Date", "Bought Value", "Sold Value", "Gain"]}

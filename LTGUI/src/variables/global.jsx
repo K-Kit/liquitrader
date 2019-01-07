@@ -11,5 +11,6 @@ export const buys_route = url + "buy_log";
 export const sells_route = url + "sell_log";
 export const config_route = url + "config";
 export const update_config = url + "update_config";
+export const auth_route = url + "auth";
 export const analyzer_route = url + "analyzers";
 export const HEADERS = { mode: "no-cors" };

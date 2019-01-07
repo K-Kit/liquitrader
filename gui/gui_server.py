@@ -1,3 +1,5 @@
+# TODO: redirect to /login on failed jwt_required check
+
 import binascii
 import os
 # from io import BytesIO
@@ -12,6 +14,9 @@ from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
 from flask import jsonify, Response, render_template
+from flask_jwt import JWT, jwt_required, current_identity
+
+import database_models
 
 import flask_compress
 import flask_login
@@ -42,7 +47,7 @@ bearpuncher_dir = abs_path
 if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
-    dist_path = abs_path / 'LTGUI' / 'build'
+    dist_path = abs_path / 'LTGUI' / 'dist'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
@@ -57,15 +62,25 @@ class GUIServer:
         database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
         _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
         _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
 
         self._database = SQLAlchemy(_app)
+        self._user = database_models.create_user_database_model(self._database)
+        self._keyStore = database_models.create_keystore_database_model(self._database)
+        self._flaskStore = database_models.create_flask_database_model(self._database)
+        self._database.create_all()
+        # Perform any necessary database structure updates
+        database_models.migrate_table(self._database)
 
         self._login_man = flask_login.LoginManager(_app)
 
         csp = {
             'default-src': [
                 '\'self\'',
-                # ''  #  Kyle: put your server IP here
+                'http://45.77.216.107:3000',
+                '45.77.216.107',
+                '45.77.216.107:3000',
+                'localhost'
             ],
             'style-src': [
                 '\'self\'',
@@ -101,6 +116,8 @@ class GUIServer:
         otp = OTP()
         otp.init_app(_app)
         Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # from flask_cors import CORS
+        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -116,6 +133,57 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
+        jwt = JWT(_app, self.authenticate, self.identity)
+
+    def add_user(self, username, password, role='admin'):
+        """
+        Adds a user to the database
+        Returns True on success, False on failure (user existed)
+        """
+        User = self._user
+        username = username.lower()
+
+        user = User.query.filter_by(username=username).first()
+
+        if user is not None:
+            return False
+
+        self._database.session.add(User(username=username, password=password, role=role))
+        self._database.session.commit()
+
+        return True
+
+    def authenticate(self, username=None, password=None):
+        user = self._user.query.filter_by(username=username.lower()).first()
+
+        if user is None or not user.verify_password(password):
+            return False
+
+        return user
+
+    def identity(self, payload):
+        user_id = payload['identity']
+        return self._user.query.filter_by(id=user_id).first().id
+
+    def user_exists(self, user_id):
+        """
+        Check if a user exists
+        :return: Bool
+        """
+
+        user = self._user.query.get(user_id)
+        return user is not None
+
+    def users_exist(self):
+        """
+        Check if any users exist
+        :return: Bool
+        """
+
+        users = self._user.query.all()
+        return len(users) > 0
+
+
 
     # ----
     def _create_self_signed_cert(self):
@@ -185,12 +253,12 @@ def get_index():
 # ----
 @_app.route('/<path:path>')
 def get_file(path=''):
-    path = path.replace('..', '')
-    return flask.send_from_directory('.', path)
+    return render_template('index.html')
 
 
 # ----
 @_app.route("/api/holding")
+@jwt_required()
 def get_holding():
     df = LT_ENGINE.pairs_to_df(friendly=True, holding=True)
 
@@ -202,6 +270,7 @@ def get_holding():
 
 # ----
 @_app.route("/api/market")
+@jwt_required()
 def get_market():
     df = LT_ENGINE.pairs_to_df(friendly=True)
 
@@ -210,6 +279,7 @@ def get_market():
 
 # ----
 @_app.route("/api/buy_log")
+@jwt_required()
 def get_buy_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
@@ -223,6 +293,7 @@ def get_buy_log_frame():
 
 # ----
 @_app.route("/api/sell_log")
+@jwt_required()
 def get_sell_log_frame():
     df = pd.DataFrame(LT_ENGINE.trade_history)
 
@@ -251,6 +322,7 @@ def latest_sales():
 
 # ----
 @_app.route("/api/dashboard_data")
+@jwt_required()
 def get_dashboard_data():
     balance = LT_ENGINE.exchange.balance
     pending = LT_ENGINE.get_pending_value()
@@ -297,6 +369,7 @@ def get_dashboard_data():
 
 # ----
 @_app.route('/api/update_config', methods=['POST'])
+@jwt_required()
 def update_config():
     data = flask.request.get_json(force=True)
     print(data)
@@ -307,6 +380,7 @@ def update_config():
 
 # ----
 @_app.route("/api/config")
+@jwt_required()
 def get_config():
     return LT_ENGINE.config.get_config()
     #return jsonify(LT_ENGINE.config.get_config())  TODO :: Make frontend receive JSON
@@ -314,10 +388,17 @@ def get_config():
 
 # ----
 @_app.route("/api/analyzers")
+@jwt_required()
 def get_analyzers():
     return jsonify(LT_ENGINE.get_trailing_pairs())
 
 # ----
 @_app.route("/api/stats")
+@jwt_required()
 def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
+
+
+if __name__ == '__main__':
+    gui = GUIServer(shutdown_handler=None)
+    _app.run()

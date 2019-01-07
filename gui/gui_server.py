@@ -47,7 +47,7 @@ bearpuncher_dir = abs_path
 if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
-    dist_path = abs_path / 'LTGUI' / 'build'
+    dist_path = abs_path / 'LTGUI' / 'dist'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
@@ -77,6 +77,10 @@ class GUIServer:
         csp = {
             'default-src': [
                 '\'self\'',
+                'http://45.77.216.107:3000',
+                '45.77.216.107',
+                '45.77.216.107:3000',
+                'localhost'
             ],
             'style-src': [
                 '\'self\'',
@@ -111,7 +115,9 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        # Talisman(_app, force_https=ssl, content_security_policy=csp)
+        Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # from flask_cors import CORS
+        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -148,7 +154,7 @@ class GUIServer:
         return True
 
     def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username).first()
+        user = self._user.query.filter_by(username=username.lower()).first()
 
         if user is None or not user.verify_password(password):
             return False
@@ -158,6 +164,24 @@ class GUIServer:
     def identity(self, payload):
         user_id = payload['identity']
         return self._user.query.filter_by(id=user_id).first().id
+
+    def user_exists(self, user_id):
+        """
+        Check if a user exists
+        :return: Bool
+        """
+
+        user = self._user.query.get(user_id)
+        return user is not None
+
+    def users_exist(self):
+        """
+        Check if any users exist
+        :return: Bool
+        """
+
+        users = self._user.query.all()
+        return len(users) > 0
 
 
 

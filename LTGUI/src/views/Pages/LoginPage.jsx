@@ -25,7 +25,7 @@ import loginPageStyle from "assets/jss/material-dashboard-pro-react/views/loginP
 
 import Wizard from "views/Forms/Wizard.jsx";
 
-import { postJSON } from "views/Settings/helpers/Helpers.jsx";
+import { postJSON } from "views/helpers/Helpers.jsx";
 import { auth_route } from "variables/global";
 export const url =
   !process.env.NODE_ENV || process.env.NODE_ENV === "development"

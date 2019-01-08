@@ -17,7 +17,7 @@ import CardHeader from "components/Card/CardHeader.jsx";
 import { dataTable } from "variables/general.jsx";
 // import { URL, HEADERS } from "variables/global.jsx";
 
-import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON } from "views/helpers/Helpers.jsx";
 import { cardTitle } from "assets/jss/material-dashboard-pro-react.jsx";
 import { sells_route } from "variables/global";
 // const url = "https://gist.githubusercontent.com/K-Kit/9ab58d3f86ed7b59dd74a62ec395d8f1/raw/c0428e3216110a48ad2dd75f2482048908833b34/holding"

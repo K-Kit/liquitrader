@@ -16,7 +16,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
 import Slide from "@material-ui/core/Slide";
 import { config_route, update_config } from "variables/global";
-import { fetchJSON, postJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON, postJSON } from "views/helpers/Helpers.jsx";
 
 
 

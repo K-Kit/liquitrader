@@ -7,6 +7,8 @@ import pathlib
 import sys
 import psutil
 
+from datetime import datetime, timedelta
+
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
@@ -63,6 +65,7 @@ class GUIServer:
         _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
         _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+        _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
         self._database = SQLAlchemy(_app)
         self._user = database_models.create_user_database_model(self._database)

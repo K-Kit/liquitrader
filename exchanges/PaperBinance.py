@@ -82,6 +82,7 @@ class PaperBinance(BinanceExchange):
 
         bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
         print(symbol, amount, self.pairs[symbol]['total'])
+        price = self.pairs[symbol]['bid'] if side.lower() == 'sell' else self.pairs[symbol]['ask']
 
         order = create_paper_order(symbol, order_type, side, amount, price, self.quote_currency)
         print(order)

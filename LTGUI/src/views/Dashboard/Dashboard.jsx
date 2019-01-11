@@ -28,7 +28,7 @@ import { dashboard_route } from "variables/global";
 import dashboardStyle from "assets/jss/material-dashboard-pro-react/views/dashboardStyle";
 import Typography from "@material-ui/core/Typography/Typography";
 
-import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON } from "views/helpers/Helpers.jsx";
 
 const lightgreyfont = {
   color: "gray"

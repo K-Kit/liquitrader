@@ -15,7 +15,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
 import Slide from "@material-ui/core/Slide";
 import { analyzer_route } from "variables/global";
-import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON } from "views/helpers/Helpers.jsx";
 import Card from "../../components/Card/Card";
 import Tooltip from "@material-ui/core/Tooltip";
 import IconButton from "@material-ui/core/IconButton";

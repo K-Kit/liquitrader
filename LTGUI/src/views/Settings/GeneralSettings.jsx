@@ -257,7 +257,7 @@ class GeneralSettings extends React.Component {
                   <Switch
                     checked={this.state.paper_trading}
                     onChange={this.handleChange("paper_trading")}
-                    value="paper_trading"
+                    value={this.state.paper_trading}
                     classes={{
                       switchBase: classes.switchBase,
                       checked: classes.switchChecked,
@@ -270,7 +270,7 @@ class GeneralSettings extends React.Component {
                 classes={{
                   label: classes.label
                 }}
-                label="Paper Trading (left = live trading, right(checked) = paper"
+                label="Paper / Live Trading (left = paper trading, right(checked) = live"
               />
             </GridContainer>
           </GridItem>

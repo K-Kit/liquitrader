@@ -20,7 +20,7 @@ import { dataTable } from "variables/general.jsx";
 import { cardTitle } from "assets/jss/material-dashboard-pro-react.jsx";
 import { holding_route } from "variables/global";
 
-import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON } from "views/helpers/Helpers.jsx";
 
 const styles = {
   cardIconTitle: {

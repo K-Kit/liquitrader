@@ -6,7 +6,7 @@ export function fetchErrorHandler(response, error = false) {
   if (error) {
     console.log(error);
 
-  window.location.pathname= '/login';
+    window.location.pathname= '/login';
   }
 
   return response;
@@ -62,7 +62,8 @@ export function postJSON(uri, data, callback) {
     method: "post",
     headers: {
       Accept: "application/json, text/plain, */*",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      Authorization: localStorage.getItem("token")
     },
     body: JSON.stringify(data)
   })

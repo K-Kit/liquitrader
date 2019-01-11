@@ -7,6 +7,8 @@ import pathlib
 import sys
 import psutil
 
+from datetime import datetime, timedelta
+
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
@@ -47,7 +49,7 @@ bearpuncher_dir = abs_path
 if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
-    dist_path = abs_path / 'LTGUI' / 'dist'
+    dist_path = abs_path / 'LTGUI' / 'build'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
@@ -63,6 +65,7 @@ class GUIServer:
         _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
         _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+        _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
         self._database = SQLAlchemy(_app)
         self._user = database_models.create_user_database_model(self._database)
@@ -115,7 +118,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # Talisman(_app, force_https=ssl, content_security_policy=csp)
         # from flask_cors import CORS
         # CORS(_app)
         self._bootstrap = Bootstrap(_app)
@@ -330,7 +333,10 @@ def get_dashboard_data():
     profit = LT_ENGINE.get_total_profit()
     profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
-    average_daily_gain = profit / len(profit_data)
+    if len(profit_data) > 0:
+        average_daily_gain = profit / len(profit_data)
+    else:
+        average_daily_gain = 0
     market = LT_ENGINE.config.general_settings['market'].upper()
     recent_sales = latest_sales()
     def reorient(df):

@@ -4,6 +4,7 @@ import itertools
 import time
 import os
 import sys
+import json
 
 import ccxt
 import ccxt.async_support as ccxt_async
@@ -53,6 +54,8 @@ class GenericExchange:
         # this is the amount of quote currency we hold
         self.balance = None
 
+        self.name = exchange_id
+
         # create default dict to store balances, averages, trade history, last_order_id
         # makes sense to calculate averages in the exchange since we'll need to be able to
         # fetch trade history during average calculation, couldnt think of a clean way to do this from a separate class
@@ -82,6 +85,7 @@ class GenericExchange:
         self._balance_upkeep_call_schedule = 65
 
         self.quote_change_info = {'1h': 0, '4h': 0, '24h': 0, '6h': 0, '12h': 0}
+        self.is_paper = False
 
         # Connect to exchange
         self._init_client_connection()
@@ -122,6 +126,7 @@ class GenericExchange:
     async def initialize(self):
         # Mandatory to call this before any other calls are made to Bittrex
         await self._client_async.load_markets()
+        self.load()
         self._initialize_pairs()
         await self.load_all_candle_histories(num_candles=500)
 
@@ -225,16 +230,19 @@ class GenericExchange:
         for pair in pairs:
             # assign default values for pairs
             candles[pair] = {}
-            pairs[pair]['total'] = 0
-            pairs[pair]['amount'] = 0
-            pairs[pair]['total_cost'] = 0
-            pairs[pair]['avg_price'] = None
-            pairs[pair]['dca_level'] = 0
-            pairs[pair]['last_order_time'] = 0
-            pairs[pair]['trades'] = []
-            pairs[pair]['last_id'] = 0
-            pairs[pair]['last_depth_check'] = 0
-            pairs[pair]['percentage'] = 0
+            if pair not in self.pairs:
+                pairs[pair]['total'] = 0
+                pairs[pair]['amount'] = 0
+                pairs[pair]['total_cost'] = 0
+                pairs[pair]['avg_price'] = None
+                pairs[pair]['dca_level'] = 0
+                pairs[pair]['last_order_time'] = 0
+                pairs[pair]['trades'] = []
+                pairs[pair]['last_id'] = 0
+                pairs[pair]['last_depth_check'] = 0
+                pairs[pair]['percentage'] = 0
+            else:
+                pairs[pair] = self.pairs[pair]
 
         self.pairs = pairs
         self.candles = candles
@@ -439,24 +447,48 @@ class GenericExchange:
             candlesticks = self._client.fetchOHLCV(symbol, timeframe=period, limit=300)
             self.candles[symbol][period] = candles_to_df(candlesticks)
 
+    def save(self):
+        fp = 'exchange.json'
+        name = self.name + '-paper' if self.is_paper else self.name
+        with open(fp, 'w') as f:
+            json.dump({
+                name: {
+                    "pairs": self.pairs,
+                    "balance": self.balance
+                }
+            }, f)
+
+    def load(self):
+        try:
+            fp = 'exchange.json'
+            name = self.name + '-paper' if self.is_paper else self.name
+            with open(fp, 'r') as f:
+                data = json.load(f)
+            if name in data:
+                data = data[name]
+                self.pairs = data['pairs']
+                self.balance = data['balance']
+        except FileNotFoundError:
+            print('No exchange history found.')
+
 
 if __name__ == '__main__':
     ex = GenericExchange('bittrex',
-                         'ETH',
+                         'ETH', 3,
                          {'public': '4fb9e3fe9e0e4c1eb80c82bb6126cf83',
                           'secret': '5942a5567e014fdfa05f0d202c5bec24'},
                          ['1m', '5m', '30m']
                          )
 
     print('Starting exchange')
-    ex.initialize()
+    asyncio.get_event_loop().run_until_complete(ex.initialize())
     # import threading
     # threading.Thread(target=ex.start()).start()
-    print(ex.get_depth('ADA/ETH', 'buy'))
-    print(ex.get_depth('ADA/ETH', 'buy'))
-    print(ex.get_depth('ADA/ETH', 'buy'))
-    time.sleep(1)
-    print(ex.get_depth('ADA/ETH', 'buy'))
+    # print(ex.get_depth('ADA/ETH', 'buy'))
+    # print(ex.get_depth('ADA/ETH', 'buy'))
+    # print(ex.get_depth('ADA/ETH', 'buy'))
+    # time.sleep(1)
+    # print(ex.get_depth('ADA/ETH', 'buy'))
     """
     loop = asyncio.get_event_loop()
 

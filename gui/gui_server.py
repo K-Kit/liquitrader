@@ -47,7 +47,7 @@ bearpuncher_dir = abs_path
 if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
-    dist_path = abs_path / 'LTGUI' / 'dist'
+    dist_path = abs_path / 'LTGUI' / 'build'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
@@ -115,7 +115,7 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # Talisman(_app, force_https=ssl, content_security_policy=csp)
         # from flask_cors import CORS
         # CORS(_app)
         self._bootstrap = Bootstrap(_app)

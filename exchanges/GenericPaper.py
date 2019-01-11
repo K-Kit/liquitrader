@@ -71,6 +71,7 @@ class PaperGeneric(GenericExchange):
         self.order_id = 0
         self.balance = starting_balance
         self.errors = []
+        self.is_paper = True
 
     def update_balances(self):
         pass

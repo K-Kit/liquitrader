@@ -241,6 +241,8 @@ class GenericExchange:
                 pairs[pair]['last_id'] = 0
                 pairs[pair]['last_depth_check'] = 0
                 pairs[pair]['percentage'] = 0
+            else:
+                pairs[pair] = self.pairs[pair]
 
         self.pairs = pairs
         self.candles = candles

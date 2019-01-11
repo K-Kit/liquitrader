@@ -626,7 +626,7 @@ class LiquiTrader:
             times.append(arrow.get(t / 1000).to(self.config.general_settings['timezone']).datetime)
 
         df.timestamp = pd.DatetimeIndex(times)
-
+        df.index = pd.DatetimeIndex(times)
         df = df.resample('1d').sum()
         df['date'] = df.index.astype('str').values
         return df

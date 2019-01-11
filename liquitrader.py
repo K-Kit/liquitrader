@@ -509,9 +509,7 @@ class LiquiTrader:
 
     # ----
     def save_pairs_history(self):
-        fp = 'pair_data.json'
-        with open(fp, 'w') as f:
-            json.dump(self.exchange.pairs, f)
+        self.exchange.save()
 
     # ----
     def load_pairs_history(self):
@@ -850,10 +848,6 @@ def main(ipython=False):
 
     lt_engine.initialize_exchange()
 
-    try:
-        lt_engine.load_pairs_history()
-    except FileNotFoundError:
-        print('No pairs history found')
 
     lt_engine.load_strategies()
 

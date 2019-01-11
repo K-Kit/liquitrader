@@ -333,7 +333,10 @@ def get_dashboard_data():
     profit = LT_ENGINE.get_total_profit()
     profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
-    average_daily_gain = profit / len(profit_data)
+    if len(profit_data) > 0:
+        average_daily_gain = profit / len(profit_data)
+    else:
+        average_daily_gain = 0
     market = LT_ENGINE.config.general_settings['market'].upper()
     recent_sales = latest_sales()
     def reorient(df):

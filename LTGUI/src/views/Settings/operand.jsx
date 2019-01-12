@@ -3,6 +3,8 @@ import GridContainer from "../../components/Grid/GridContainer";
 import GridItem from "../../components/Grid/GridItem";
 import CustomInput from "../../components/CustomInput/CustomInput";
 
+
+
 export const indicatorInput = (id, label, callback, value) => {
   return (
     <div>

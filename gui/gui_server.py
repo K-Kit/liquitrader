@@ -8,6 +8,8 @@ import sys
 import psutil
 from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta
+
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
@@ -79,6 +81,10 @@ class GUIServer:
         csp = {
             'default-src': [
                 '\'self\'',
+                'http://45.77.216.107:3000',
+                '45.77.216.107',
+                '45.77.216.107:3000',
+                'localhost'
             ],
             'style-src': [
                 '\'self\'',
@@ -116,7 +122,8 @@ class GUIServer:
         from flask_cors import CORS
         CORS(_app)
         # Talisman(_app, force_https=ssl, content_security_policy=csp)
-
+        # from flask_cors import CORS
+        CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -163,6 +170,24 @@ class GUIServer:
     def identity(self, payload):
         user_id = payload['identity']
         return self._user.query.filter_by(id=user_id).first().id
+
+    def user_exists(self, user_id):
+        """
+        Check if a user exists
+        :return: Bool
+        """
+
+        user = self._user.query.get(user_id)
+        return user is not None
+
+    def users_exist(self):
+        """
+        Check if any users exist
+        :return: Bool
+        """
+
+        users = self._user.query.all()
+        return len(users) > 0
 
 
 
@@ -310,7 +335,10 @@ def get_dashboard_data():
     profit = LT_ENGINE.get_total_profit()
     profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
-    average_daily_gain = profit / len(profit_data)
+    if len(profit_data) > 0:
+        average_daily_gain = profit / len(profit_data)
+    else:
+        average_daily_gain = 0
     market = LT_ENGINE.config.general_settings['market'].upper()
     recent_sales = latest_sales()
     def reorient(df):

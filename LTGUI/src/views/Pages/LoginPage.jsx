@@ -25,8 +25,12 @@ import loginPageStyle from "assets/jss/material-dashboard-pro-react/views/loginP
 
 import Wizard from "views/Forms/Wizard.jsx";
 
-import { postJSON } from "views/Settings/helpers/Helpers.jsx";
+import { postJSON } from "views/helpers/Helpers.jsx";
 import { auth_route } from "variables/global";
+export const url =
+  !process.env.NODE_ENV || process.env.NODE_ENV === "development"
+    ? "http://45.77.216.107:8080/auth"
+    : window.location.origin + "/auth";
 
 class LoginPage extends React.Component {
   constructor(props) {
@@ -121,7 +125,7 @@ class LoginPage extends React.Component {
                     size="lg"
                     block
                     onClick={() => {
-                      postJSON("/auth", {
+                      postJSON(url, {
                         username: this.state.username,
                         password: this.state.password
                       }).then(token => {

@@ -17,7 +17,7 @@ import CardHeader from "components/Card/CardHeader.jsx";
 import { dataTable } from "variables/general.jsx";
 // import { URL, HEADERS } from "variables/global.jsx";
 
-import { fetchJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON } from "views/helpers/Helpers.jsx";
 import { cardTitle } from "assets/jss/material-dashboard-pro-react.jsx";
 import { sells_route } from "variables/global";
 // const url = "https://gist.githubusercontent.com/K-Kit/9ab58d3f86ed7b59dd74a62ec395d8f1/raw/c0428e3216110a48ad2dd75f2482048908833b34/holding"
@@ -69,17 +69,15 @@ class ReactTables extends React.Component {
   }
 
   update() {
-    fetchJSON(this.props.url, this.update_rows_callback);
+    fetchJSON(url, this.update_rows_callback);
   }
 
   componentWillMount() {
     this.isCancelled = false;
 
     // This request takes longer, so prioritize it
-    fetchJSON(this.props.url, this.update_rows_callback);
+    fetchJSON(url, this.update_rows_callback);
 
-    // Only update columns once
-    fetchJSON(this.props.url + "_cols", this.update_cols_callback);
 
     this.auto_update = setInterval(this.update, this.auto_update_frequency);
   }

@@ -628,7 +628,7 @@ class LiquiTrader:
         df.timestamp = pd.DatetimeIndex(times)
 
         df = df.resample('1d').sum()
-        df['date'] = df.index.astype('str').values
+        df['date'] = df.index
         return df
 
     # ----
@@ -662,7 +662,8 @@ class LiquiTrader:
     # ----
     def get_cumulative_profit(self):
         df = self.get_daily_profit_data().cumsum()
-        return df[df.percent_gain < 9999]
+        df['date'] = df.index
+        return df
 
     # ----
     def get_trailing_pairs(self):

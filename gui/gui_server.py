@@ -6,6 +6,7 @@ import os
 import pathlib
 import sys
 import psutil
+from datetime import datetime, timedelta
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
 
@@ -63,6 +64,7 @@ class GUIServer:
         _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
         _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+        _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
         self._database = SQLAlchemy(_app)
         self._user = database_models.create_user_database_model(self._database)
@@ -111,7 +113,10 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
+        from flask_cors import CORS
+        CORS(_app)
         # Talisman(_app, force_https=ssl, content_security_policy=csp)
+
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -148,7 +153,7 @@ class GUIServer:
         return True
 
     def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username).first()
+        user = self._user.query.filter_by(username=username.lower()).first()
 
         if user is None or not user.verify_password(password):
             return False
@@ -230,7 +235,6 @@ def get_index():
 @_app.route('/<path:path>')
 def get_file(path=''):
     return render_template('index.html')
-
 
 # ----
 @_app.route("/api/holding")

@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
+import { Line, Bar } from "react-chartjs-2";
 // react plugin for creating vector maps
 
 // @material-ui/core components
@@ -30,6 +31,7 @@ import Typography from "@material-ui/core/Typography/Typography";
 
 import { fetchJSON } from "views/helpers/Helpers.jsx";
 
+import * as colors from "variables/lt_colors";
 const lightgreyfont = {
   color: "gray"
 };
@@ -93,14 +95,10 @@ class Dashboard extends React.Component {
 
   update() {
     fetchJSON(dashboard_route, this.update_state);
-    {
-      console.log("profit", this.state);
-    }
   }
 
   update_state(data) {
     // data = JSON.parse(data);
-    console.log(data);
     if (data.status_code === 401) {
       window.location.pathname = "/login";
     }
@@ -114,10 +112,7 @@ class Dashboard extends React.Component {
 
   componentWillMount() {
     // This request takes longer, so prioritize it
-    console.log("will mount");
-
     this.update();
-    console.log("fetched");
     this.isCancelled = false;
 
     this.auto_update = setInterval(this.update, this.auto_update_frequency);
@@ -130,24 +125,92 @@ class Dashboard extends React.Component {
 
   render() {
     const { classes } = this.props;
+    let chart1_2_options = {
+      maintainAspectRatio: false,
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "#f5f5f5",
+        titleFontColor: "#333",
+        bodyFontColor: "#666",
+        bodySpacing: 4,
+        xPadding: 12,
+        mode: "nearest",
+        intersect: 0,
+        position: "nearest"
+      },
+      responsive: true,
+      scales: {
+        yAxes: [
+          {
+            barPercentage: 1.6,
+            gridLines: {
+              drawBorder: false,
+              color: "rgba(29,140,248,0.0)",
+              zeroLineColor: "transparent"
+            },
+            ticks: {
+              // suggestedMin: 60,
+              // suggestedMax: 125,
+              padding: 20,
+              fontColor: "#9a9a9a"
+            }
+          }
+        ],
+        xAxes: [
+          {
+            barPercentage: 1.6,
+            gridLines: {
+              drawBorder: false,
+              color: "rgba(29,140,248,0.1)",
+              zeroLineColor: "transparent"
+            },
+            ticks: {
+              padding: 20,
+              fontColor: "#9a9a9a"
+            }
+          }
+        ]
+      }
+    };
     let cum_profit_chart = data => {
       return (
         <GridItem xs={12} sm={12} md={6}>
           <Card chart>
-            <CardHeader color="info">
-              <ChartistGraph
-                className="ct-chart-white-colors"
+            <CardHeader color={'info'}>
+              <Line
+                // className="ct-chart-white-colors"
                 data={{
                   labels: this.state.cum_profit.map(item => {
-                    return item.date;
+                    return 'date';
                   }),
-                  series: [
-                    this.state.cum_profit.map(item => {
-                      return item.gain;
-                    })
+                  datasets: [
+                    {
+                      label: "My First dataset",
+                      fill: true,
+                      backgroundColor: 'inherit',
+                      borderColor: colors.blue,
+                      borderWidth: 2,
+                      borderDash: [],
+                      borderDashOffset: 0.0,
+                      pointBackgroundColor: colors.lightblue,
+                      pointBorderColor: "rgba(255,255,255,0)",
+                      pointHoverBackgroundColor: "#1f8ef1",
+                      pointBorderWidth: 20,
+                      pointHoverRadius: 4,
+                      pointHoverBorderWidth: 15,
+                      pointRadius: 4,
+                      data: [...
+                        this.state.cum_profit.map(item => {
+                          return item.gain;
+                        })
+                      ]
+                    }
                   ]
                 }}
                 type="Line"
+                options={chart1_2_options}
                 // options={dailySalesChart.options}
               />
             </CardHeader>
@@ -284,7 +347,6 @@ class Dashboard extends React.Component {
               </CardHeader>
               <CardBody>
                 <p>
-                  {console.log(this.state.recent_trades, this.state)}
                   <Table
                     tableHead={["Symbol", "Gain"]}
                     tableData={this.state.recent_sales.map(value => {
@@ -340,13 +402,6 @@ class Dashboard extends React.Component {
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
                   <CardHeader color="danger">
-                    {console.log(
-                      this.state.quote_candles.map(item => {
-                        let date = new Date(item.timestamp);
-                        return date;
-                      }),
-                      "qc"
-                    )}
                     <ChartistGraph
                       className="ct-chart-white-colors"
                       data={{

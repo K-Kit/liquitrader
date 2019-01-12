@@ -6,7 +6,7 @@ export function fetchErrorHandler(response, error = false) {
   if (error) {
     console.log(error);
 
-    window.location.pathname= '/login';
+    // window.location.pathname= '/login';
   }
 
   return response;

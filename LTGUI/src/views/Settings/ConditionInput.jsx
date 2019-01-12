@@ -38,7 +38,6 @@ class ConditionInput extends React.Component {
     this.handleRight = this.handleRight.bind(this);
     this.updateTextField = this.updateTextField.bind(this);
     // this.handleLeft(props.lef)
-    console.log("editor", this.state);
   }
 
   updateTextField(event, name) {
@@ -49,7 +48,6 @@ class ConditionInput extends React.Component {
     this.setState({
       left: left
     });
-    console.log(this.state);
   }
   handleInputChange(event) {
     const target = event.target;
@@ -63,13 +61,11 @@ class ConditionInput extends React.Component {
           [name]: { value: value, timeframe: this.state.left.timeframe }
         });
 
-    console.log(this.state);
   }
   handleLeft(data) {
     this.setState({
       left: data
     });
-    console.log(this.state);
   }
   handleRight(data) {
     if (typeof data === "string") {
@@ -156,9 +152,8 @@ class ConditionInput extends React.Component {
     );
     return (
       <div>
-        {console.log(this.state)}
         <Tabs
-          title="Tasks:"
+          title="Condition Types:"
           headerColor="primary"
           tabs={[
             {

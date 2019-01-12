@@ -183,18 +183,18 @@ class Dashboard extends React.Component {
                 // className="ct-chart-white-colors"
                 data={{
                   labels: this.state.cum_profit.map(item => {
-                    return 'date';
+                    return item.date.slice(5,11);
                   }),
                   datasets: [
                     {
-                      label: "My First dataset",
+                      label: "Cumulative Profit",
                       fill: true,
                       backgroundColor: 'inherit',
                       borderColor: colors.blue,
                       borderWidth: 2,
                       borderDash: [],
                       borderDashOffset: 0.0,
-                      pointBackgroundColor: colors.lightblue,
+                      pointBackgroundColor: colors.blue,
                       pointBorderColor: "rgba(255,255,255,0)",
                       pointHoverBackgroundColor: "#1f8ef1",
                       pointBorderWidth: 20,
@@ -211,7 +211,6 @@ class Dashboard extends React.Component {
                 }}
                 type="Line"
                 options={chart1_2_options}
-                // options={dailySalesChart.options}
               />
             </CardHeader>
             <CardBody>

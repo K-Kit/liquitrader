@@ -433,26 +433,6 @@ class Dashboard extends React.Component {
                 type="Line"
                 options={chart1_2_options}
               />
-                    {/* <ChartistGraph
-                      className="ct-chart-white-colors"
-                      data={{
-                        labels: this.state.quote_candles.map(item => {
-                          let date = new Date(
-                            item.timestamp
-                          ).toLocaleTimeString();
-                          let split = date.split(" ");
-                          let time = split[0].slice(0, -3);
-                          return time;
-                        }),
-                        series: [
-                          this.state.quote_candles.map(item => {
-                            return item.close;
-                          })
-                        ]
-                      }}
-                      type="Line"
-                      // options={dailySalesChart.options}
-                    /> */}
                   </CardHeader>
                   <CardBody>
                     <h4 className={classes.cardTitle}>

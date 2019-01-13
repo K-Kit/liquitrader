@@ -661,7 +661,7 @@ class LiquiTrader:
 
     # ----
     def get_cumulative_profit(self):
-        df = self.get_daily_profit_data().cumsum()
+        df = self.get_daily_profit_data().drop(['date'], axis=1).cumsum()
         df['date'] = df.index
         return df
 

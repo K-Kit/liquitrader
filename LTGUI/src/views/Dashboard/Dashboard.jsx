@@ -233,8 +233,8 @@ class Dashboard extends React.Component {
             <GridContainer alignItems={"stretch"}>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="warning" stats icon>
-                    <CardIcon color="warning">
+                  <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Available Balance</p>
@@ -249,8 +249,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="warning" stats icon>
-                    <CardIcon color="warning">
+                  <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Total Balance</p>
@@ -265,8 +265,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="warning" stats icon>
-                    <CardIcon color="warning">
+                  <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Current Value</p>
@@ -498,7 +498,7 @@ class Dashboard extends React.Component {
                       <Bar
                 className="ct-chart-white-colors"
                 data={{
-                  labels: sliced_daily.map(item => {
+                  labels: sliced_daily.reverse().map(item => {
                               return item.date.slice(5,11);
                             }),
                   datasets: [
@@ -513,14 +513,13 @@ class Dashboard extends React.Component {
                       borderDash: [],
                       borderDashOffset: 0.0,
                       data: [...
-                        sliced_daily.map(item => {
+                        sliced_daily.reverse().map(item => {
                                 return item.gain;
                               })
                       ]
                     }
                   ]
                 }}
-                type="Line"
                 options={chart1_2_options}
               />
                         

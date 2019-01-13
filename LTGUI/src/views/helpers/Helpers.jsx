@@ -3,10 +3,14 @@ export function loginUserSuccess(token) {
 }
 
 export function fetchErrorHandler(response, error = false) {
+  
+  console.log('noerror', response, error);
   if (error) {
-    console.log(error);
-
-    // window.location.pathname= '/login';
+    console.log('error', response, error);
+    
+  }
+  if (response.status === 401){
+    window.location.pathname= '/login';
   }
 
   return response;
@@ -27,7 +31,7 @@ export function fetchJSON(uri, callback, log_error = true) {
       return response.json();
     })
     .then(callback)
-    .catch(error => fetchErrorHandler(false, error));
+    .catch(error => fetchErrorHandler(error));
 }
 
 export function fetchDataBlocking(uri) {

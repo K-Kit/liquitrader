@@ -69,6 +69,9 @@ class ReactTables extends React.Component {
   }
 
   update() {
+    console.log('====================================');
+    console.log(this.state.data.length);
+    console.log('====================================');
     fetchJSON(url, this.update_rows_callback);
   }
 
@@ -92,15 +95,15 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-            <CardHeader color="primary" icon>
-              <CardIcon color="primary">
+          <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                 <Assignment />
               </CardIcon>
               <h4 className={classes.cardIconTitle}>Sales History</h4>
             </CardHeader>
             <CardBody>
               <ReactTable
-                data={this.state.data}
+                data={this.state.data.reverse()}
                 filterable
                 columns={[
                   { Header: "Time", accessor: "timestamp", Cell: ci => {
@@ -119,7 +122,8 @@ class ReactTables extends React.Component {
                           <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value.toFixed(2)}%</span>
                       )}
                 ]}
-                defaultPageSize={10}
+                PageSize={this.state.data.length > 0 ? this.state.data.length: 10}
+                minRows={0}  // Fix for empty rows
                 showPaginationTop
                 showPaginationBottom={false}
                 className="-striped -highlight"

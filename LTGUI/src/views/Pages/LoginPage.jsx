@@ -28,7 +28,7 @@ import Wizard from "views/Forms/Wizard.jsx";
 import { postJSON } from "views/helpers/Helpers.jsx";
 import { auth_route } from "variables/global";
 export const url =
-  !process.env.NODE_ENV || process.env.NODE_ENV === "development"
+  process.env.NODE_ENV === "development"
     ? "http://45.77.216.107:8080/auth"
     : window.location.origin + "/auth";
 

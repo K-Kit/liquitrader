@@ -149,11 +149,11 @@ const successCardHeader = {
   ...successBoxShadow
 };
 const dangerCardHeader = {
-  background: "linear-gradient(60deg, #904bff, #7E3CFF)",
+  background: "linear-gradient(60deg, #7E3CFF, #7E3CFF)",
   ...dangerBoxShadow
 };
 const infoCardHeader = {
-  background: "#296ef5",
+  background: "linear-gradient(60deg, #296ef5, #296ef5)",
   ...infoBoxShadow
 };
 const primaryCardHeader = {

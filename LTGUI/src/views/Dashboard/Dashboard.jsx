@@ -194,7 +194,7 @@ class Dashboard extends React.Component {
       return (
         <GridItem xs={12} sm={12} md={6}>
           <Card chart>
-            <CardHeader color={'info'}>
+            <CardHeader color={'danger'}>
               <Line
                 // className="ct-chart-white-colors"
                 data={{
@@ -233,8 +233,8 @@ class Dashboard extends React.Component {
             <GridContainer alignItems={"stretch"}>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="success" stats icon>
-                    <CardIcon color="success">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Available Balance</p>
@@ -249,8 +249,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="success" stats icon>
-                    <CardIcon color="success">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Total Balance</p>
@@ -265,8 +265,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="success" stats icon>
-                    <CardIcon color="success">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Current Value</p>
@@ -281,8 +281,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="success" stats icon>
-                    <CardIcon color="success">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faChartLine} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Total Profit</p>
@@ -301,8 +301,8 @@ class Dashboard extends React.Component {
         <GridContainer alignItems={"stretch"}>
           <GridItem xs={12} sm={12} md={3}>
             <Card>
-              <CardHeader color="danger" stats icon>
-                <CardIcon color="danger">
+              <CardHeader color="info" stats icon>
+                <CardIcon color="info">
                   <FontAwesomeIcon icon={faPercentage} />
                 </CardIcon>
                 <p className={classes.cardCategory}>
@@ -343,8 +343,8 @@ class Dashboard extends React.Component {
 
           <GridItem xs={12} sm={12} md={3}>
             <Card>
-              <CardHeader color="danger" stats icon>
-                <CardIcon color="danger">
+              <CardHeader color="info" stats icon>
+                <CardIcon color="info">
                   <FontAwesomeIcon icon={faPercentage} />
                 </CardIcon>
                 <p className={classes.cardCategory}>Recent Sales</p>
@@ -376,8 +376,8 @@ class Dashboard extends React.Component {
             <GridContainer alignItems="stretch">
               <GridItem xs={12} sm={12} md={6}>
                 <Card>
-                  <CardHeader color="danger" stats icon>
-                    <CardIcon color="danger">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faPercentage} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Average Daily Gain</p>
@@ -393,7 +393,7 @@ class Dashboard extends React.Component {
               <GridItem xs={12} sm={12} md={6}>
                 <Card>
                   <CardHeader color={"info"} stats icon>
-                    <CardIcon color={"danger"}>
+                    <CardIcon color={"info"}>
                       <FontAwesomeIcon icon={faChartLine} />
                     </CardIcon>
                     <p className={classes.cardCategory}>24h Market Change</p>
@@ -449,8 +449,8 @@ class Dashboard extends React.Component {
         <GridContainer style={{ overflowX: 'hidden' }}>
           <GridItem xs={12}>
             <Card>
-              <CardHeader color="success" icon>
-                <CardIcon color="success">
+              <CardHeader color="info" stats icon>
+                <CardIcon color="info">
                   <Language />
                 </CardIcon>
                 <h4 className={classes.cardIconTitle}>

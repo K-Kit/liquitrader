@@ -52,6 +52,9 @@ class PairSettings extends React.Component {
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
   }
+  sendState() {
+    return this.state;
+  }
   removePair(pair, dcaLvl) {
     const state = { ...this.state };
     delete state[pair];

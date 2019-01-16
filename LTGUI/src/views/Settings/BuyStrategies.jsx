@@ -13,6 +13,11 @@ class BuyStrategies extends React.Component {
     };
     this.handleInputChange = this.handleInputChange.bind(this);
     this.save = this.save.bind(this);
+    this.strat = <StrategyList strategyType={'buy'} />
+  }
+  sendState(){
+    {console.log(this.strat.state)}
+    return this.strat.state
   }
   handleInputChange(event) {
     const target = event.target;
@@ -32,7 +37,8 @@ class BuyStrategies extends React.Component {
         <GridContainer justify="center">
 
           <GridItem xs={12}>
-              <StrategyList strategyType={'buy'} />
+              {this.strat}
+              {this.strat.state}
           </GridItem>
         </GridContainer>
     );

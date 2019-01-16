@@ -91,15 +91,17 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-            <CardHeader icon>
-              <CardIcon color="primary">
+          <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                 <Assignment />
               </CardIcon>
               <h4 className={classes.cardIconTitle}>Buy History</h4>
             </CardHeader>
             <CardBody>
               <ReactTable
-                data={this.state.data}
+                data={this.state.data.filter(data => {
+                  return data.filled > 0;
+                }).reverse()}
                 filterable
                 columns={[
                   { Header: "Time", accessor: "timestamp", Cell: ci => {
@@ -111,7 +113,8 @@ class ReactTables extends React.Component {
                   { Header: "Remaining", accessor: "remaining" },
                   { Header: "Filled", accessor: "filled" }
                 ]}
-                defaultPageSize={10}
+                PageSize={this.state.data.values.length > 0 ? this.state.data.length: 10}
+                minRows={0}  // Fix for empty rows
                 showPaginationTop
                 showPaginationBottom={false}
                 className="-striped -highlight"

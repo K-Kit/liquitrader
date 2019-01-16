@@ -54,6 +54,10 @@ class StrategyList extends React.Component {
     this.save = this.save.bind(this);
   }
 
+  sendState() {
+    return this.state;
+  }
+
   updateTextField(event, name, id) {
     const target = event.target;
     const value = target.value;
@@ -167,9 +171,10 @@ class StrategyList extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
+    
     let strategy_type =
       this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
-
+    console.log(strategy_type, this)
     if (!this.isCancelled) {
       this.setState({ strategies: config[strategy_type + "_strategies"] });
     }

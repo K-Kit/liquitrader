@@ -40,7 +40,7 @@ class ReactTables extends React.Component {
       loading: false
     };
 
-    this.auto_update_frequency = 10 * 1000; // x * 1000 = x seconds
+    this.auto_update_frequency = 1 * 1000; // x * 1000 = x seconds
 
     this.isCancelled = true;
 
@@ -92,8 +92,8 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-            <CardHeader color="primary" icon>
-              <CardIcon color="primary">
+          <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                 <Assignment />
               </CardIcon>
               <h4 className={classes.cardIconTitle}>Holding</h4>
@@ -127,7 +127,9 @@ class ReactTables extends React.Component {
                           <span style={{color: row.value >= 0 ? '#85cc00' : '#ff2e00'}}>{row.value}%</span>
                       )}
                 ]}
-                defaultPageSize={10}
+
+                PageSize={this.state.data.values.length > 0 ? this.state.data.length: 10}
+                minRows={0}  // Fix for empty rows
                 showPaginationTop
                 showPaginationBottom={false}
                 className="-striped -highlight"

@@ -51,7 +51,6 @@ const analyzerCard = props => {
   let analyzer = props.analyzer;
   let pairs = Object.values(analyzer.pairs_trailing);
   pairs = typeof pairs !== "undefined" ? pairs : [];
-  console.log(analyzer);
   return (
     <div>
       <Card>
@@ -113,9 +112,12 @@ class GenericAnalyzer extends React.Component {
     this.auto_update = setInterval(()=> fetchJSON(analyzer_route, this.load), this.auto_update_frequency);
   }
   load(analyzers) {
-    console.log(analyzers);
     let analyzerType = this.props.analyzerType;
     this.setState({ analyzers: analyzers[analyzerType] });
+  }
+  componentWillUnmount() {
+    this.isCancelled = true;
+    clearInterval(this.auto_update);
   }
   render() {
     let i = 0;

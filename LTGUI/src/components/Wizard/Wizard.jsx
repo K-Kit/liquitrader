@@ -10,6 +10,8 @@ import Card from "components/Card/Card.jsx";
 
 import wizardStyle from "assets/jss/material-dashboard-pro-react/components/wizardStyle.jsx";
 
+import { fetchJSON, postJSON } from "views/helpers/Helpers";
+
 class Wizard extends React.Component {
   constructor(props) {
     super(props);
@@ -162,6 +164,15 @@ class Wizard extends React.Component {
     }
   }
   finishButtonClick() {
+    let data = [
+            ...this.state.allStates,
+            {
+              [this.props.steps[this.state.currentStep].stepId]: this[
+                this.props.steps[this.state.currentStep].stepId
+              ].sendState()
+            }
+          ];
+    console.log(data)
     if (
       this.props.validate &&
       ((this[this.props.steps[this.state.currentStep].stepId].isValidated !==
@@ -171,8 +182,13 @@ class Wizard extends React.Component {
           undefined) &&
       this.props.finishButtonClick !== undefined
     ) {
+      console.log('====================================');
+      console.log('finish button clicked');
+      console.log('====================================');
       this.props.finishButtonClick();
+      postJSON('/first_run', data);
     }
+
   }
   refreshAnimation(index) {
     var total = this.props.steps.length;
@@ -264,6 +280,7 @@ class Wizard extends React.Component {
                   <prop.stepComponent
                     innerRef={node => (this[prop.stepId] = node)}
                     allStates={this.state.allStates}
+                    strategyType={prop.strategyType}
                   />
                 </div>
               );
@@ -309,7 +326,7 @@ class Wizard extends React.Component {
 }
 
 Wizard.defaultProps = {
-  color: "rose",
+  color: "primary",
   title: "Here should go your title",
   subtitle: "And this would be your subtitle",
   previousButtonText: "Previous",

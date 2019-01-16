@@ -10,6 +10,7 @@ import {
   infoColor,
   warningColor
 } from "assets/jss/material-dashboard-pro-react.jsx";
+import * as colors from 'variables/lt_colors.jsx'
 
 const wizardStyle = {
   wizardContainer: {},
@@ -20,8 +21,8 @@ const wizardStyle = {
     margin: "25px 0",
     boxShadow: "0 1px 4px 0 rgba(0, 0, 0, 0.14)",
     borderRadius: "6px",
-    color: "rgba(0, 0, 0, 0.87)",
-    background: "#fff",
+    color: colors.mainFontColor,
+    background: colors.secondary,
     transition: "all 300ms linear",
     minHeight: "410px"
   },
@@ -43,7 +44,7 @@ const wizardStyle = {
     paddingLeft: "0",
     marginBottom: "0",
     listStyle: "none",
-    backgroundColor: "rgba(200, 200, 200, 0.2)",
+    backgroundColor: infoColor,
     "&:after,&:before": {
       display: "table",
       content: '" "'
@@ -75,7 +76,7 @@ const wizardStyle = {
     fontWeight: "500",
     minWidth: "100px",
     textAlign: "center",
-    color: "#555555 !important"
+    color: colors.mainFontColor + " !important"
   },
   content: {
     marginTop: "20px",

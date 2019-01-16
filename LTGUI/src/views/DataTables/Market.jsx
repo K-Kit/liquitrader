@@ -94,8 +94,8 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-            <CardHeader color="primary" icon>
-              <CardIcon color="primary">
+          <CardHeader color="success" stats icon>
+                    <CardIcon color="success">
                 <Assignment />
               </CardIcon>
               <h4 className={classes.cardIconTitle}>Market Data</h4>
@@ -110,7 +110,8 @@ class ReactTables extends React.Component {
                   { Header: "Volume", accessor: "Volume" },
                   { Header: "24h Change", accessor: "24h Change" }
                 ]}
-                defaultPageSize={10}
+                PageSize={this.state.data.length > 0 ? this.state.data.length: 10}
+                minRows={0}  // Fix for empty rows
                 showPaginationTop
                 showPaginationBottom={false}
                 className="-striped -highlight"

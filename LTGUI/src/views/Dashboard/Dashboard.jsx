@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 // react plugin for creating charts
 import ChartistGraph from "react-chartist";
+import { Line, Bar } from "react-chartjs-2";
 // react plugin for creating vector maps
 
 // @material-ui/core components
@@ -30,6 +31,7 @@ import Typography from "@material-ui/core/Typography/Typography";
 
 import { fetchJSON } from "views/helpers/Helpers.jsx";
 
+import * as colors from "variables/lt_colors";
 const lightgreyfont = {
   color: "gray"
 };
@@ -93,14 +95,10 @@ class Dashboard extends React.Component {
 
   update() {
     fetchJSON(dashboard_route, this.update_state);
-    {
-      console.log("profit", this.state);
-    }
   }
 
   update_state(data) {
     // data = JSON.parse(data);
-    console.log(data);
     if (data.status_code === 401) {
       window.location.pathname = "/login";
     }
@@ -114,10 +112,7 @@ class Dashboard extends React.Component {
 
   componentWillMount() {
     // This request takes longer, so prioritize it
-    console.log("will mount");
-
     this.update();
-    console.log("fetched");
     this.isCancelled = false;
 
     this.auto_update = setInterval(this.update, this.auto_update_frequency);
@@ -130,25 +125,97 @@ class Dashboard extends React.Component {
 
   render() {
     const { classes } = this.props;
+    let sliced_daily = this.state.daily_profit_data.reverse().slice(0,30)
+    let chart1_2_options = {
+      maintainAspectRatio: false,
+      legend: {
+        display: false
+      },
+      tooltips: {
+        backgroundColor: "#f5f5f5",
+        titleFontColor: "#333",
+        bodyFontColor: "#666",
+        bodySpacing: 4,
+        xPadding: 12,
+        mode: "nearest",
+        intersect: 0,
+        position: "nearest"
+      },
+      responsive: true,
+      scales: {
+        yAxes: [
+          {
+            barPercentage: 1.6,
+            gridLines: {
+              drawBorder: false,
+              color: 'darkgrey',
+              zeroLineColor: 'darkgrey'
+            },
+            ticks: {
+              // suggestedMin: 60,
+              // suggestedMax: 125,
+              padding: 20,
+              fontColor: colors.light
+            }
+          }
+        ],
+        xAxes: [
+          {
+            barPercentage: 1.6,
+            gridLines: {
+              drawBorder: false,
+              color: 'darkgrey',
+              zeroLineColor: 'darkgrey'
+            },
+            ticks: {
+              padding: 20,
+              fontColor: colors.light
+            }
+          }
+        ]
+      }
+    };
+    let chartvars = {
+              fill: false,
+              backgroundColor: 'inherit',
+              borderColor: colors.light,
+              borderWidth: 2,
+              borderDash: [],
+              borderDashOffset: 0.0,
+              pointBackgroundColor: colors.light,
+              pointBorderColor: "rgba(255,255,255,0)",
+              pointHoverBackgroundColor: "#1f8ef1",
+              pointBorderWidth: 20,
+              pointHoverRadius: 4,
+              pointHoverBorderWidth: 15,
+              pointRadius: 4,
+    }
     let cum_profit_chart = data => {
       return (
         <GridItem xs={12} sm={12} md={6}>
           <Card chart>
-            <CardHeader color="info">
-              <ChartistGraph
-                className="ct-chart-white-colors"
+            <CardHeader color={'danger'}>
+              <Line
+                // className="ct-chart-white-colors"
                 data={{
                   labels: this.state.cum_profit.map(item => {
-                    return item.date;
+                    return item.date.slice(5,11);
                   }),
-                  series: [
-                    this.state.cum_profit.map(item => {
-                      return item.gain;
-                    })
+                  datasets: [
+                    {
+                      
+                      label: "Cumulative Profit",
+                      ...chartvars,
+                      data: [...
+                        this.state.cum_profit.map(item => {
+                          return item.gain;
+                        })
+                      ]
+                    }
                   ]
                 }}
                 type="Line"
-                // options={dailySalesChart.options}
+                options={chart1_2_options}
               />
             </CardHeader>
             <CardBody>
@@ -166,8 +233,8 @@ class Dashboard extends React.Component {
             <GridContainer alignItems={"stretch"}>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="warning" stats icon>
-                    <CardIcon color="warning">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Available Balance</p>
@@ -182,8 +249,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="warning" stats icon>
-                    <CardIcon color="warning">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Total Balance</p>
@@ -198,8 +265,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="warning" stats icon>
-                    <CardIcon color="warning">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faEthereum} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Current Value</p>
@@ -214,8 +281,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} md={6}>
                 <Card>
-                  <CardHeader color="success" stats icon>
-                    <CardIcon color="success">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faChartLine} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Total Profit</p>
@@ -234,8 +301,8 @@ class Dashboard extends React.Component {
         <GridContainer alignItems={"stretch"}>
           <GridItem xs={12} sm={12} md={3}>
             <Card>
-              <CardHeader color="danger" stats icon>
-                <CardIcon color="danger">
+              <CardHeader color="info" stats icon>
+                <CardIcon color="info">
                   <FontAwesomeIcon icon={faPercentage} />
                 </CardIcon>
                 <p className={classes.cardCategory}>
@@ -276,15 +343,14 @@ class Dashboard extends React.Component {
 
           <GridItem xs={12} sm={12} md={3}>
             <Card>
-              <CardHeader color="danger" stats icon>
-                <CardIcon color="danger">
+              <CardHeader color="info" stats icon>
+                <CardIcon color="info">
                   <FontAwesomeIcon icon={faPercentage} />
                 </CardIcon>
                 <p className={classes.cardCategory}>Recent Sales</p>
               </CardHeader>
               <CardBody>
                 <p>
-                  {console.log(this.state.recent_trades, this.state)}
                   <Table
                     tableHead={["Symbol", "Gain"]}
                     tableData={this.state.recent_sales.map(value => {
@@ -310,8 +376,8 @@ class Dashboard extends React.Component {
             <GridContainer alignItems="stretch">
               <GridItem xs={12} sm={12} md={6}>
                 <Card>
-                  <CardHeader color="danger" stats icon>
-                    <CardIcon color="danger">
+                  <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                       <FontAwesomeIcon icon={faPercentage} />
                     </CardIcon>
                     <p className={classes.cardCategory}>Average Daily Gain</p>
@@ -326,8 +392,8 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} sm={12} md={6}>
                 <Card>
-                  <CardHeader color="info" stats icon>
-                    <CardIcon color="info">
+                  <CardHeader color={"info"} stats icon>
+                    <CardIcon color={"info"}>
                       <FontAwesomeIcon icon={faChartLine} />
                     </CardIcon>
                     <p className={classes.cardCategory}>24h Market Change</p>
@@ -340,17 +406,10 @@ class Dashboard extends React.Component {
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
                   <CardHeader color="danger">
-                    {console.log(
-                      this.state.quote_candles.map(item => {
-                        let date = new Date(item.timestamp);
-                        return date;
-                      }),
-                      "qc"
-                    )}
-                    <ChartistGraph
-                      className="ct-chart-white-colors"
-                      data={{
-                        labels: this.state.quote_candles.map(item => {
+                  <Line
+                // className="ct-chart-white-colors"
+                data={{
+                  labels: this.state.quote_candles.map(item => {
                           let date = new Date(
                             item.timestamp
                           ).toLocaleTimeString();
@@ -358,15 +417,22 @@ class Dashboard extends React.Component {
                           let time = split[0].slice(0, -3);
                           return time;
                         }),
-                        series: [
-                          this.state.quote_candles.map(item => {
+                  datasets: [
+                    {
+                      
+                      label: "Price",
+                      ...chartvars,
+                      data: [...
+                        this.state.quote_candles.map(item => {
                             return item.close;
                           })
-                        ]
-                      }}
-                      type="Line"
-                      // options={dailySalesChart.options}
-                    />
+                      ]
+                    }
+                  ]
+                }}
+                type="Line"
+                options={chart1_2_options}
+              />
                   </CardHeader>
                   <CardBody>
                     <h4 className={classes.cardTitle}>
@@ -380,11 +446,11 @@ class Dashboard extends React.Component {
             </GridContainer>
           </GridItem>
         </GridContainer>
-        <GridContainer alignItems="stretch">
+        <GridContainer style={{ overflowX: 'hidden' }}>
           <GridItem xs={12}>
             <Card>
-              <CardHeader color="success" icon>
-                <CardIcon color="success">
+              <CardHeader color="info" stats icon>
+                <CardIcon color="info">
                   <Language />
                 </CardIcon>
                 <h4 className={classes.cardIconTitle}>
@@ -393,12 +459,12 @@ class Dashboard extends React.Component {
               </CardHeader>
               <CardBody>
                 <GridContainer justify="space-between" alignItems="stretch">
-                  <GridItem xs={12} sm={12} md={8}>
+                  <GridItem xs={12} sm={12} md={6}>
                     <Table
                       tableHead={["Date", "Bought Value", "Sold Value", "Gain"]}
-                      tableData={this.state.daily_profit_data.map(value => {
+                      tableData={sliced_daily.slice(0,7).map(value => {
                         return [
-                          value["date"],
+                          value["date"].slice(0,11),
                           value["total_cost"].toFixed(8),
                           value["cost"].toFixed(8),
                           value["gain"].toFixed(8)
@@ -406,24 +472,37 @@ class Dashboard extends React.Component {
                       })}
                     />
                   </GridItem>
-                  <GridItem xs={12} sm={12} md={4}>
+                  <GridItem xs={12} sm={12} md={6}>
                     <Card chart>
                       <CardHeader color="danger">
-                        <ChartistGraph
-                          className="ct-chart-white-colors"
-                          data={{
-                            labels: this.state.daily_profit_data.map(item => {
-                              return item.date;
+                      <Bar
+                className="ct-chart-white-colors"
+                data={{
+                  labels: sliced_daily.reverse().map(item => {
+                              return item.date.slice(5,11);
                             }),
-                            series: [
-                              this.state.daily_profit_data.map(item => {
+                  datasets: [
+                    {
+                      
+                      label: "Profit",
+                      fill: true,
+                      backgroundColor: colors.light,
+                      hoverBackgroundColor: 'inherit',
+                      borderColor: colors.light,
+                      borderWidth: 2,
+                      borderDash: [],
+                      borderDashOffset: 0.0,
+                      data: [...
+                        sliced_daily.reverse().map(item => {
                                 return item.gain;
                               })
-                            ]
-                          }}
-                          type="Bar"
-                          // options={dailySalesChart.options}
-                        />
+                      ]
+                    }
+                  ]
+                }}
+                options={chart1_2_options}
+              />
+                        
                       </CardHeader>
                       <CardBody>
                         <h4 className={classes.cardTitle}>Daily Profit</h4>

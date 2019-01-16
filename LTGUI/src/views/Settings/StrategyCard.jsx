@@ -158,7 +158,7 @@ class StrategyCard extends React.Component {
                 <GridItem xs={2}>Add/Remove</GridItem>
               </GridContainer>
 
-              {Object.entries(strategy.dca_strategy).map(item => {
+              {strategy.dca_strategy !== undefined ? Object.entries(strategy.dca_strategy).map(item => {
                 return (
                   <GridContainer
                     justify={"center"}
@@ -221,7 +221,7 @@ class StrategyCard extends React.Component {
                     </GridItem>
                   </GridContainer>
                 );
-              })}
+              }): null}
               {/* add dca level */}
               <GridContainer justify={"center"} style={{ textAlign: "center" }}>
                 <GridItem xs={2}>

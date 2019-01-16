@@ -6,8 +6,8 @@ export const green = "#5CBCAF";
 export const lightpurple = "#9B83BB";
 export const darkpurple = "#8369AD";
 
-export const primary = "#222222";
-export const secondary = "#34393f";
+export const primary = "#17181b";
+export const secondary = "#1b1c20";
 export const accent = "#OB66E2";
 export const light = "white";
 export const dark = "#3057D3";

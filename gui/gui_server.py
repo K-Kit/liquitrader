@@ -6,6 +6,7 @@ import os
 import pathlib
 import sys
 import psutil
+from datetime import datetime, timedelta
 
 from datetime import datetime, timedelta
 
@@ -118,9 +119,11 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
+        from flask_cors import CORS
+        CORS(_app)
         # Talisman(_app, force_https=ssl, content_security_policy=csp)
         # from flask_cors import CORS
-        # CORS(_app)
+        CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
@@ -257,7 +260,6 @@ def get_index():
 @_app.route('/<path:path>')
 def get_file(path=''):
     return render_template('index.html')
-
 
 # ----
 @_app.route("/api/holding")

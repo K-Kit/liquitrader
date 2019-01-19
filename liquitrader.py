@@ -655,14 +655,17 @@ class LiquiTrader:
 def print_line(text=''):
     sys.stdout.write(text + '\n')
 
+
 def get_password():
     while True:
+        print_line('\nNote: Your password will not be shown as you type below. This is for your safety.')
         password = getpass.getpass('Password: ')
-        confirm = getpass.getpass('Confirm: ')
+        confirm = getpass.getpass('Repeat Password: ')
 
         if password == '':
             print_line('Password cannot be empty')
         elif password == confirm:
+            print_line()
             break
         else:
             print_line('Passwords did not match\n')
@@ -671,7 +674,7 @@ def get_password():
 
 
 def get_username():
-    while 1:
+    while True:
         username = input('Username: ')
 
         if username != '':

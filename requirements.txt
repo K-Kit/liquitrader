@@ -16,6 +16,7 @@ flask_compress
 flask_talisman
 flask_login
 flask_otp
+flask_jwt
 flask_sqlalchemy
 flask_sslify
 flask_wtf

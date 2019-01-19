@@ -2,11 +2,10 @@ export function loginUserSuccess(token) {
   localStorage.setItem("token", token);
 }
 
-export function fetchErrorHandler(response, error = false) {
+export function fetchErrorHandler(response, error=false) {
   if (error) {
     console.log(error);
-
-  window.location.pathname= '/login';
+    // window.location.pathname= '/login';
   }
 
   return response;
@@ -14,8 +13,10 @@ export function fetchErrorHandler(response, error = false) {
 
 export function fetchJSON(uri, callback, log_error = true) {
   fetch(uri, {
-    // credentials: "include",
-    headers: { Authorization: localStorage.getItem("token") }
+    credentials: "include",
+    headers: {
+        "Authorization": localStorage.getItem("token")
+    }
   })
     .then(response => {
       if (log_error) {
@@ -61,13 +62,15 @@ export function postJSON(uri, data, callback) {
     // credentials: "include",
     method: "post",
     headers: {
-      Accept: "application/json, text/plain, */*",
-      "Content-Type": "application/json"
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": localStorage.getItem("token")
     },
     body: JSON.stringify(data)
   })
     .then(fetchErrorHandler)
     .then(response => {
+      console.log(response);
       return response.text();
     })
     .then(response_body => {

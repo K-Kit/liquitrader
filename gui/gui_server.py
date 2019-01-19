@@ -7,23 +7,19 @@ import pathlib
 import sys
 import psutil
 
-from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
-
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
 from flask import jsonify, Response, render_template
-from flask_jwt import JWT, jwt_required, current_identity
 
 import database_models
 
 import flask_compress
-import flask_login
-
 from flask_bootstrap import Bootstrap
 from flask_talisman import Talisman
 from flask_otp import OTP
+from flask_jwt import JWT, jwt_required
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm
 
@@ -33,25 +29,111 @@ import pandas as pd
 # import pyqrcode
 
 from utils.FormattingTools import eight_decimal_format, decimal_with_usd
+from utils.path import APP_DIR
+from utils.column_labels import *
 
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length
 
 
 LT_ENGINE = None
-# FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
-_cmdline = psutil.Process().cmdline()
-abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
-bearpuncher_dir = abs_path
+#_cmdline = psutil.Process().cmdline()
+abs_path = APP_DIR  # pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
+liquitrader_dir = abs_path
 
 if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
     dist_path = abs_path / 'LTGUI' / 'build'
-_app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
+_app = flask.Flask('lt_flask', static_folder=dist_path, template_folder=dist_path)
 
 
+# --------
+# Database configuration
 
+database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
+_app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+_app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+
+_database = SQLAlchemy(_app)
+_UserModel = database_models.create_user_database_model(_database)
+_KeyStore = database_models.create_keystore_database_model(_database)
+_FlaskStore = database_models.create_flask_database_model(_database)
+_database.create_all()
+
+# Perform any necessary database structure updates
+database_models.migrate_table(_database)
+
+
+# ----
+def add_user(username, password, role='admin'):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+
+    username = username.lower()
+
+    if _UserModel.query.filter_by(username=username).first() is not None:
+        return False
+
+    _database.session.add(_UserModel(username=username, password=password, role=role))
+    _database.session.commit()
+
+    return True
+
+
+def user_exists(user_id):
+    """
+    Check if a user exists
+    :return: Bool
+    """
+
+    return _UserModel.query.get(user_id) is not None
+
+
+def users_exist():
+    """
+    Check if any users exist
+    :return: Bool
+    """
+
+    return len(_UserModel.query.all()) > 0
+
+
+# ----
+# Auth stuff
+def user_authenticate(username=None, password=None):
+    # For JWT
+    user = _UserModel.query.filter_by(username=username).first()
+
+    if user is not None and user.verify_password(password):
+        return user
+
+
+def user_identity(payload):
+    # For JWT
+    return _UserModel.query.filter_by(id=payload['identity']).first().id
+
+
+# --
+@_app.before_request
+def before_request_handler():
+    """
+    Performs tasks that happen before a request is processed
+    """
+
+    path = flask.request.path
+    if '..' in path:
+        return Response(status=400)
+
+    # ok_unauthorized_paths = ['/login', '/auth', '/manifest.json', '/favicon.ico']
+    # if path not in ok_unauthorized_paths and not path.startswith('/static/'):
+    #     return flask.redirect('/login')
+
+
+# --------
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
@@ -59,24 +141,10 @@ def to_usd(val):
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
-        database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
-        _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
-        _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
-
-        self._database = SQLAlchemy(_app)
-        self._user = database_models.create_user_database_model(self._database)
-        self._keyStore = database_models.create_keystore_database_model(self._database)
-        self._flaskStore = database_models.create_flask_database_model(self._database)
-        self._database.create_all()
-        # Perform any necessary database structure updates
-        database_models.migrate_table(self._database)
-
-        self._login_man = flask_login.LoginManager(_app)
-
         csp = {
             'default-src': [
                 '\'self\'',
+                #f'{host}:{port}',
                 'http://45.77.216.107:3000',
                 '45.77.216.107',
                 '45.77.216.107:3000',
@@ -116,10 +184,9 @@ class GUIServer:
         otp = OTP()
         otp.init_app(_app)
         Talisman(_app, force_https=ssl, content_security_policy=csp)
-        # from flask_cors import CORS
-        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
+        JWT(_app, user_authenticate, user_identity)
 
         self._shutdown_handler = shutdown_handler
         self._host = host
@@ -133,57 +200,6 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
-        jwt = JWT(_app, self.authenticate, self.identity)
-
-    def add_user(self, username, password, role='admin'):
-        """
-        Adds a user to the database
-        Returns True on success, False on failure (user existed)
-        """
-        User = self._user
-        username = username.lower()
-
-        user = User.query.filter_by(username=username).first()
-
-        if user is not None:
-            return False
-
-        self._database.session.add(User(username=username, password=password, role=role))
-        self._database.session.commit()
-
-        return True
-
-    def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username).first()
-
-        if user is None or not user.verify_password(password):
-            return False
-
-        return user
-
-    def identity(self, payload):
-        user_id = payload['identity']
-        return self._user.query.filter_by(id=user_id).first().id
-
-    def user_exists(self, user_id):
-        """
-        Check if a user exists
-        :return: Bool
-        """
-
-        user = self._user.query.get(user_id)
-        return user is not None
-
-    def users_exist(self):
-        """
-        Check if any users exist
-        :return: Bool
-        """
-
-        users = self._user.query.all()
-        return len(users) > 0
-
-
 
     # ----
     def _create_self_signed_cert(self):
@@ -245,14 +261,18 @@ class GUIServer:
 
 
 # ----
-@_app.route('/')
-def get_index():
-    return render_template('index.html')
-
-
-# ----
 @_app.route('/<path:path>')
 def get_file(path=''):
+    print(path)
+
+    if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
+        try:
+            return _app.send_static_file(path)
+
+        except FileNotFoundError:
+            print(f'User attempted to get file "{path}", but it does not exist')
+            return Response(status=404)
+
     return render_template('index.html')
 
 
@@ -301,7 +321,7 @@ def get_sell_log_frame():
         return jsonify([])
     df['bought_cost'] = df.bought_price * df.filled
     df['gain'] = (df.cost - df.bought_cost) / df.bought_cost * 100
-    cols = ['timestamp', 'symbol', 'bought_price', 'price','cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    cols = ['timestamp', 'symbol', 'bought_price', 'price', 'cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
     return jsonify(df[df.side == 'sell'][cols].dropna().to_json(orient='records'))
 
 
@@ -391,6 +411,7 @@ def get_config():
 @jwt_required()
 def get_analyzers():
     return jsonify(LT_ENGINE.get_trailing_pairs())
+
 
 # ----
 @_app.route("/api/stats")

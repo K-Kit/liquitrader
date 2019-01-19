@@ -6,7 +6,7 @@ import time
 import traceback
 import threading
 import functools
-import pathlib
+import getpass
 
 import arrow
 
@@ -23,46 +23,19 @@ from analyzers.TechnicalAnalysis import run_ta
 from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
-from utils.Utils import *
-from conditions.condition_tools import get_buy_value
-
 from conditions.condition_tools import percentToFloat
-from utils.FormattingTools import prettify_dataframe
 
-import getpass
+from utils.Utils import *
+from utils.FormattingTools import prettify_dataframe
+from utils.column_labels import *
+
+import utils.path
+utils.path.set_path()
+
+import gui.gui_server
+
 
 LT_ENGINE = None
-
-APP_DIR = ''
-if hasattr(sys, 'frozen'):
-    APP_DIR = pathlib.Path(os.path.dirname(sys.executable))
-    os.chdir(APP_DIR)
-    os.environ["REQUESTS_CA_BUNDLE"] = str(APP_DIR / 'lib' / 'cacert.pem')
-
-else:
-    APP_DIR = pathlib.Path(os.path.dirname(__file__))
-
-DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost',
-                   'current_value', 'dca_level', 'total', 'percentage']
-
-# FRIENDLY_HOLDING_COLUMNS =  ['Last Purchase Time', 'Symbol', 'Price', 'Bought Price', '% Change', 'Volume',
-#                              'Bought Value', 'Current Value', 'DCA Level', 'Amount', '24h Change']
-COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
-                  'symbol': 'Symbol',
-                  'avg_price': 'Bought Price',
-                  'close': 'Price',
-                  'gain': '% Change',
-                  'quoteVolume': 'Volume',
-                  'total_cost': 'Bought Value',
-                  'current_value': 'Current Value',
-                  'dca_level': 'DCA Level',
-                  'total': 'Amount',
-                  'percentage': '24h Change'
-                  }
-
-FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
-                           'Amount', '24h Change']
-
 
 # ----
 def get_keys():
@@ -685,8 +658,8 @@ def print_line(text=''):
 
 def get_password():
     while True:
-        password = input('Password: ')
-        confirm = input('Confirm: ')
+        password = getpass.getpass('Password: ')
+        confirm = getpass.getpass('Confirm: ')
 
         if password == '':
             print_line('Password cannot be empty')
@@ -708,8 +681,6 @@ def get_username():
             print_line('Username cannot be empty')
 
     return username
-
-
 
 
 # ----
@@ -751,7 +722,8 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     _shutdown_handler.remove_task()
 
-def firsttime_init(server):
+
+def firsttime_init():
     """
     Create user account on first run
     """
@@ -766,7 +738,9 @@ def firsttime_init(server):
 
     username = get_username()
     password = get_password()
-    server.add_user(username, password)
+
+    gui.gui_server.add_user(username, password)
+
     return
 
 # ----
@@ -827,8 +801,6 @@ def main(ipython=False):
     lt_engine.initialize_config()
 
     # ----
-    import gui.gui_server
-
     gui.gui_server.LT_ENGINE = lt_engine
 
     # get config from lt
@@ -840,8 +812,8 @@ def main(ipython=False):
                                           ssl=config.general_settings['use_ssl'],
                                           )
 
-    if not gui_server.users_exist():
-        firsttime_init(gui_server)
+    if not gui.gui_server.users_exist():
+        firsttime_init()
 
     try:
         lt_engine.load_trade_history()
@@ -912,6 +884,7 @@ def main(ipython=False):
 
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)
-#
-if __name__ == '__main__':
-    lt= main(ipython=True)
+
+
+#if __name__ == '__main__':
+#    lt = main(ipython=True)

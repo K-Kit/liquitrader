@@ -28,6 +28,7 @@ import Wizard from "views/Forms/Wizard.jsx";
 import { postJSON } from "views/Settings/helpers/Helpers.jsx";
 import { auth_route } from "variables/global";
 
+
 class LoginPage extends React.Component {
   constructor(props) {
     super(props);
@@ -39,6 +40,7 @@ class LoginPage extends React.Component {
     };
     this.handleInputChange = this.handleInputChange.bind(this);
   }
+
   componentDidMount() {
     // we add a hidden class to the card and after 700 ms we delete it and the transition appears
     this.timeOutFunction = setTimeout(
@@ -48,10 +50,12 @@ class LoginPage extends React.Component {
       700
     );
   }
+
   componentWillUnmount() {
     clearTimeout(this.timeOutFunction);
     this.timeOutFunction = null;
   }
+
   handleInputChange(event) {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
@@ -61,6 +65,23 @@ class LoginPage extends React.Component {
       [name]: value
     });
   }
+
+  getToken() {
+    postJSON("/auth", {
+      username: this.state.username,
+      password: this.state.password
+    })
+    .then(token => {
+      token = JSON.parse(token);
+      if (Object.values(token)[0] !== undefined) {
+        localStorage.setItem(
+          "token", "JWT " + Object.values(token)[0]
+        );
+        window.location.pathname = "dashboard";
+      }
+    });
+  }
+
   render() {
     const { classes } = this.props;
     return (
@@ -85,6 +106,7 @@ class LoginPage extends React.Component {
                     inputProps={{
                       name: "username",
                       onChange: this.handleInputChange,
+                      autocomplete: "username",
                       value: this.state.username,
                       endAdornment: (
                         <InputAdornment position="end">
@@ -102,6 +124,8 @@ class LoginPage extends React.Component {
                     }}
                     inputProps={{
                       name: "password",
+                      type: "password",
+                      autocomplete: "current-password",
                       onChange: this.handleInputChange,
                       value: this.state.password,
                       endAdornment: (
@@ -120,23 +144,7 @@ class LoginPage extends React.Component {
                     simple
                     size="lg"
                     block
-                    onClick={() => {
-                      postJSON("/auth", {
-                        username: this.state.username,
-                        password: this.state.password
-                      }).then(token => {
-                        token = JSON.parse(token);
-                        console.log(token);
-                        console.log(token.access_token);
-                        if (Object.values(token)[0] !== undefined) {
-                          localStorage.setItem(
-                            "token",
-                            "JWT " + Object.values(token)[0]
-                          );
-                          window.location.pathname = "dashboard";
-                        }
-                      });
-                    }}
+                    onClick={}
                   >
                     Log in
                   </Button>

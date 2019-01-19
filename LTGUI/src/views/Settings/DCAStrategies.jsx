@@ -12,6 +12,9 @@ class DCAStrategies extends React.Component {
             strategies: []
         };
     }
+    sendState() {
+      return this.state;
+    }
     render() {
         const { classes } = this.props;
         return (

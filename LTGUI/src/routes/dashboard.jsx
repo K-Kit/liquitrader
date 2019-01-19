@@ -2,13 +2,14 @@ import Dashboard from "views/Dashboard/Dashboard.jsx";
 
 // @material-ui/icons
 import DashboardIcon from "@material-ui/icons/Dashboard";
-import Image from "@material-ui/icons/Image";
-import Apps from "@material-ui/icons/Apps";
-// import ContentPaste from "@material-ui/icons/ContentPaste";
-import Place from "@material-ui/icons/Place";
+import BuyIcon from "@material-ui/icons/AddShoppingCart";
+import SellIcon from "@material-ui/icons/AttachMoney";
+import MarketIcon from "@material-ui/icons/ShoppingBasket";
 import WidgetsIcon from "@material-ui/icons/Widgets";
 import Timeline from "@material-ui/icons/Timeline";
 import DateRange from "@material-ui/icons/DateRange";
+import Setting from "@material-ui/icons/Settings";
+import LocationSearch from "@material-ui/icons/LocationSearching"
 
 import GeneralSettings from "views/Settings/GeneralSettings.jsx";
 import GlobalTrade from "views/Settings/GlobalTrade.jsx";
@@ -26,6 +27,9 @@ import {
   DCAAnalyzer
 } from "views/Analyzers/Analyzers";
 import PairSettings from "../views/Settings/PairSettings";
+import { faEthereum } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
 // import pagesRoutes from "./pages.jsx";
 // var pages = pagesRoutes
 var dashRoutes = [
@@ -43,38 +47,38 @@ var dashRoutes = [
   //   icon: Image,
   //   views: pages
   // },
-  { path: "/market", name: "Market", icon: WidgetsIcon, component: Market },
+  { path: "/market", name: "Market", icon: MarketIcon, component: Market },
   { path: "/holding", name: "Holding", icon: Timeline, component: Holding },
 
   {
     path: "/buys",
     name: "Buy Log",
-    icon: DateRange,
+    icon: BuyIcon,
     component: BuyLog
   },
 
   {
     path: "/sales",
     name: "Sales Log",
-    icon: DateRange,
+    icon: SellIcon,
     component: SellLog
   },
   {
     path: "/buyAnalyzer",
     name: "Buy Analyzer",
-    icon: DateRange,
+    icon: LocationSearch,
     component: BuyAnalyzer
   },
   {
     path: "/sellAnalyzer",
     name: "Sell Analyzer",
-    icon: DateRange,
+    icon: LocationSearch,
     component: SellAnalyzer
   },
   {
     path: "/dcaAnalyzer",
     name: "DCA Analyzer",
-    icon: DateRange,
+    icon: LocationSearch,
     component: DCAAnalyzer
   },
   // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
@@ -83,7 +87,7 @@ var dashRoutes = [
     path: "/settings",
     name: "Settings",
     state: "openSettings",
-    icon: Place,
+    icon: Setting,
     views: [
       {
         path: "/Settings/General",
@@ -119,6 +123,7 @@ var dashRoutes = [
   {
     path: "/pairSettings",
     name: "Pair Specific Settings",
+    mini: "PS",
     icon: DateRange,
     component: PairSettings
   },

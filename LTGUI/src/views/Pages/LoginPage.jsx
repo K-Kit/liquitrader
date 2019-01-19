@@ -25,8 +25,12 @@ import loginPageStyle from "assets/jss/material-dashboard-pro-react/views/loginP
 
 import Wizard from "views/Forms/Wizard.jsx";
 
-import { postJSON } from "views/Settings/helpers/Helpers.jsx";
+import { postJSON } from "views/helpers/Helpers.jsx";
 import { auth_route } from "variables/global";
+export const url =
+  process.env.NODE_ENV === "development"
+    ? "http://45.77.216.107:8080/auth"
+    : window.location.origin + "/auth";
 
 
 class LoginPage extends React.Component {
@@ -144,7 +148,21 @@ class LoginPage extends React.Component {
                     simple
                     size="lg"
                     block
-                    onClick={}
+                    onClick={() => {
+                      postJSON(url, {
+                        username: this.state.username,
+                        password: this.state.password
+                      }).then(token => {
+                        token = JSON.parse(token);
+                        if (Object.values(token)[0] !== undefined) {
+                          localStorage.setItem(
+                            "token",
+                            "JWT " + Object.values(token)[0]
+                          );
+                          window.location.pathname = "dashboard";
+                        }
+                      });
+                    }}
                   >
                     Log in
                   </Button>

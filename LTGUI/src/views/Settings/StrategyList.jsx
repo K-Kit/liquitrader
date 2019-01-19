@@ -16,7 +16,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
 import Slide from "@material-ui/core/Slide";
 import { config_route, update_config } from "variables/global";
-import { fetchJSON, postJSON } from "views/Settings/helpers/Helpers.jsx";
+import { fetchJSON, postJSON } from "views/helpers/Helpers.jsx";
 
 
 
@@ -52,6 +52,10 @@ class StrategyList extends React.Component {
     this.addDCALevel = this.addDCALevel.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
+  }
+
+  sendState() {
+    return this.state;
   }
 
   updateTextField(event, name, id) {
@@ -167,9 +171,10 @@ class StrategyList extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
+    
     let strategy_type =
       this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
-
+    console.log(strategy_type, this)
     if (!this.isCancelled) {
       this.setState({ strategies: config[strategy_type + "_strategies"] });
     }

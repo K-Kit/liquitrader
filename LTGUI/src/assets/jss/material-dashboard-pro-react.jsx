@@ -86,10 +86,10 @@ const defaultFont = {
 };
 
 const primaryColor = "#904bff";
-const warningColor = "#ff9800";
+const warningColor = "#FF9900";
 const dangerColor = '#904bff';
 const successColor = "#4caf50";
-const infoColor = "#3057D3";
+const infoColor = "#296ef5";
 const roseColor = "#e91e63";
 const grayColor = "#999999";
 
@@ -141,19 +141,19 @@ const purpleCardHeader = {
 };
 // new card headers
 const warningCardHeader = {
-  background: "linear-gradient(60deg, #ffa726, #fb8c00)",
+  background: "linear-gradient(60deg, #FF9900, #FF9900)",
   ...warningBoxShadow
 };
 const successCardHeader = {
-  background: "linear-gradient(60deg, #66bb6a, #43a047)",
+  background: "linear-gradient(60deg, #007e06, #007e06)",
   ...successBoxShadow
 };
 const dangerCardHeader = {
-  background: "linear-gradient(60deg, #904bff, #7E3CFF)",
+  background: "linear-gradient(60deg, #7E3CFF, #7E3CFF)",
   ...dangerBoxShadow
 };
 const infoCardHeader = {
-  background: "linear-gradient(60deg, #246FA5, #246FA5)",
+  background: "linear-gradient(60deg, #296ef5, #296ef5)",
   ...infoBoxShadow
 };
 const primaryCardHeader = {

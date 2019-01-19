@@ -21,10 +21,6 @@ import { PATTERNS } from "views/Settings/data/Indicators.jsx";
 import FormControl from "@material-ui/core/FormControl/FormControl";
 import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 
-function Transition(props) {
-  return <Slide direction="down" {...props} />;
-}
-
 let opList = [">", "<", "cross_up", "cross_down", "GAIN"];
 
 class ConditionInput extends React.Component {
@@ -33,7 +29,8 @@ class ConditionInput extends React.Component {
     this.state = {
       left: this.props.leftValue,
       right: this.props.rightValue,
-      op: this.props.op
+      op: this.props.op,
+      cross_candles: 1
     };
     this.handleInputChange = this.handleInputChange.bind(this);
 
@@ -41,7 +38,6 @@ class ConditionInput extends React.Component {
     this.handleRight = this.handleRight.bind(this);
     this.updateTextField = this.updateTextField.bind(this);
     // this.handleLeft(props.lef)
-    console.log("editor", this.state);
   }
 
   updateTextField(event, name) {
@@ -52,7 +48,6 @@ class ConditionInput extends React.Component {
     this.setState({
       left: left
     });
-    console.log(this.state);
   }
   handleInputChange(event) {
     const target = event.target;
@@ -66,13 +61,11 @@ class ConditionInput extends React.Component {
           [name]: { value: value, timeframe: this.state.left.timeframe }
         });
 
-    console.log(this.state);
   }
   handleLeft(data) {
     this.setState({
       left: data
     });
-    console.log(this.state);
   }
   handleRight(data) {
     if (typeof data === "string") {
@@ -131,6 +124,20 @@ class ConditionInput extends React.Component {
               );
             })}
           </Select>
+          {this.state.op.split("_")[0] === "cross" ? (
+            <CustomInput
+              labelText={"cross_candles"}
+              id={"cross_candles"}
+              formControlProps={{
+                fullWidth: true
+              }}
+              inputProps={{
+                onChange: event => this.handleInputChange(event),
+                name: "cross_candles",
+                value: this.state.cross_candles
+              }}
+            />
+          ) : null}
         </FormControl>
       </div>
     );
@@ -145,9 +152,8 @@ class ConditionInput extends React.Component {
     );
     return (
       <div>
-        {console.log(this.state)}
         <Tabs
-          title="Tasks:"
+          title="Condition Types:"
           headerColor="primary"
           tabs={[
             {

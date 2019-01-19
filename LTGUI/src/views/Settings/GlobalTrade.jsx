@@ -20,7 +20,7 @@ import regularFormsStyle from "../../assets/jss/material-dashboard-pro-react/vie
 import { config_route, update_config } from "../../variables/global";
 import Button from "@material-ui/core/Button/Button";
 import TagsInput from "react-tagsinput";
-import { fetchJSON, postJSON } from "./helpers/Helpers";
+import { fetchJSON, postJSON } from "../helpers/Helpers";
 
 const style = theme => ({
   infoText: {

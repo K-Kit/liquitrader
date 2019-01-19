@@ -6,6 +6,9 @@ import os
 import pathlib
 import sys
 import psutil
+from datetime import datetime, timedelta
+
+from datetime import datetime, timedelta
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
@@ -55,6 +58,7 @@ database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
 _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
 _database = SQLAlchemy(_app)
 _UserModel = database_models.create_user_database_model(_database)
@@ -184,6 +188,7 @@ class GUIServer:
         otp = OTP()
         otp.init_app(_app)
         Talisman(_app, force_https=ssl, content_security_policy=csp)
+
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
         JWT(_app, user_authenticate, user_identity)
@@ -200,6 +205,54 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
+
+    def add_user(self, username, password, role='admin'):
+        """
+        Adds a user to the database
+        Returns True on success, False on failure (user existed)
+        """
+        User = self._user
+        username = username.lower()
+
+        user = User.query.filter_by(username=username).first()
+
+        if user is not None:
+            return False
+
+        self._database.session.add(User(username=username, password=password, role=role))
+        self._database.session.commit()
+
+        return True
+
+    def authenticate(self, username=None, password=None):
+        user = self._user.query.filter_by(username=username.lower()).first()
+
+        if user is None or not user.verify_password(password):
+            return False
+
+        return user
+
+    def identity(self, payload):
+        user_id = payload['identity']
+        return self._user.query.filter_by(id=user_id).first().id
+
+    def user_exists(self, user_id):
+        """
+        Check if a user exists
+        :return: Bool
+        """
+
+        user = self._user.query.get(user_id)
+        return user is not None
+
+    def users_exist(self):
+        """
+        Check if any users exist
+        :return: Bool
+        """
+
+        users = self._user.query.all()
+        return len(users) > 0
 
     # ----
     def _create_self_signed_cert(self):
@@ -275,7 +328,6 @@ def get_file(path=''):
 
     return render_template('index.html')
 
-
 # ----
 @_app.route("/api/holding")
 @jwt_required()
@@ -350,7 +402,10 @@ def get_dashboard_data():
     profit = LT_ENGINE.get_total_profit()
     profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
-    average_daily_gain = profit / len(profit_data)
+    if len(profit_data) > 0:
+        average_daily_gain = profit / len(profit_data)
+    else:
+        average_daily_gain = 0
     market = LT_ENGINE.config.general_settings['market'].upper()
     recent_sales = latest_sales()
     def reorient(df):

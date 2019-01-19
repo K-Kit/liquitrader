@@ -40,14 +40,12 @@ from utils.column_labels import *
 
 
 LT_ENGINE = None
-#_cmdline = psutil.Process().cmdline()
-abs_path = APP_DIR  # pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
-liquitrader_dir = abs_path
 
 if hasattr(sys, 'frozen'):
-    dist_path = abs_path / 'static'
+    dist_path = APP_DIR / 'static'
 else:
-    dist_path = abs_path / 'LTGUI' / 'build'
+    dist_path = APP_DIR / 'LTGUI' / 'build'
+
 _app = flask.Flask('lt_flask', static_folder=dist_path, template_folder=dist_path)
 
 
@@ -205,54 +203,6 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
-
-    def add_user(self, username, password, role='admin'):
-        """
-        Adds a user to the database
-        Returns True on success, False on failure (user existed)
-        """
-        User = self._user
-        username = username.lower()
-
-        user = User.query.filter_by(username=username).first()
-
-        if user is not None:
-            return False
-
-        self._database.session.add(User(username=username, password=password, role=role))
-        self._database.session.commit()
-
-        return True
-
-    def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username.lower()).first()
-
-        if user is None or not user.verify_password(password):
-            return False
-
-        return user
-
-    def identity(self, payload):
-        user_id = payload['identity']
-        return self._user.query.filter_by(id=user_id).first().id
-
-    def user_exists(self, user_id):
-        """
-        Check if a user exists
-        :return: Bool
-        """
-
-        user = self._user.query.get(user_id)
-        return user is not None
-
-    def users_exist(self):
-        """
-        Check if any users exist
-        :return: Bool
-        """
-
-        users = self._user.query.all()
-        return len(users) > 0
 
     # ----
     def _create_self_signed_cert(self):

@@ -31,19 +31,23 @@ function CustomInput({ ...props }) {
     [" " + classes.labelRootError]: error,
     [" " + classes.labelRootSuccess]: success && !error
   });
+
   const underlineClasses = classNames({
     [classes.underlineError]: error,
     [classes.underlineSuccess]: success && !error,
     [classes.underline]: true,
     [classes.whiteUnderline]: white
   });
+
   const marginTop = classNames({
     [inputRootCustomClasses]: inputRootCustomClasses !== undefined
   });
+
   const inputClasses = classNames({
     [classes.input]: true,
     [classes.whiteInput]: white
   });
+
   var formControlClasses;
   if (formControlProps !== undefined) {
     formControlClasses = classNames(
@@ -53,10 +57,12 @@ function CustomInput({ ...props }) {
   } else {
     formControlClasses = classes.formControl;
   }
+
   var helpTextClasses = classNames({
     [classes.labelRootError]: error,
     [classes.labelRootSuccess]: success && !error
   });
+
   return (
     <FormControl {...formControlProps} className={formControlClasses}>
       {labelText !== undefined ? (

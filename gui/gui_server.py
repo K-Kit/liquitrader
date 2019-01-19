@@ -130,10 +130,6 @@ def before_request_handler():
     if '..' in path:
         return Response(status=400)
 
-    # ok_unauthorized_paths = ['/login', '/auth', '/manifest.json', '/favicon.ico']
-    # if path not in ok_unauthorized_paths and not path.startswith('/static/'):
-    #     return flask.redirect('/login')
-
 
 # --------
 def to_usd(val):
@@ -264,10 +260,13 @@ class GUIServer:
 
 
 # ----
-@_app.route('/<path:path>')
-def get_file(path=''):
-    print(path)
+@_app.route('/')
+def get_home():
+    return _app.send_static_file('index.html')
 
+
+@_app.route('/<path:path>')
+def get_file(path):
     if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
         try:
             return _app.send_static_file(path)
@@ -276,7 +275,12 @@ def get_file(path=''):
             print(f'User attempted to get file "{path}", but it does not exist')
             return Response(status=404)
 
-    return render_template('index.html')
+    return _app.send_static_file('index.html')
+
+
+@_app.route('/logout')
+def do_logout():
+    return _app.send_static_file('index.html')
 
 # ----
 @_app.route("/api/holding")

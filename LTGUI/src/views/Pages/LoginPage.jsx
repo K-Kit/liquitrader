@@ -42,7 +42,9 @@ class LoginPage extends React.Component {
       password: "",
       username: ""
     };
+
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
   }
 
   componentDidMount() {
@@ -52,6 +54,17 @@ class LoginPage extends React.Component {
         this.setState({ cardAnimaton: "" });
       }.bind(this),
       700
+    );
+
+    // Allow users to submit the login form by pressing enter in the password input
+    document.getElementById("password").addEventListener('keyup',
+        (event) => {
+            if (event.which == 13 || event.keyCode == 13) {
+                document.querySelector('form div > div > button').click();
+                return false;  // Prevent event from bubbling further
+            }
+            return true;  // Bubble up event
+        }
     );
   }
 
@@ -70,8 +83,8 @@ class LoginPage extends React.Component {
     });
   }
 
-  getToken() {
-    postJSON("/auth", {
+  handleLogin() {
+    postJSON(url, {
       username: this.state.username,
       password: this.state.password
     })
@@ -85,6 +98,24 @@ class LoginPage extends React.Component {
       }
     });
   }
+
+  /*
+  {() => {
+      postJSON(url, {
+        username: this.state.username,
+        password: this.state.password
+      }).then(token => {
+        token = JSON.parse(token);
+        if (Object.values(token)[0] !== undefined) {
+          localStorage.setItem(
+            "token",
+            "JWT " + Object.values(token)[0]
+          );
+          window.location.pathname = "dashboard";
+        }
+      });
+    }}
+  */
 
   render() {
     const { classes } = this.props;
@@ -110,7 +141,7 @@ class LoginPage extends React.Component {
                     inputProps={{
                       name: "username",
                       onChange: this.handleInputChange,
-                      autocomplete: "username",
+                      autoComplete: "username",
                       value: this.state.username,
                       endAdornment: (
                         <InputAdornment position="end">
@@ -129,7 +160,7 @@ class LoginPage extends React.Component {
                     inputProps={{
                       name: "password",
                       type: "password",
-                      autocomplete: "current-password",
+                      autoComplete: "current-password",
                       onChange: this.handleInputChange,
                       value: this.state.password,
                       endAdornment: (
@@ -148,21 +179,7 @@ class LoginPage extends React.Component {
                     simple
                     size="lg"
                     block
-                    onClick={() => {
-                      postJSON(url, {
-                        username: this.state.username,
-                        password: this.state.password
-                      }).then(token => {
-                        token = JSON.parse(token);
-                        if (Object.values(token)[0] !== undefined) {
-                          localStorage.setItem(
-                            "token",
-                            "JWT " + Object.values(token)[0]
-                          );
-                          window.location.pathname = "dashboard";
-                        }
-                      });
-                    }}
+                    onClick={this.handleLogin}
                   >
                     Log in
                   </Button>

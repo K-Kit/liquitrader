@@ -174,6 +174,7 @@ def getLookback(val, inputs , cross_candles):
 
 
 def handle_cross_condition(part_a, part_b, op, inputs, cross_candles=1):
+    cross_candles = int(cross_candles)
     a1 = getCurrentValue(part_a,inputs)
     a2 = getLookback(part_a, inputs, cross_candles)
 

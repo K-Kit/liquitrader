@@ -20,6 +20,7 @@ flask_jwt
 flask_sqlalchemy
 flask_sslify
 flask_wtf
+flask_jwt
 
 json_minify
 lxml

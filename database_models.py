@@ -28,18 +28,18 @@ def create_user_database_model(database):
         def __init__(self, **kwargs):
             super(User, self).__init__(**kwargs)
 
-            if self.tfa_secret is None:
-                # generate a random secret
-                self.tfa_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
-
+            # Password salt
             if self.salt is None:
                 self.salt = base64.b32encode(os.urandom(32)).decode('utf-8')
 
-            if self.tfa_active is None:
-                self.tfa_active = 0
-
             if self.role is None:
                 self.role = 'admin'
+
+            if self.tfa_secret is None:
+                self.tfa_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
+
+            if self.tfa_active is None:
+                self.tfa_active = 0
 
         @property
         def password(self):
@@ -51,8 +51,6 @@ def create_user_database_model(database):
                 self.salt = base64.b32encode(os.urandom(32)).decode('utf-8')
 
             self.password_hash = base64.b64encode(scrypt.hash(base64.b64decode(self.salt), password, buflen=128)).decode('utf-8')
-
-            print(self.password_hash)
 
         def verify_password(self, password):
             return bytes_eq(scrypt.hash(base64.b64decode(self.salt), password, buflen=128),

@@ -230,6 +230,7 @@ if __name__ == '__main__':
                 'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
                 'flask_compress', 'flask_sslify', 'flask_talisman', 'flask_jwt',
                 'OpenSSL',
+                'scrypt',
                 'arrow', 'dateutil', 'dateutil.tz', 'dateutil.zoneinfo',
                 'jinja2',
                 'sqlalchemy',

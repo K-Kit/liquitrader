@@ -42,7 +42,7 @@ from utils.column_labels import *
 LT_ENGINE = None
 
 if hasattr(sys, 'frozen'):
-    dist_path = APP_DIR / 'static'
+    dist_path = APP_DIR / 'gui'
 else:
     dist_path = APP_DIR / 'LTGUI' / 'build'
 
@@ -266,7 +266,7 @@ def get_home():
 
 
 @_app.route('/<path:path>')
-def get_file(path):
+def get_file(path=''):
     if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
         try:
             return _app.send_static_file(path)
@@ -365,6 +365,12 @@ def get_dashboard_data():
     def reorient(df):
         # return [{k: v for (k, v) in row.items() if k != 'foo'} for row in df.to_dict(orient='record')]
         return [{col: getattr(row, col) for col in df} for row in df.itertuples()]
+
+    # Run global buy checks if it hasn't been already
+    if not all([hasattr(LT_ENGINE, 'check_24h_quote_change'),
+                hasattr(LT_ENGINE, 'check_1h_quote_change'),
+                hasattr(LT_ENGINE, 'check_24h_market_change')]):
+        LT_ENGINE.global_buy_checks()
 
     data = {
         "quote_balance": eight_decimal_format(balance),

@@ -21,7 +21,7 @@ BUILD_UPDATER = False
 
 
 BUILD_PATH = './build/liquitrader_win/' if sys.platform == 'win32' else './build/liquitrader_linux/'
-BUILD_PATH = pathlib.Path(BUILD_PATH)
+BUILD_PATH = pathlib.Path(BUILD_PATH).absolute()
 
 
 def cythonize_liquitrader(target_packages):
@@ -128,10 +128,17 @@ def rmtree(pth: pathlib.Path):
 
 
 def copy_requirements():
-    if os.path.exists(BUILD_PATH / 'static'):
-        rmtree(BUILD_PATH / 'static')
+    gui_path = BUILD_PATH / 'gui'
 
-    shutil.copytree('LTGUI/build', BUILD_PATH / 'static')
+    if gui_path.exists():
+        rmtree(gui_path)
+
+    while True:
+        try:
+            shutil.copytree(pathlib.Path('LTGUI/build'), gui_path)
+            break
+        except PermissionError:
+            time.sleep(.1)
 
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
@@ -208,7 +215,7 @@ if __name__ == '__main__':
 
             'bin_includes': ['openblas', 'libgfortran', 'libffi', 'numpy'],
 
-            'include_files': [('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
+            'include_files': [('dependencies/liquitrader.ico', 'gui/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
                               ('tos.txt', 'tos.txt'),
                               ('version.txt', 'version.txt'),
@@ -230,7 +237,7 @@ if __name__ == '__main__':
                 'flask', 'flask_sqlalchemy', 'flask_login', 'flask_bootstrap', 'flask_wtf', 'flask_otp',
                 'flask_compress', 'flask_sslify', 'flask_talisman', 'flask_jwt',
                 'OpenSSL',
-                'scrypt',
+                'scrypt', '_scrypt',
                 'arrow', 'dateutil', 'dateutil.tz', 'dateutil.zoneinfo',
                 'jinja2',
                 'sqlalchemy',
@@ -257,7 +264,7 @@ if __name__ == '__main__':
             ],
 
             'zip_include_packages': '*',
-            'zip_exclude_packages': ['flask_bootstrap'],
+            'zip_exclude_packages': ['flask_bootstrap', 'dateutil'],
 
             'include_msvcr': True,
             'optimize': 2,

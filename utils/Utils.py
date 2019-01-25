@@ -24,10 +24,12 @@ def below_max_pairs(current_pairs, max_pairs):
 
 
 def below_max_change(change, max_change):
+    max_change = float(max_change)
     return change < max_change or max_change == 0
 
 
 def above_min_change(change, min_change):
+    min_change = float(min_change)
     return change > min_change or min_change == 0
 
 

@@ -9,9 +9,6 @@ export function fetchErrorHandler(response, error = false) {
     console.log('error', response, error);
     
   }
-  if (response.status === 401){
-    window.location.pathname= '/login';
-  }
 
   return response;
 }

@@ -16,7 +16,7 @@ from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response, render_template
+from flask import jsonify, Response, render_template, redirect
 from flask_jwt import JWT, jwt_required, current_identity
 
 import database_models
@@ -52,6 +52,17 @@ if hasattr(sys, 'frozen'):
 else:
     dist_path = abs_path / 'LTGUI' / 'build'
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
+database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
+_app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+_app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+
+
+class db_manager:
+    db = SQLAlchemy(_app)
+    User = database_models.create_user_database_model(db)
+    KeyStore = database_models.create_keystore_database_model(db)
+    db.create_all()
 
 
 
@@ -62,10 +73,7 @@ def to_usd(val):
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
-        database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
-        _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
-        _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+        # todo add refresh token, currently set for 1 week expiration to allow for streaming.
         _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
         self._database = SQLAlchemy(_app)
@@ -75,8 +83,6 @@ class GUIServer:
         self._database.create_all()
         # Perform any necessary database structure updates
         database_models.migrate_table(self._database)
-
-        self._login_man = flask_login.LoginManager(_app)
 
         csp = {
             'default-src': [
@@ -120,7 +126,6 @@ class GUIServer:
         otp = OTP()
         otp.init_app(_app)
         from flask_cors import CORS
-        CORS(_app)
         # Talisman(_app, force_https=ssl, content_security_policy=csp)
         # from flask_cors import CORS
         CORS(_app)
@@ -163,6 +168,7 @@ class GUIServer:
         user = self._user.query.filter_by(username=username.lower()).first()
 
         if user is None or not user.verify_password(password):
+            redirect('/login')
             return False
 
         return user
@@ -251,9 +257,9 @@ class GUIServer:
 
 
 # ----
-@_app.route('/')
-def get_index():
-    return render_template('index.html')
+# @_app.route('/')
+# def get_index():
+#     return render_template('index.html')
 
 
 # ----

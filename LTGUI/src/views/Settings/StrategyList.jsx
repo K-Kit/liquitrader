@@ -27,8 +27,6 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-const STRATEGYBASE = { conditions: [], dca_strategy: { default: {} } };
-
 class StrategyList extends React.Component {
   constructor(props) {
     super(props);
@@ -66,7 +64,7 @@ class StrategyList extends React.Component {
     this.setState({
       strategies: strategies
     });
-    console.log(this.state);
+    // console.log(this.state);
   }
   removeStrategy(id) {
     const strategies = [...this.state.strategies];
@@ -107,7 +105,7 @@ class StrategyList extends React.Component {
     });
   }
   addStrategy() {
-    const strategies = [...this.state.strategies, STRATEGYBASE];
+    const strategies = [...this.state.strategies, { conditions: [], dca_strategy: { default: {} } }];
     this.setState({
       strategies: strategies
     });

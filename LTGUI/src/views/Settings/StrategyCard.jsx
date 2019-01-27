@@ -100,6 +100,7 @@ class StrategyCard extends React.Component {
     let addDCALevel = props.addDCALevel;
     let id = props.id;
     let conditionID = 0;
+    console.log(id)
     let fields = FIELDS[props.strategyType];
     return (
       <Card>

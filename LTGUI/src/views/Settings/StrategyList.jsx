@@ -18,8 +18,6 @@ import Slide from "@material-ui/core/Slide";
 import { config_route, update_config } from "variables/global";
 import { fetchJSON, postJSON } from "views/helpers/Helpers.jsx";
 
-
-
 function Transition(props) {
   return <Slide direction="down" {...props} />;
 }
@@ -33,7 +31,7 @@ class StrategyList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      strategies: exampleDCAStrategies,
+      strategies: [],
       open: false,
       targetStrategy: 0,
       leftValue: {},
@@ -78,9 +76,9 @@ class StrategyList extends React.Component {
   removeDCALevel(strategyID, dcaLvl) {
     const strategies = [...this.state.strategies];
 
-    console.log(strategies)
+    console.log(strategies);
     delete strategies[strategyID].dca_strategy[dcaLvl];
-    console.log(strategies[strategyID][dcaLvl], dcaLvl)
+    console.log(strategies[strategyID][dcaLvl], dcaLvl);
     this.setState({
       strategies: strategies
     });
@@ -99,7 +97,10 @@ class StrategyList extends React.Component {
   addDCALevel(strategyID, dcaLvl, trigger, percent) {
     const strategies = [...this.state.strategies];
     console.log(strategies[strategyID].dca_strategy[dcaLvl]);
-    strategies[strategyID].dca_strategy[dcaLvl] = {trigger: trigger, percentage: percent};
+    strategies[strategyID].dca_strategy[dcaLvl] = {
+      trigger: trigger,
+      percentage: percent
+    };
 
     console.log(strategies[strategyID].dca_strategy[dcaLvl]);
     this.setState({
@@ -134,6 +135,7 @@ class StrategyList extends React.Component {
       rightValue: condition.right,
       op: condition.op
     });
+    this.removeCondition(strategyID, conditionID)
     console.log(this.state);
     console.log(condition);
   }
@@ -171,12 +173,16 @@ class StrategyList extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
-    
     let strategy_type =
       this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
-    console.log(strategy_type, this)
-    if (!this.isCancelled) {
-      this.setState({ strategies: config[strategy_type + "_strategies"] });
+    console.log(strategy_type, this);
+    if (!this.isCancelled && config.status_code != 401) {
+      try {
+        this.setState({ strategies: config[strategy_type + "_strategies"] });
+      } catch (e) {
+        console.log(e);
+        this.setState({ strategies: [] });
+      }
     }
   }
 

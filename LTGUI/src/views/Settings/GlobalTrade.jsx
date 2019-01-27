@@ -119,6 +119,9 @@ class GlobalTrade extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
+    if (config.status_code === 401) {
+      return
+    }
     this.setState({
       ...config.global_trade,
       ...config.global_trade.market_change,

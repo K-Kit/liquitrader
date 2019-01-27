@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from datetime import datetime, timedelta
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
+from config.config import Config
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
@@ -58,11 +59,10 @@ _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
 
 
-class db_manager:
-    db = SQLAlchemy(_app)
-    User = database_models.create_user_database_model(db)
-    KeyStore = database_models.create_keystore_database_model(db)
-    db.create_all()
+db = SQLAlchemy(_app)
+User = database_models.create_user_database_model(db)
+KeyStore = database_models.create_keystore_database_model(db)
+db.create_all()
 
 
 
@@ -76,11 +76,9 @@ class GUIServer:
         # todo add refresh token, currently set for 1 week expiration to allow for streaming.
         _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
-        self._database = SQLAlchemy(_app)
-        self._user = database_models.create_user_database_model(self._database)
-        self._keyStore = database_models.create_keystore_database_model(self._database)
-        self._flaskStore = database_models.create_flask_database_model(self._database)
-        self._database.create_all()
+        self._database = db
+        self._user = User
+        self._keyStore = KeyStore
         # Perform any necessary database structure updates
         database_models.migrate_table(self._database)
 
@@ -168,7 +166,10 @@ class GUIServer:
         user = self._user.query.filter_by(username=username.lower()).first()
 
         if user is None or not user.verify_password(password):
-            redirect('/login')
+            if not os.path.isfile('config/SellStrategies.json'):
+                flask.redirect('/setup')
+            else:
+                redirect('/login')
             return False
 
         return user
@@ -256,16 +257,77 @@ class GUIServer:
         self._shutdown_handler.remove_task()
 
 
-# ----
-# @_app.route('/')
-# def get_index():
-#     return render_template('index.html')
+def add_user(username, password, role='admin'):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+    username = username.lower()
 
+    user = User.query.filter_by(username=username).first()
+
+    if user is not None:
+        return False
+
+    db.session.add(User(username=username, password=password, role=role))
+    db.session.commit()
+
+    return True
+
+
+# ----
+@_app.route('/')
+def get_index():
+    if not os.path.isfile('config/SellStrategies.json'):
+        return flask.redirect('/setup')
+    return render_template('index.html')
+
+
+# ----
+@_app.route('/setup')
+def setup():
+    return render_template('index.html')
 
 # ----
 @_app.route('/<path:path>')
 def get_file(path=''):
+    if not os.path.isfile('config/SellStrategies.json'):
+        return flask.redirect('/setup')
     return render_template('index.html')
+
+# ----
+@_app.route("/first_run", methods=['POST'])
+def first_run():
+    """
+    takes in list
+    list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    generate config files and instantiate db
+    block endpoint if userdb already exists
+    :return:
+    """
+    data = flask.request.get_json(force=True)
+    # track user exists, lazy solution because front end occasionally
+    #  sends list where first 2 items are account and item[0] is blank
+    #  item[1] is actual account, likely issue with component did mount
+    user_exists = False
+    config = Config()
+    for item in data:
+        k, v = list(item.items())[0]
+        if k ==  'account':
+            username = v['firstname']
+            password = v['password']
+            if username == '':
+                break
+            else:
+                add_user(username, password)
+                user_exists = True
+        else:
+            if not user_exists:
+                raise Exception('error creating user')
+            config.update_config(k,v)
+    from pprint import pprint
+    pprint(vars(config))
+    return Response()
 
 # ----
 @_app.route("/api/holding")
@@ -415,4 +477,4 @@ def get_statistics():
 
 if __name__ == '__main__':
     gui = GUIServer(shutdown_handler=None)
-    _app.run()
+    _app.run(debug=True)

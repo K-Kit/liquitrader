@@ -751,7 +751,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     _shutdown_handler.remove_task()
 
-def firsttime_init(server):
+def firsttime_init(shutdown_handler):
     """
     Create user account on first run
     """
@@ -763,10 +763,26 @@ def firsttime_init(server):
         sys.exit(0)
 
     print_line('\nFirst time configuration\n')
+    # get port and host ip to init gserver
+    port = input('Select a port (default: 7007): ')
+    if port is None or port =='':
+        port = 7007
+    else:
+        port = int(port)
 
-    username = get_username()
-    password = get_password()
-    server.add_user(username, password)
+    host = input('Select a host IP (default: 0.0.0.0 this will expose your machine to the internet, 127.0.0.1 to run locally): ')
+    if host is None or host == '':
+        host = '0.0.0.0'
+
+    import gui.gui_server
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                          host=host,
+                                          port=port,
+                                          )
+    gui_thread = threading.Thread(target=gui.gui_server._app.run(debug=True))
+    gui_thread.start()
+    while not gui_server.users_exist():
+        pass
     return
 
 # ----
@@ -833,7 +849,7 @@ def main(ipython=False):
     try:
         lt_engine.initialize_config()
     except FileNotFoundError:
-        firsttime_init()
+        firsttime_init(shutdown_handler)
 
     # ----
     import gui.gui_server

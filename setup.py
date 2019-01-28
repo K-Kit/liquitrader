@@ -181,7 +181,7 @@ if __name__ == '__main__':
             print('This probably won\'t cause issues, but you\'ll be sorry if it does!')
 
     # ----
-    TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
+    TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'utils', 'gui']
 
     if CYTHONIZE_LIQUITRADER:
         cythonize_liquitrader(TARGET_PACKAGES)

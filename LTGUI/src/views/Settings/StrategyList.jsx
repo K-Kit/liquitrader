@@ -108,7 +108,7 @@ class StrategyList extends React.Component {
     });
   }
   addStrategy() {
-    const strategies = [...this.state.strategies, STRATEGYBASE];
+    const strategies = [...this.state.strategies, { conditions: [], dca_strategy: { default: {} } }];
     this.setState({
       strategies: strategies
     });

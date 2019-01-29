@@ -2,6 +2,8 @@ import os
 import sys
 import traceback
 import faulthandler
+import platform
+
 # import logging
 # from io import StringIO
 
@@ -180,8 +182,15 @@ def enable_faulthandler():
 
     crash_log = open('crash.log', 'r+')
 
-    if crash_log.read(4):
+    if not crash_log.read(4):
+        import distro
+
+        dist_info = platform.platform() if sys.platform != 'linux' else distro.linux_distribution()
+        print(f'{dist_info} | {platform.processor()}\n--------\n', file=crash_log)
+
+    else:
         print('\n--------\n', file=crash_log)
+
     print(f'Session: {arrow.utcnow().format("YYYY-MM-DD HH:mm UTC")}\n', file=crash_log)
 
     faulthandler.enable(crash_log, True)

@@ -231,6 +231,7 @@ if __name__ == '__main__':
                 'flask_compress', 'flask_sslify', 'flask_talisman', 'flask_jwt',
                 'OpenSSL',
                 'arrow', 'dateutil', 'dateutil.tz', 'dateutil.zoneinfo',
+                'distro',
                 'jinja2',
                 'sqlalchemy',
                 'pyqrcode',

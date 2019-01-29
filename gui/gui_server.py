@@ -227,6 +227,9 @@ class GUIServer:
 
     # ----
     def run(self):
+        import utils.runtime_handler
+        utils.runtime_handler.enable_traceback_hook()  # Enable custom traceback handling (to strip build path info)
+
         self._shutdown_handler.add_task()
 
         if self._use_ssl:

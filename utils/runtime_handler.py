@@ -11,8 +11,8 @@ import arrow
 import distro
 
 
-def _flush(message):
-    sys.stderr.write(message + '\n')
+def consprint(message='', end='\n'):
+    sys.stderr.write(message + end)
     sys.stderr.flush()
 
 
@@ -157,7 +157,7 @@ def enable_traceback_hook(reverse=False,
             parser.reverse()
 
         tpe = tpe if isinstance(tpe, str) else ''
-        _flush('\nTraceback ({0}):'.format('Most recent call last'))
+        consprint('\nTraceback ({0}):'.format('Most recent call last'))
 
         backtrace = parser.generate_backtrace()
         if len(tpe) > 0:
@@ -165,10 +165,9 @@ def enable_traceback_hook(reverse=False,
             backtrace.insert(0 if reverse else len(backtrace), err_message)
 
         for entry in backtrace:
-            _flush(entry)
+            consprint(entry)
 
-        _flush('\t' + str(value))
-
+        consprint()
 
     if tb is not None:
         backtrace_excepthook(tpe=tpe, value=value, tb=tb)

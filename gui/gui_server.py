@@ -52,36 +52,83 @@ if hasattr(sys, 'frozen'):
     dist_path = abs_path / 'static'
 else:
     dist_path = abs_path / 'LTGUI' / 'build'
+
+
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
+
 database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
+
 _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+
+# todo add refresh token, currently set for 1 week expiration to allow for streaming.
+_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
 
 db = SQLAlchemy(_app)
 User = database_models.create_user_database_model(db)
 KeyStore = database_models.create_keystore_database_model(db)
 db.create_all()
+# Perform any necessary database structure updates
+database_models.migrate_table(db)
+
 
 
 
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
+def add_user(username, password, role='admin'):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+    username = username.lower()
+
+    user = User.query.filter_by(username=username).first()
+
+    if user is not None:
+        return False
+
+    db.session.add(User(username=username, password=password, role=role))
+    db.session.commit()
+
+    return True
+
+def authenticate(username=None, password=None):
+    user = User.query.filter_by(username=username.lower()).first()
+
+    if user is None or not user.verify_password(password):
+        return False
+
+    return user
+
+def identity(payload):
+    user_id = payload['identity']
+    return User.query.filter_by(id=user_id).first().id
+
+def user_exists(user_id):
+    """
+    Check if a user exists
+    :return: Bool
+    """
+
+    user = User.query.get(user_id)
+    return user is not None
+
+def users_exist():
+    """
+    Check if any users exist
+    :return: Bool
+    """
+
+    users = User.query.all()
+    return len(users) > 0
 
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
-        # todo add refresh token, currently set for 1 week expiration to allow for streaming.
-        _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
-
-        self._database = db
-        self._user = User
-        self._keyStore = KeyStore
-        # Perform any necessary database structure updates
-        database_models.migrate_table(self._database)
-
         csp = {
             'default-src': [
                 '\'self\'',
@@ -123,11 +170,11 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        from flask_cors import CORS
+        # TODO fix mime type err  ---IMPORTANT
         # Talisman(_app, force_https=ssl, content_security_policy=csp)
-        # from flask_cors import CORS
-        CORS(_app)
-        self._bootstrap = Bootstrap(_app)
+
+        # AssertionError: A name collision occurred between blueprints
+        # self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 
         self._shutdown_handler = shutdown_handler
@@ -142,59 +189,7 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
-        jwt = JWT(_app, self.authenticate, self.identity)
-
-    def add_user(self, username, password, role='admin'):
-        """
-        Adds a user to the database
-        Returns True on success, False on failure (user existed)
-        """
-        User = self._user
-        username = username.lower()
-
-        user = User.query.filter_by(username=username).first()
-
-        if user is not None:
-            return False
-
-        self._database.session.add(User(username=username, password=password, role=role))
-        self._database.session.commit()
-
-        return True
-
-    def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username.lower()).first()
-
-        if user is None or not user.verify_password(password):
-            if not os.path.isfile('config/SellStrategies.json'):
-                flask.redirect('/setup')
-            else:
-                redirect('/login')
-            return False
-
-        return user
-
-    def identity(self, payload):
-        user_id = payload['identity']
-        return self._user.query.filter_by(id=user_id).first().id
-
-    def user_exists(self, user_id):
-        """
-        Check if a user exists
-        :return: Bool
-        """
-
-        user = self._user.query.get(user_id)
-        return user is not None
-
-    def users_exist(self):
-        """
-        Check if any users exist
-        :return: Bool
-        """
-
-        users = self._user.query.all()
-        return len(users) > 0
+        JWT(_app, authenticate, identity)
 
 
 
@@ -216,10 +211,10 @@ class GUIServer:
         cert.set_pubkey(k)
         cert.sign(k, b'sha256')
 
-        with open(self._certfile_path, 'wb') as certfile:
+        with open(self._certfile_path, 'w') as certfile:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
-        with open(self._keyfile_path, 'wb') as keyfile:
+        with open(self._keyfile_path, 'w') as keyfile:
             keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, k))
 
     # --
@@ -257,22 +252,6 @@ class GUIServer:
         self._shutdown_handler.remove_task()
 
 
-def add_user(username, password, role='admin'):
-    """
-    Adds a user to the database
-    Returns True on success, False on failure (user existed)
-    """
-    username = username.lower()
-
-    user = User.query.filter_by(username=username).first()
-
-    if user is not None:
-        return False
-
-    db.session.add(User(username=username, password=password, role=role))
-    db.session.commit()
-
-    return True
 
 
 # ----
@@ -296,7 +275,7 @@ def get_file(path=''):
     return render_template('index.html')
 
 # ----
-@_app.route("/first_run", methods=['POST'])
+@_app.route("/first_run", methods=['POST', 'GET'])
 def first_run():
     """
     takes in list
@@ -309,25 +288,27 @@ def first_run():
     # track user exists, lazy solution because front end occasionally
     #  sends list where first 2 items are account and item[0] is blank
     #  item[1] is actual account, likely issue with component did mount
-    user_exists = False
+    u = False
     config = Config()
     for item in data:
+        print(item)
         k, v = list(item.items())[0]
         if k ==  'account':
             username = v['firstname']
             password = v['password']
             if username == '':
-                break
+                pass
             else:
                 add_user(username, password)
-                user_exists = True
+                u = True
         else:
-            if not user_exists:
+            if not u:
                 raise Exception('error creating user')
+            if 'strategies' in v:
+                v = v['strategies']
+
             config.update_config(k,v)
-    from pprint import pprint
-    pprint(vars(config))
-    return Response()
+    return flask.redirect('/dashboard')
 
 # ----
 @_app.route("/api/holding")

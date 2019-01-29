@@ -203,6 +203,9 @@ class LiquiTrader:
 
     # ----
     def run_exchange(self):
+        import utils.runtime_handler
+        utils.runtime_handler.enable_traceback_hook()  # Enable custom traceback handling (to strip build path info)
+
         self.shutdown_handler.add_task()
 
         try:
@@ -713,6 +716,9 @@ def get_username():
 
 # ----
 def trader_thread_loop(lt_engine, _shutdown_handler):
+    import utils.runtime_handler
+    utils.runtime_handler.enable_traceback_hook()  # Enable custom traceback handling (to strip build path info)
+
     _shutdown_handler.add_task()
 
     # Alleviate method lookup overhead
@@ -848,10 +854,7 @@ def main(ipython=False):
         print('No trade history found')
 
     lt_engine.initialize_exchange()
-
-
     lt_engine.load_strategies()
-
 
     # ----
     trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))
@@ -861,52 +864,57 @@ def main(ipython=False):
     trader_thread.start()
     gui_thread.start()
     exchange_thread.start()
+
+    def shutdown():
+        print('\nClosing LiquiTrader...\n')
+
+        shutdown_handler.start_shutdown()  # Set shutdown flag
+
+        print('Stopping GUI server')
+        gui_server.stop()  # Gracefully shut down webserver
+
+        print('Stopping exchange connections')
+        try:
+            lt_engine.stop_exchange()
+
+        # Catch Twisted connection lost bullshit
+        except Exception:
+            exception_data = traceback.format_exc()
+
+            if 'connectionLost' in exception_data:
+                pass
+
+            else:
+                sys.stdout.write(str(exception_data) + '\n')
+                sys.stdout.flush()
+
+        # Wait for transactions / critical actions to finish
+        if not shutdown_handler.is_complete():
+            counter = 1
+
+            while counter <= 10 and (not shutdown_handler.is_complete()):
+                print(f'\rWaiting for transactions to complete... ({counter}/10)...', end='')
+                time.sleep(1)
+                counter += 1
+
+        # Force-kill the threads to prevent zombies
+        for thread in (trader_thread, gui_thread, exchange_thread):
+            if thread.is_alive():
+                thread._tstate_lock.release()
+                thread._stop()
+
+        print('\nThanks for using LiquiTrader!\n')
+        sys.exit(0)
+
     # ----
     # Main thread loop
     while True:
         try:
-            input()
+            time.sleep(.1)
 
         except KeyboardInterrupt:
-            print('\nClosing LiquiTrader...\n')
+            shutdown()
 
-            shutdown_handler.start_shutdown()  # Set shutdown flag
 
-            print('Stopping GUI server')
-            gui_server.stop()  # Gracefully shut down webserver
-
-            print('Stopping exchange connections')
-            try:
-                lt_engine.stop_exchange()
-
-            # Catch Twisted connection lost bullshit
-            except Exception:
-                exception_data = traceback.format_exc()
-
-                if 'connectionLost' in exception_data:
-                    pass
-
-                else:
-                    sys.stdout.write(str(exception_data) + '\n')
-                    sys.stdout.flush()
-
-            # Wait for transactions / critical actions to finish
-            if not shutdown_handler.is_complete():
-                counter = 1
-
-                while counter <= 10 and (not shutdown_handler.is_complete()):
-                    print(f'\rWaiting for transactions to complete... ({counter}/10)...', end='')
-                    time.sleep(1)
-                    counter += 1
-
-            # Force-kill the threads to prevent zombies
-            for thread in (trader_thread, gui_thread, exchange_thread):
-                if thread.is_alive():
-                    thread._tstate_lock.release()
-                    thread._stop()
-
-            print('\nThanks for using LiquiTrader!\n')
-            sys.exit(0)
-#
 if __name__ == '__main__':
-    lt= main(ipython=True)
+    main(ipython=True)

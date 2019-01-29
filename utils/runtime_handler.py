@@ -44,19 +44,33 @@ class _Hook(object):
                     break
 
             new_path = os.path.sep.join(path_parts[py_root + 1:])
-            entry[0] = new_path.replace(f'lib{os.path.sep}site-packages{os.path.sep}', '').replace('dist-packages/', '')
+            new_path = new_path.replace('site-packages\\', '').replace('dist-packages/', '')
+            new_path = new_path.replace('Python36\\', '')
+
+            if new_path.find('liquitrader') > 1:
+                new_path = new_path[new_path.find('liquitrader') + 11:]
+
+            entry[0] = new_path.lstrip(os.path.sep).replace('.py', '').replace('.pyd', '').replace('.so', '')
+
+        if entry[0] == '':
+            entry[0] = 'runner' if entry[1] < 13 else '<loader>'
 
         # entry[0] = os.path.basename(entry[0]) if self.strip else entry[0]
 
         # Always an int (entry line number)
         entry[1] = str(entry[1])
 
+        entry[2] = entry[2].replace('<module>', '')
+
         new_entry = [
             entry[1],
             entry[0],
-            entry[2],
-            entry[3],
+            entry[2]
         ]
+
+        # Actual line printout; exclude from builds for security reasons=
+        if not hasattr(sys, 'frozen'):
+            new_entry.append(entry[3])
 
         if self.conservative:
             new_entry[0], new_entry[1] = new_entry[1], new_entry[0]
@@ -88,13 +102,13 @@ class _Hook(object):
         for entry in self.entries:
             backtrace.append(self.rebuild_entry(entry))
 
-        # Get the lenght of the longest string for each field of an entry
+        # Get the length of the longest string for each field of an entry
         lengths = self.align_all(backtrace) if self.align else [1, 1, 1, 1]
 
         aligned_backtrace = []
         for entry in backtrace:
             if entry is not None:
-                aligned_backtrace.append('\t' + self.align_entry(entry, lengths))
+                aligned_backtrace.append('    ' + self.align_entry(entry, lengths))
 
         return aligned_backtrace
 
@@ -143,9 +157,7 @@ def enable_traceback_hook(reverse=False,
             parser.reverse()
 
         tpe = tpe if isinstance(tpe, str) else ''
-
-        tb_message = 'Traceback ({0}):'.format('Most recent call last')
-        _flush(tb_message)
+        _flush('\nTraceback ({0}):'.format('Most recent call last'))
 
         backtrace = parser.generate_backtrace()
         if len(tpe) > 0:
@@ -154,6 +166,9 @@ def enable_traceback_hook(reverse=False,
 
         for entry in backtrace:
             _flush(entry)
+
+        _flush('\t' + str(value))
+
 
     if tb is not None:
         backtrace_excepthook(tpe=tpe, value=value, tb=tb)
@@ -180,6 +195,9 @@ def add_custom_print_exception():
 
 def enable_faulthandler():
     # Handles crashes that otherwise would be lost
+
+    if not os.path.isfile('crash.log'):
+        with open('crash.log', 'w') as _: pass
 
     crash_log = open('crash.log', 'r+')
 

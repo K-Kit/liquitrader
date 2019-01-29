@@ -145,7 +145,7 @@ class LiquiTrader:
         self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
-        self.config.load_pair_settings()
+        # self.config.load_pair_settings()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
@@ -463,7 +463,7 @@ class LiquiTrader:
     def global_buy_checks(self):
         # Alleviate lookup cost
         quote_change_info = self.exchange.quote_change_info
-        market_change = self.config.global_trade_conditions['market_change']
+        market_change = self.config.global_trade_conditions
         self.market_change_24h = get_average_market_change(self.exchange.pairs)
         self.below_max_pairs = self.is_below_max_pairs(len(self.owned),
                                                        int(self.config.global_trade_conditions['max_pairs']))
@@ -779,10 +779,10 @@ def firsttime_init(shutdown_handler):
                                           host=host,
                                           port=port,
                                           )
-    gui_thread = threading.Thread(target=gui.gui_server._app.run(debug=True))
+    gui_thread = threading.Thread(target=gui_server.run)
     gui_thread.start()
-    while not gui_server.users_exist():
-        pass
+    while not gui.gui_server.users_exist() or not os.path.isfile('config/SellStrategies.json'):
+        time.sleep(1)
     return
 
 # ----
@@ -850,6 +850,8 @@ def main(ipython=False):
         lt_engine.initialize_config()
     except FileNotFoundError:
         firsttime_init(shutdown_handler)
+        time.sleep(1)
+        lt_engine.initialize_config()
 
     # ----
     import gui.gui_server
@@ -865,7 +867,7 @@ def main(ipython=False):
                                           ssl=config.general_settings['use_ssl'],
                                           )
 
-    if not gui_server.users_exist():
+    if not gui.gui_server.users_exist():
         firsttime_init(gui_server)
 
     try:

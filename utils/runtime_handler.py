@@ -195,11 +195,13 @@ def add_custom_print_exception():
 
 def enable_faulthandler():
     # Handles crashes that otherwise would be lost
+    faulthandler_filename = 'runtime.log'
 
-    if not os.path.isfile('crash.log'):
-        with open('crash.log', 'w') as _: pass
+    if not os.path.isfile(faulthandler_filename):
+        with open(faulthandler_filename, 'w') as _:
+            pass
 
-    crash_log = open('crash.log', 'r+')
+    crash_log = open(faulthandler_filename, 'r+')
 
     if crash_log.read(4):
         print('\n================', file=crash_log)

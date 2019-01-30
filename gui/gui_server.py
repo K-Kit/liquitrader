@@ -119,11 +119,11 @@ class GUIServer:
 
         otp = OTP()
         otp.init_app(_app)
-        from flask_cors import CORS
-        CORS(_app)
+        # from flask_cors import CORS
+        # CORS(_app)
         # Talisman(_app, force_https=ssl, content_security_policy=csp)
         # from flask_cors import CORS
-        CORS(_app)
+        # CORS(_app)
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
 

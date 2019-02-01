@@ -303,6 +303,10 @@ def first_run():
     block endpoint if userdb already exists
     :return:
     """
+    if users_exist():
+        print('Attempt to access first time setup while DB already exists. '
+              ' If you would like to rerun first time setup delete config/liquitrader.db and try again')
+        return 'Attempt to access first time setup while DB already exists'
     data = flask.request.get_json(force=True)
     # track user exists, lazy solution because front end occasionally
     #  sends list where first 2 items are account and item[0] is blank

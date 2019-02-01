@@ -26,6 +26,7 @@ from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import get_buy_value
 
+
 from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
@@ -64,13 +65,6 @@ FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
                            'Amount', '24h Change']
 
 
-# ----
-def get_keys():
-    fp = 'config/keys.json'
-    with open(fp, 'r') as f:
-        keys = json.load(f)
-
-    return keys
 
 
 class ShutdownHandler:
@@ -171,6 +165,7 @@ class LiquiTrader:
     def initialize_exchange(self):
         general_settings = self.config.general_settings
         general_settings['starting_balance'] = float(general_settings['starting_balance'])
+        from gui.gui_server import get_keys
         keys = get_keys()
         if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
@@ -783,6 +778,8 @@ def firsttime_init(shutdown_handler):
     gui_thread.start()
     while not gui.gui_server.users_exist() or not os.path.isfile('config/SellStrategies.json'):
         time.sleep(1)
+    print("Restarting web server and getting LiquiTrader ready for action.")
+    gui_server.stop()
     return
 
 # ----
@@ -824,6 +821,7 @@ def main(ipython=False):
         # ----
         # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
         from analyzers import strategic_tools
+        from gui.gui_server import get_keys
         keys = get_keys()
         license_key = keys['liquitrader_key']
         api_key = keys['public']

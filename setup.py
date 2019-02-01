@@ -181,7 +181,7 @@ if __name__ == '__main__':
             print('This probably won\'t cause issues, but you\'ll be sorry if it does!')
 
     # ----
-    TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'pairs', 'utils', 'gui']
+    TARGET_PACKAGES = ['analyzers', 'conditions', 'config', 'exchanges', 'utils', 'gui']
 
     if CYTHONIZE_LIQUITRADER:
         cythonize_liquitrader(TARGET_PACKAGES)
@@ -212,12 +212,6 @@ if __name__ == '__main__':
                               (requests.certs.where(), 'lib/cacert.pem'),
                               ('tos.txt', 'tos.txt'),
                               ('version.txt', 'version.txt'),
-                              ('config/BuyStrategies.json', 'config/BuyStrategies.json'),
-                              ('config/DCABuyStrategies.json', 'config/DCABuyStrategies.json'),
-                              ('config/GeneralSettings.json', 'config/GeneralSettings.json'),
-                              ('config/GlobalTradeConditions.json', 'config/GlobalTradeConditions.json'),
-                              ('config/PairSpecificSettings.json', 'config/PairSpecificSettings.json'),
-                              ('config/SellStrategies.json', 'config/SellStrategies.json')
                               ],
 
             'packages': TARGET_PACKAGES + [  # LiquiTrader internal packages

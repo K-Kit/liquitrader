@@ -96,6 +96,17 @@ def add_user(username, password, role='admin'):
 
     return True
 
+def add_keys(public, private, license):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+
+    db.session.add(KeyStore(exchange_key_public=public, exchange_key_private=private, license=license))
+    db.session.commit()
+
+    return True
+
 def authenticate(username=None, password=None):
     user = User.query.filter_by(username=username.lower()).first()
 
@@ -296,10 +307,14 @@ def first_run():
         if k ==  'account':
             username = v['firstname']
             password = v['password']
+            public = v['public']
+            private = v['private']
+            license = v['license']
             if username == '':
                 pass
             else:
                 add_user(username, password)
+                add_keys(public, private, license)
                 u = True
         else:
             if not u:
@@ -456,6 +471,6 @@ def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
 
 
-if __name__ == '__main__':
-    gui = GUIServer(shutdown_handler=None)
-    _app.run(debug=True)
+# if __name__ == '__main__':
+#     gui = GUIServer(shutdown_handler=None)
+#     _app.run(debug=True)

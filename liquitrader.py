@@ -26,6 +26,7 @@ from conditions.SellCondition import SellCondition
 from utils.Utils import *
 from conditions.condition_tools import get_buy_value
 
+
 from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
@@ -64,13 +65,6 @@ FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
                            'Amount', '24h Change']
 
 
-# ----
-def get_keys():
-    fp = 'config/keys.json'
-    with open(fp, 'r') as f:
-        keys = json.load(f)
-
-    return keys
 
 
 class ShutdownHandler:
@@ -144,7 +138,7 @@ class LiquiTrader:
         self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
-        self.config.load_pair_settings()
+        # self.config.load_pair_settings()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
@@ -170,6 +164,7 @@ class LiquiTrader:
     def initialize_exchange(self):
         general_settings = self.config.general_settings
         general_settings['starting_balance'] = float(general_settings['starting_balance'])
+        from gui.gui_server import get_keys
         keys = get_keys()
         if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
@@ -462,7 +457,7 @@ class LiquiTrader:
     def global_buy_checks(self):
         # Alleviate lookup cost
         quote_change_info = self.exchange.quote_change_info
-        market_change = self.config.global_trade_conditions['market_change']
+        market_change = self.config.global_trade_conditions
         self.market_change_24h = get_average_market_change(self.exchange.pairs)
         self.below_max_pairs = self.is_below_max_pairs(len(self.owned),
                                                        int(self.config.global_trade_conditions['max_pairs']))
@@ -750,7 +745,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     _shutdown_handler.remove_task()
 
-def firsttime_init(server):
+def firsttime_init(shutdown_handler):
     """
     Create user account on first run
     """
@@ -762,10 +757,28 @@ def firsttime_init(server):
         sys.exit(0)
 
     print_line('\nFirst time configuration\n')
+    # get port and host ip to init gserver
+    port = input('Select a port (default: 7007): ')
+    if port is None or port =='':
+        port = 7007
+    else:
+        port = int(port)
 
-    username = get_username()
-    password = get_password()
-    server.add_user(username, password)
+    host = input('Select a host IP (default: 0.0.0.0 this will expose your machine to the internet, 127.0.0.1 to run locally): ')
+    if host is None or host == '':
+        host = '0.0.0.0'
+
+    import gui.gui_server
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                          host=host,
+                                          port=port,
+                                          )
+    gui_thread = threading.Thread(target=gui_server.run)
+    gui_thread.start()
+    while not gui.gui_server.users_exist():
+        time.sleep(1)
+    print("Restarting web server and getting LiquiTrader ready for action.")
+    gui_server.stop()
     return
 
 # ----
@@ -807,6 +820,7 @@ def main(ipython=False):
         # ----
         # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
         from analyzers import strategic_tools
+        from gui.gui_server import get_keys
         keys = get_keys()
         license_key = keys['liquitrader_key']
         api_key = keys['public']
@@ -823,7 +837,18 @@ def main(ipython=False):
     shutdown_handler = ShutdownHandler()
 
     lt_engine = LiquiTrader(shutdown_handler)
-    lt_engine.initialize_config()
+    # todo rewrite first time init
+    # take port as input in terminal
+    # write port to general settings
+    # start server  and reroute to '/setup'
+    # write '/first_run' endpoint which takes in a list of steps to init user and write config files
+    # list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    try:
+        lt_engine.initialize_config()
+    except FileNotFoundError:
+        firsttime_init(shutdown_handler)
+        time.sleep(1)
+        lt_engine.initialize_config()
 
     # ----
     import gui.gui_server
@@ -839,7 +864,7 @@ def main(ipython=False):
                                           ssl=config.general_settings['use_ssl'],
                                           )
 
-    if not gui_server.users_exist():
+    if not gui.gui_server.users_exist():
         firsttime_init(gui_server)
 
     try:

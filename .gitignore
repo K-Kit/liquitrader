@@ -119,3 +119,6 @@ buildtools/bearpuncher_verification_implementation.py
 *.c
 vet_trades.json
 *.map
+pips.txt
+*.db
+*.json

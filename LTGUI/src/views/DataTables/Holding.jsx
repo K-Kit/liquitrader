@@ -40,7 +40,7 @@ class ReactTables extends React.Component {
       loading: false
     };
 
-    this.auto_update_frequency = 1 * 1000; // x * 1000 = x seconds
+    this.auto_update_frequency = 10 * 1000; // x * 1000 = x seconds
 
     this.isCancelled = true;
 

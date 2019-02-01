@@ -125,7 +125,7 @@ class Dashboard extends React.Component {
 
   render() {
     const { classes } = this.props;
-    let sliced_daily = this.state.daily_profit_data.reverse().slice(0,30)
+    let sliced_daily = this.state.daily_profit_data.reverse().slice(0, 30);
     let chart1_2_options = {
       maintainAspectRatio: false,
       legend: {
@@ -148,8 +148,8 @@ class Dashboard extends React.Component {
             barPercentage: 1.6,
             gridLines: {
               drawBorder: false,
-              color: 'darkgrey',
-              zeroLineColor: 'darkgrey'
+              color: "darkgrey",
+              zeroLineColor: "darkgrey"
             },
             ticks: {
               // suggestedMin: 60,
@@ -164,8 +164,8 @@ class Dashboard extends React.Component {
             barPercentage: 1.6,
             gridLines: {
               drawBorder: false,
-              color: 'darkgrey',
-              zeroLineColor: 'darkgrey'
+              color: "darkgrey",
+              zeroLineColor: "darkgrey"
             },
             ticks: {
               padding: 20,
@@ -176,38 +176,37 @@ class Dashboard extends React.Component {
       }
     };
     let chartvars = {
-              fill: false,
-              backgroundColor: 'inherit',
-              borderColor: colors.light,
-              borderWidth: 2,
-              borderDash: [],
-              borderDashOffset: 0.0,
-              pointBackgroundColor: colors.light,
-              pointBorderColor: "rgba(255,255,255,0)",
-              pointHoverBackgroundColor: "#1f8ef1",
-              pointBorderWidth: 20,
-              pointHoverRadius: 4,
-              pointHoverBorderWidth: 15,
-              pointRadius: 4,
-    }
+      fill: false,
+      backgroundColor: "inherit",
+      borderColor: colors.light,
+      borderWidth: 2,
+      borderDash: [],
+      borderDashOffset: 0.0,
+      pointBackgroundColor: colors.light,
+      pointBorderColor: "rgba(255,255,255,0)",
+      pointHoverBackgroundColor: "#1f8ef1",
+      pointBorderWidth: 20,
+      pointHoverRadius: 4,
+      pointHoverBorderWidth: 15,
+      pointRadius: 4
+    };
     let cum_profit_chart = data => {
       return (
         <GridItem xs={12} sm={12} md={6}>
           <Card chart>
-            <CardHeader color={'danger'}>
+            <CardHeader color={"danger"}>
               <Line
                 // className="ct-chart-white-colors"
                 data={{
                   labels: this.state.cum_profit.map(item => {
-                    return item.date.slice(5,11);
+                    return item.date.slice(5, 11);
                   }),
                   datasets: [
                     {
-                      
                       label: "Cumulative Profit",
                       ...chartvars,
-                      data: [...
-                        this.state.cum_profit.map(item => {
+                      data: [
+                        ...this.state.cum_profit.map(item => {
                           return item.gain;
                         })
                       ]
@@ -406,10 +405,10 @@ class Dashboard extends React.Component {
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
                   <CardHeader color="danger">
-                  <Line
-                // className="ct-chart-white-colors"
-                data={{
-                  labels: this.state.quote_candles.map(item => {
+                    <Line
+                      // className="ct-chart-white-colors"
+                      data={{
+                        labels: this.state.quote_candles.map(item => {
                           let date = new Date(
                             item.timestamp
                           ).toLocaleTimeString();
@@ -417,22 +416,21 @@ class Dashboard extends React.Component {
                           let time = split[0].slice(0, -3);
                           return time;
                         }),
-                  datasets: [
-                    {
-                      
-                      label: "Price",
-                      ...chartvars,
-                      data: [...
-                        this.state.quote_candles.map(item => {
-                            return item.close;
-                          })
-                      ]
-                    }
-                  ]
-                }}
-                type="Line"
-                options={chart1_2_options}
-              />
+                        datasets: [
+                          {
+                            label: "Price",
+                            ...chartvars,
+                            data: [
+                              ...this.state.quote_candles.map(item => {
+                                return item.close;
+                              })
+                            ]
+                          }
+                        ]
+                      }}
+                      type="Line"
+                      options={chart1_2_options}
+                    />
                   </CardHeader>
                   <CardBody>
                     <h4 className={classes.cardTitle}>
@@ -446,7 +444,7 @@ class Dashboard extends React.Component {
             </GridContainer>
           </GridItem>
         </GridContainer>
-        <GridContainer style={{ overflowX: 'hidden' }}>
+        <GridContainer style={{ overflowX: "hidden" }}>
           <GridItem xs={12}>
             <Card>
               <CardHeader color="info" stats icon>
@@ -462,9 +460,9 @@ class Dashboard extends React.Component {
                   <GridItem xs={12} sm={12} md={6}>
                     <Table
                       tableHead={["Date", "Bought Value", "Sold Value", "Gain"]}
-                      tableData={sliced_daily.slice(0,7).map(value => {
+                      tableData={sliced_daily.slice(0, 7).map(value => {
                         return [
-                          value["date"].slice(0,11),
+                          value["date"].slice(0, 11),
                           value["total_cost"].toFixed(8),
                           value["cost"].toFixed(8),
                           value["gain"].toFixed(8)
@@ -475,34 +473,32 @@ class Dashboard extends React.Component {
                   <GridItem xs={12} sm={12} md={6}>
                     <Card chart>
                       <CardHeader color="danger">
-                      <Bar
-                className="ct-chart-white-colors"
-                data={{
-                  labels: sliced_daily.reverse().map(item => {
-                              return item.date.slice(5,11);
+                        <Bar
+                          className="ct-chart-white-colors"
+                          data={{
+                            labels: sliced_daily.reverse().map(item => {
+                              return item.date.slice(5, 11);
                             }),
-                  datasets: [
-                    {
-                      
-                      label: "Profit",
-                      fill: true,
-                      backgroundColor: colors.light,
-                      hoverBackgroundColor: 'inherit',
-                      borderColor: colors.light,
-                      borderWidth: 2,
-                      borderDash: [],
-                      borderDashOffset: 0.0,
-                      data: [...
-                        sliced_daily.reverse().map(item => {
-                                return item.gain;
-                              })
-                      ]
-                    }
-                  ]
-                }}
-                options={chart1_2_options}
-              />
-                        
+                            datasets: [
+                              {
+                                label: "Profit",
+                                fill: true,
+                                backgroundColor: colors.light,
+                                hoverBackgroundColor: "inherit",
+                                borderColor: colors.light,
+                                borderWidth: 2,
+                                borderDash: [],
+                                borderDashOffset: 0.0,
+                                data: [
+                                  ...sliced_daily.map(item => {
+                                    return item.gain;
+                                  })
+                                ]
+                              }
+                            ]
+                          }}
+                          options={chart1_2_options}
+                        />
                       </CardHeader>
                       <CardBody>
                         <h4 className={classes.cardTitle}>Daily Profit</h4>

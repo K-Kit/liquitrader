@@ -230,7 +230,7 @@ class GUIServer:
         cert.set_pubkey(k)
         cert.sign(k, b'sha256')
 
-        with open(self._certfile_path, 'w') as certfile:
+        with open(self._certfile_path, 'wb') as certfile:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
         with open(self._keyfile_path, 'w') as keyfile:

@@ -7,7 +7,7 @@ export function fetchErrorHandler(response, error = false) {
     console.log("error: ", error);
   }
 
-  if (response.status === 401) {
+  if (response.status === 401 && window.location.pathname != "/setup") {
     window.location.pathname = "/login";
   }
 

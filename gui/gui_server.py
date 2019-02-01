@@ -107,6 +107,14 @@ def add_keys(public, private, license):
 
     return True
 
+def get_keys():
+    keys = KeyStore.query.first()
+    return {
+        "public": keys.exchange_key_public,
+        "secret": keys.exchange_key_private,
+        'liquitrader_key': keys.license
+    }
+
 def authenticate(username=None, password=None):
     user = User.query.filter_by(username=username.lower()).first()
 
@@ -323,7 +331,7 @@ def first_run():
                 v = v['strategies']
 
             config.update_config(k,v)
-    return flask.redirect('/dashboard')
+    return flask.redirect('/')
 
 # ----
 @_app.route("/api/holding")

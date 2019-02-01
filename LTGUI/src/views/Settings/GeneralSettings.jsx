@@ -41,13 +41,13 @@ class GeneralSettings extends React.Component {
     super(props);
     this.state = {
       exchange: "binance",
-      paper_trading: false,
+      paper_trading: true,
       starting_balance: 3,
       market: "ETH",
       timezone: "US/Pacific",
       start_delay: 0,
       host: "0.0.0.0",
-      port: 8080,
+      port: window.location.port,
       use_ssl: false,
       sell_only_mode: false,
       trading_enabled: true
@@ -259,7 +259,7 @@ class GeneralSettings extends React.Component {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={this.state.paper_trading}
+                    checked={!this.state.paper_trading}
                     onChange={this.handleChange("paper_trading")}
                     value={this.state.paper_trading}
                     classes={{

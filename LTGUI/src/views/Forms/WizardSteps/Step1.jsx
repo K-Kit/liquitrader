@@ -207,7 +207,7 @@ class Step1 extends React.Component {
               fullWidth: true
             }}
             inputProps={{
-              onChange: event => this.change(event, "public"),
+              onChange: event => this.change(event, "private"),
               type: "private"
             }}
           />

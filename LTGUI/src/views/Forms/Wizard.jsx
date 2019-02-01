@@ -17,10 +17,10 @@ const wizsteps =
 [
   {stepName: 'Account', stepComponent: Step1, stepId: "account"},
   {stepName: 'General Settings', stepComponent: General, stepId: "general"},
-  {stepName: 'Global Trading Settings', stepComponent: GlobalTrade, stepId: "globalTrade"},
-  {stepName: 'Buy Strategies', stepComponent: StrategyList, stepId: "buy", strategyType:'buy'},
-  {stepName: 'Sell Strategies', stepComponent: StrategyList, stepId: "sell", strategyType:'sell'},
-  {stepName: 'Dollar Cost Average (DCA) Strategies', stepComponent: StrategyList, stepId: "dca", strategyType:'dca'}
+  {stepName: 'Global Trading Settings', stepComponent: GlobalTrade, stepId: "global_trade_conditions"},
+  {stepName: 'Buy Strategies', stepComponent: StrategyList, stepId: "buy_strategies", strategyType:'buy'},
+  {stepName: 'Sell Strategies', stepComponent: StrategyList, stepId: "sell_strategies", strategyType:'sell'},
+  {stepName: 'Dollar Cost Average (DCA) Strategies', stepComponent: StrategyList, stepId: "dca_buy_strategies", strategyType:'dca'}
 ]
 
     // { stepName: "About", stepComponent: Step1, stepId: "about" },

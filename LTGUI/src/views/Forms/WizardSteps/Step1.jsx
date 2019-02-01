@@ -37,7 +37,10 @@ class Step1 extends React.Component {
       firstname: "",
       firstnameState: "",
       password: "",
-      passwordState: ""
+      passwordState: "",
+      public: "",
+      private: "",
+      license: ""
       // email: "",
       // emailState: ""
     };
@@ -106,9 +109,7 @@ class Step1 extends React.Component {
     return (
       <GridContainer justify="center">
         <GridItem xs={12} sm={12}>
-          <legend className={classes.infoText}>
-            Sign In
-          </legend>
+          <legend className={classes.infoText}>Sign In</legend>
         </GridItem>
         <GridItem xs={12} sm={6}>
           <CustomInput
@@ -184,6 +185,42 @@ class Step1 extends React.Component {
                   <RecordVoiceOver className={classes.inputAdornmentIcon} />
                 </InputAdornment>
               )
+            }}
+          />
+
+          <CustomInput
+            labelText={<span>Enter Public API key</span>}
+            id="public"
+            formControlProps={{
+              fullWidth: true
+            }}
+            inputProps={{
+              onChange: event => this.change(event, "public"),
+              type: "public"
+            }}
+          />
+
+          <CustomInput
+            labelText={<span>Enter Private API Key</span>}
+            id="private"
+            formControlProps={{
+              fullWidth: true
+            }}
+            inputProps={{
+              onChange: event => this.change(event, "private"),
+              type: "private"
+            }}
+          />
+
+          <CustomInput
+            labelText={<span>Enter Liquitrader License</span>}
+            id="license"
+            formControlProps={{
+              fullWidth: true
+            }}
+            inputProps={{
+              onChange: event => this.change(event, "license"),
+              type: "license"
             }}
           />
 

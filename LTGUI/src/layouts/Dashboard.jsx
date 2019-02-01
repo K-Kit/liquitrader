@@ -52,9 +52,6 @@ class Dashboard extends React.Component {
 
   }
   componentDidMount() {
-    // if (localStorage.getItem('token') === null) {
-    //   window.location.pathname = 'login'
-    // }
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(this.refs.mainPanel, {
         suppressScrollX: true,

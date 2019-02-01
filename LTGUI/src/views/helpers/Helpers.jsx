@@ -3,14 +3,12 @@ export function loginUserSuccess(token) {
 }
 
 export function fetchErrorHandler(response, error = false) {
-  
-  console.log('noerror', response, error);
   if (error) {
-    console.log('error', response, error);
-    
+    console.log("error: ", error);
   }
-  if (response.status === 401){
-    window.location.pathname= '/login';
+
+  if (response.status === 401 && window.location.pathname != "/setup") {
+    window.location.pathname = "/login";
   }
 
   return response;

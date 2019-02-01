@@ -198,7 +198,7 @@ class GUIServer:
 
         self._shutdown_handler = shutdown_handler
         self._host = host
-        self._port = port
+        self._port = int(port)
 
         self._use_ssl = ssl
         self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'

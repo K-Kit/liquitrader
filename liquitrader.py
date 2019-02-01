@@ -132,7 +132,6 @@ class LiquiTrader:
         self.owned = []
         self.possible_trades = []
         self.below_max_pairs = False
-        self.first_run = True
 
     # ----
     def initialize_config(self):

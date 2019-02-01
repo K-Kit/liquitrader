@@ -775,7 +775,7 @@ def firsttime_init(shutdown_handler):
                                           )
     gui_thread = threading.Thread(target=gui_server.run)
     gui_thread.start()
-    while not gui.gui_server.users_exist() or not os.path.isfile('config/SellStrategies.json'):
+    while not gui.gui_server.users_exist():
         time.sleep(1)
     print("Restarting web server and getting LiquiTrader ready for action.")
     gui_server.stop()

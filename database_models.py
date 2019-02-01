@@ -62,7 +62,7 @@ def create_keystore_database_model(database):
 
         id = database.Column(database.Integer, primary_key=True)
 
-        bearpuncher_license = database.Column(database.String(50))
+        license = database.Column(database.String(50))
         exchange_key_public = database.Column(database.String(50))
         exchange_key_private = database.Column(database.String(50))
 

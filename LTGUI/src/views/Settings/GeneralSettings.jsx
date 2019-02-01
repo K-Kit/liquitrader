@@ -46,7 +46,7 @@ class GeneralSettings extends React.Component {
       market: "ETH",
       timezone: "US/Pacific",
       start_delay: 0,
-      host: "0.0.0.0",
+      host: window.location.hostname,
       port: window.location.port,
       use_ssl: false,
       sell_only_mode: false,

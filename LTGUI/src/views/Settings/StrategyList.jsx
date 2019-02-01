@@ -76,9 +76,7 @@ class StrategyList extends React.Component {
   removeDCALevel(strategyID, dcaLvl) {
     const strategies = [...this.state.strategies];
 
-    console.log(strategies);
     delete strategies[strategyID].dca_strategy[dcaLvl];
-    console.log(strategies[strategyID][dcaLvl], dcaLvl);
     this.setState({
       strategies: strategies
     });
@@ -86,23 +84,19 @@ class StrategyList extends React.Component {
   editDCALevel(event, strategyID, dcaLvl, field) {
     const target = event.target;
     const strategies = [...this.state.strategies];
-    console.log(strategies[strategyID].dca_strategy[dcaLvl][field]);
     strategies[strategyID].dca_strategy[dcaLvl][field] = target.value;
 
-    console.log(strategies[strategyID].dca_strategy[dcaLvl][field]);
     this.setState({
       strategies: strategies
     });
   }
   addDCALevel(strategyID, dcaLvl, trigger, percent) {
     const strategies = [...this.state.strategies];
-    console.log(strategies[strategyID].dca_strategy[dcaLvl]);
     strategies[strategyID].dca_strategy[dcaLvl] = {
       trigger: trigger,
       percentage: percent
     };
 
-    console.log(strategies[strategyID].dca_strategy[dcaLvl]);
     this.setState({
       strategies: strategies
     });
@@ -116,7 +110,6 @@ class StrategyList extends React.Component {
   removeCondition(strategyID, conditionID) {
     const strategies = [...this.state.strategies];
     const strategy = strategies[strategyID];
-    console.log(conditionID);
     let conditions = [...strategy.conditions];
     conditions.splice(conditionID, 1);
     strategy.conditions = conditions;
@@ -136,8 +129,6 @@ class StrategyList extends React.Component {
       op: condition.op
     });
     this.removeCondition(strategyID, conditionID)
-    console.log(this.state);
-    console.log(condition);
   }
   addCondition(condition) {
     const strategies = [...this.state.strategies];

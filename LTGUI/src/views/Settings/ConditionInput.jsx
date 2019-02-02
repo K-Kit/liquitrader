@@ -13,7 +13,7 @@ import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/ex
 import Slide from "@material-ui/core/Slide";
 
 import Operand from "views/Settings/operand.jsx";
-import indicatorInput from './IndicatorInput'
+import indicatorInput from "./IndicatorInput";
 import Tabs from "components/CustomTabs/CustomTabs.jsx";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import Select from "@material-ui/core/Select/Select";
@@ -60,7 +60,6 @@ class ConditionInput extends React.Component {
       : this.setState({
           [name]: { value: value, timeframe: this.state.left.timeframe }
         });
-
   }
   handleLeft(data) {
     this.setState({
@@ -180,7 +179,11 @@ class ConditionInput extends React.Component {
                   <GridItem xs={5}>{leftOperand}</GridItem>
                   <GridItem xs={2}>{opselect}</GridItem>
                   <GridItem xs={5}>
-                    {indicatorInput("right", "Number", this.handleInputChange)}
+                    <indicatorInput
+                      side="right"
+                      val="Number"
+                      action={this.handleInputChange}
+                    />
                   </GridItem>
                   <Button
                     onClick={() => {
@@ -221,6 +224,7 @@ class ConditionInput extends React.Component {
                       this.props.addCondition(this.state);
                       this.handleRight("price");
                     }}
+                    color="success"
                   >
                     save strategy
                   </Button>

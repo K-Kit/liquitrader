@@ -13,48 +13,16 @@ import Chip from '@material-ui/core/Chip';
 import MenuItem from '@material-ui/core/MenuItem';
 import CancelIcon from '@material-ui/icons/Cancel';
 import { emphasize } from '@material-ui/core/styles/colorManipulator';
+import { INDICATORS } from './data/Indicators';
+import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle.jsx";
 
-const suggestions = [
-  { label: 'Afghanistan' },
-  { label: 'Aland Islands' },
-  { label: 'Albania' },
-  { label: 'Algeria' },
-  { label: 'American Samoa' },
-  { label: 'Andorra' },
-  { label: 'Angola' },
-  { label: 'Anguilla' },
-  { label: 'Antarctica' },
-  { label: 'Antigua and Barbuda' },
-  { label: 'Argentina' },
-  { label: 'Armenia' },
-  { label: 'Aruba' },
-  { label: 'Australia' },
-  { label: 'Austria' },
-  { label: 'Azerbaijan' },
-  { label: 'Bahamas' },
-  { label: 'Bahrain' },
-  { label: 'Bangladesh' },
-  { label: 'Barbados' },
-  { label: 'Belarus' },
-  { label: 'Belgium' },
-  { label: 'Belize' },
-  { label: 'Benin' },
-  { label: 'Bermuda' },
-  { label: 'Bhutan' },
-  { label: 'Bolivia, Plurinational State of' },
-  { label: 'Bonaire, Sint Eustatius and Saba' },
-  { label: 'Bosnia and Herzegovina' },
-  { label: 'Botswana' },
-  { label: 'Bouvet Island' },
-  { label: 'Brazil' },
-  { label: 'British Indian Ocean Territory' },
-  { label: 'Brunei Darussalam' },
-].map(suggestion => ({
+
+const suggestions = INDICATORS.map(suggestion => ({
   value: suggestion.label,
   label: suggestion.label,
 }));
 
-const styles = theme => ({
+const styles = () => ({
   root: {
     flexGrow: 1,
     height: 250,
@@ -71,16 +39,13 @@ const styles = theme => ({
     overflow: 'hidden',
   },
   chip: {
-    margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 4}px`,
+    margin: `inherit`,
   },
   chipFocused: {
-    backgroundColor: emphasize(
-      theme.palette.type === 'light' ? theme.palette.grey[300] : theme.palette.grey[700],
-      0.08,
-    ),
+    backgroundColor: 'inherit',
   },
   noOptionsMessage: {
-    padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`,
+    padding: `inherit`,
   },
   singleValue: {
     fontSize: 16,
@@ -93,12 +58,12 @@ const styles = theme => ({
   paper: {
     position: 'absolute',
     zIndex: 1,
-    marginTop: theme.spacing.unit,
+    marginTop: 'inherit',
     left: 0,
     right: 0,
   },
   divider: {
-    height: theme.spacing.unit * 2,
+    height: 0
   },
 });
 
@@ -209,10 +174,9 @@ const components = {
   ValueContainer,
 };
 
-class IntegrationReactSelect extends React.Component {
+class indicatorInput extends React.Component {
   state = {
     single: null,
-    multi: null,
   };
 
   handleChange = name => value => {
@@ -227,7 +191,7 @@ class IntegrationReactSelect extends React.Component {
     const selectStyles = {
       input: base => ({
         ...base,
-        color: theme.palette.text.primary,
+        color: 'inherit',
         '& input': {
           font: 'inherit',
         },
@@ -235,44 +199,39 @@ class IntegrationReactSelect extends React.Component {
     };
 
     return (
-      <div className={classes.root}>
-        <NoSsr>
+     
           <Select
-            classes={classes}
-            styles={selectStyles}
+            MenuProps={{
+              className: classes.selectMenu
+            }}
+            classes={{
+              select: classes.select
+            }}
+            autoWidth
+            // styles={selectStyles}
             options={suggestions}
+            MenuProps={{
+                          className: classes.selectMenu
+                        }}
+                        classes={{
+                          select: classes.select
+                        }}
             components={components}
             value={this.state.single}
             onChange={this.handleChange('single')}
-            placeholder="Search a country (start with a)"
+            placeholder="Select an indicator"
             isClearable
+            
           />
-          <div className={classes.divider} />
-          <Select
-            classes={classes}
-            styles={selectStyles}
-            textFieldProps={{
-              label: 'Label',
-              InputLabelProps: {
-                shrink: true,
-              },
-            }}
-            options={suggestions}
-            components={components}
-            value={this.state.multi}
-            onChange={this.handleChange('multi')}
-            placeholder="Select multiple countries"
-            isMulti
-          />
-        </NoSsr>
-      </div>
+         
+       
     );
   }
 }
 
-IntegrationReactSelect.propTypes = {
+indicatorInput.propTypes = {
   classes: PropTypes.object.isRequired,
   theme: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles, { withTheme: true })(IntegrationReactSelect);
+export default withStyles(extendedFormsStyle)(indicatorInput);

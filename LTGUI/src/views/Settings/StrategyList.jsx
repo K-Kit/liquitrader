@@ -1,22 +1,19 @@
-import React from "react";
-
+import Dialog from "@material-ui/core/Dialog";
+import Slide from "@material-ui/core/Slide";
+import withStyles from "@material-ui/core/styles/withStyles";
+import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
+import Button from "components/CustomButtons/Button";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import {
-  exampleBuyStrategies,
-  exampleDCAStrategies
-} from "views/Settings/data/ExampleStrategies.jsx";
-import Button from "components/CustomButtons/Button";
-import * as PropTypes from "prop-types";
-import StrategyCard from "views/Settings/StrategyCard.jsx";
-import Dialog from "@material-ui/core/Dialog";
-import ConditionInput from "./ConditionInput";
-import withStyles from "@material-ui/core/styles/withStyles";
-import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
-import Slide from "@material-ui/core/Slide";
+import React from "react";
 import { config_route, update_config } from "variables/global";
 import { fetchJSON, postJSON } from "views/helpers/Helpers.jsx";
+import StrategyCard from "views/Settings/StrategyCard.jsx";
+import ConditionInput from "./ConditionInput";
+import Save from "@material-ui/icons/Save";
+
+import * as lt_colors from "variables/lt_colors";
 
 function Transition(props) {
   return <Slide direction="down" {...props} />;
@@ -34,7 +31,8 @@ class StrategyList extends React.Component {
       targetStrategy: 0,
       leftValue: {},
       rightValue: {},
-      op: ""
+      op: "",
+      temp: null
     };
     this.updateTextField = this.updateTextField.bind(this);
     this.addCondition = this.addCondition.bind(this);
@@ -100,7 +98,10 @@ class StrategyList extends React.Component {
     });
   }
   addStrategy() {
-    const strategies = [...this.state.strategies, { conditions: [], dca_strategy: { default: {} } }];
+    const strategies = [
+      ...this.state.strategies,
+      { conditions: [], dca_strategy: { default: {} } }
+    ];
     this.setState({
       strategies: strategies
     });
@@ -116,6 +117,7 @@ class StrategyList extends React.Component {
     });
   }
   editCondition(strategyID, conditionID) {
+    // super sub optimal, lazy solution: delete the condition we're editing after we load it into the editor
     const strategies = [...this.state.strategies];
     const strategy = strategies[strategyID];
     let conditions = [...strategy.conditions];
@@ -126,7 +128,7 @@ class StrategyList extends React.Component {
       rightValue: condition.right,
       op: condition.op
     });
-    this.removeCondition(strategyID, conditionID)
+    this.removeCondition(strategyID, conditionID);
   }
   addCondition(condition) {
     const strategies = [...this.state.strategies];
@@ -185,6 +187,7 @@ class StrategyList extends React.Component {
             root: classes.center,
             paper: classes.modal
           }}
+          disableBackdropClick
           transition={Transition}
           open={this.state.open}
           onClose={this.handleClose}
@@ -238,7 +241,14 @@ class StrategyList extends React.Component {
             add strategy
           </Button>
         </GridContainer>
-        <Button onClick={this.save}>Save</Button>
+        <Button onClick={this.save}>
+          Save{" "}
+          <Save
+            style={{
+              fill: lt_colors.green
+            }}
+          />
+        </Button>
       </div>
     );
   }

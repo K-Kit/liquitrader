@@ -2,27 +2,10 @@ import React from "react";
 import GridContainer from "../../components/Grid/GridContainer";
 import GridItem from "../../components/Grid/GridItem";
 import CustomInput from "../../components/CustomInput/CustomInput";
+import indicatorInput from './IndicatorInput'
 
 
-
-export const indicatorInput = (id, label, callback, value) => {
-  return (
-    <div>
-      <CustomInput
-        labelText={label}
-        id={id}
-        formControlProps={{
-          fullWidth: true
-        }}
-        inputProps={{
-          onChange: event => callback(event),
-          name: id,
-            value: value
-        }}
-      />
-    </div>
-  );
-};
+// export indicatorInput;
 
 export default class Operand extends React.Component {
   constructor(props) {

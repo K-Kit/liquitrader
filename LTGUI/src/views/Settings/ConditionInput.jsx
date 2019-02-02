@@ -13,7 +13,7 @@ import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/ex
 import Slide from "@material-ui/core/Slide";
 
 import Operand from "views/Settings/operand.jsx";
-import { indicatorInput } from "views/Settings/operand.jsx";
+import indicatorInput from './IndicatorInput'
 import Tabs from "components/CustomTabs/CustomTabs.jsx";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import Select from "@material-ui/core/Select/Select";

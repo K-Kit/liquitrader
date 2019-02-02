@@ -94,8 +94,8 @@ class ReactTables extends React.Component {
       <GridContainer>
         <GridItem xs={12}>
           <Card>
-          <CardHeader color="success" stats icon>
-                    <CardIcon color="success">
+          <CardHeader color="info" stats icon>
+                    <CardIcon color="info">
                 <Assignment />
               </CardIcon>
               <h4 className={classes.cardIconTitle}>Market Data</h4>

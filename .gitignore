@@ -122,3 +122,6 @@ vet_trades.json
 pips.txt
 *.db
 *.json
+LTGUI/static/*
+*.idea*
+scratch.py

@@ -289,7 +289,7 @@ def setup():
 # ----
 @_app.route('/<path:path>')
 def get_file(path=''):
-    if not os.path.isfile('config/SellStrategies.json'):
+    if not users_exist():
         return flask.redirect('/setup')
     return render_template('index.html')
 

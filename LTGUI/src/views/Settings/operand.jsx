@@ -16,7 +16,7 @@ export const indicatorInput = (id, label, callback, value) => {
         inputProps={{
           onChange: event => callback(event),
           name: id,
-            value: value
+          value: value
         }}
       />
     </div>
@@ -24,7 +24,7 @@ export const indicatorInput = (id, label, callback, value) => {
 };
 
 const getIndicatorInput = (id, label, action, val) => {
-  return <IndicatorInput id={id} label={label} value={val} action={action} />;
+  return <IndicatorInput id={id} label={label} val={val} callback={action} />;
 };
 
 export default class Operand extends React.Component {
@@ -34,12 +34,15 @@ export default class Operand extends React.Component {
       ...this.props.initialState
     };
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   handleInputChange(event) {
-    const target = event.target;
-    const value = target.type === "checkbox" ? target.checked : target.value;
-    const name = target.name;
+   
+      const target = event.target;
+      const value = target.type === "checkbox" ? target.checked : target.value;
+      const name = target.name;
+    console.log(name,value)
 
     this.setState({
       [name]: value
@@ -47,6 +50,15 @@ export default class Operand extends React.Component {
     this.state[name] = value;
     this.props.callback(this.state);
   }
+
+  handleChange(event) {
+    console.log(event, event.value)
+    this.setState({
+      "value": event.value
+    });
+    this.state["value"] = event.value;
+    this.props.callback(this.state);
+  };
   render() {
     return (
       <div>
@@ -63,7 +75,7 @@ export default class Operand extends React.Component {
             {getIndicatorInput(
               "value",
               "Indicator",
-              this.handleInputChange,
+              this.handleChange,
               this.state.value
             )}
           </GridItem>

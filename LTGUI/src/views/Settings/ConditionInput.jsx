@@ -141,12 +141,12 @@ class ConditionInput extends React.Component {
       </div>
     );
     let leftOperand = (
-      <Operand callback={this.handleLeft} initialState={this.props.leftValue} />
+      <Operand callback={this.handleLeft} val={this.props.leftValue} />
     );
     let rightOperand = (
       <Operand
         callback={this.handleRight}
-        initialState={this.props.rightValue}
+        val={this.props.rightValue}
       />
     );
     return (
@@ -179,10 +179,20 @@ class ConditionInput extends React.Component {
                   <GridItem xs={5}>{leftOperand}</GridItem>
                   <GridItem xs={2}>{opselect}</GridItem>
                   <GridItem xs={5}>
-                    <indicatorInput
+                    <CustomInput
+                    labelText={"value"}
+                      // id={field[0]}
+                      formControlProps={{
+                        fullWidth: false
+                      }}
+                      inputProps={{
+                        onChange: event =>
+                          this.handleRight(event.target.value),
+                        value: this.state.right.value
+                      }}
                       side="right"
                       val="Number"
-                      action={this.handleInputChange}
+                      action={this.handleRight}
                     />
                   </GridItem>
                   <Button
@@ -221,8 +231,9 @@ class ConditionInput extends React.Component {
                   </GridItem>
                   <Button
                     onClick={() => {
+                      this.handleRight({value: 'price'});
+                      this.state.right = {value: 'price'}
                       this.props.addCondition(this.state);
-                      this.handleRight("price");
                     }}
                     color="success"
                   >

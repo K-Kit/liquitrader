@@ -71,6 +71,7 @@ class WizardView extends React.Component {
             // hardcoded finishbutton click method into the wiz componant
             finishButtonClick={() => {
               console.log(this);
+              window.location.pathname = '/login'
             }}
             title="LiquiTrader Setup Wizard"
             subtitle="Welcome to LiquiTrader! Let's get you set up and start making money!"

@@ -192,72 +192,79 @@ class StrategyCard extends React.Component {
               </GridContainer>
 
               {strategy.dca_strategy !== undefined
-                ? Object.entries(strategy.dca_strategy).reverse().map(item => {
-                    return (
-                      <GridContainer
-                        justify={"center"}
-                        style={{ textAlign: "center" }}
-                      >
-                        <GridItem xs={2}>
-                          {" "}
-
-                          <CustomInput
-                            labelText={"Level"}
-                            id={"level"}
-                            disabled
-                            formControlProps={{
-                              fullWidth: false
-                            }}
-                            inputProps={{
-                              value: item[0],
-                              disabled: true
-                            }}
-                          />
-                        </GridItem>
-                        <GridItem xs={2}>
-                          {" "}
-                          <CustomInput
-                            labelText={"trigger"}
-                            id={"trigger"}
-                            formControlProps={{
-                              fullWidth: false
-                            }}
-                            inputProps={{
-                              onChange: event =>
-                                editDCALevel(event, id, item[0], "trigger"),
-                              value: item[1].trigger
-                            }}
-                          />{" "}
-                        </GridItem>
-
-                        <GridItem xs={2}>
-                          <CustomInput
-                            labelText={"percentage"}
-                            id={"percentage"}
-                            formControlProps={{
-                              fullWidth: false
-                            }}
-                            inputProps={{
-                              onChange: event =>
-                                editDCALevel(event, id, item[0], "percentage"),
-                              value: item[1].percentage
-                            }}
-                          />{" "}
-                        </GridItem>
-                        <GridItem xs={2}>
-                          {" "}
-                        {item[0] != 'default' ? (
-                          <Button
-                            color={"warning"}
-                            onClick={() => removeDCALvl(id, item[0])}
-                          >
+                ? Object.entries(strategy.dca_strategy)
+                    .reverse()
+                    .map(item => {
+                      return (
+                        <GridContainer
+                          justify={"center"}
+                          style={{ textAlign: "center" }}
+                        >
+                          <GridItem xs={2}>
                             {" "}
-                            -{" "}
-                          </Button>):null}
-                        </GridItem>
-                      </GridContainer>
-                    );
-                  })
+                            <CustomInput
+                              labelText={"Level"}
+                              id={"level"}
+                              disabled
+                              formControlProps={{
+                                fullWidth: false
+                              }}
+                              inputProps={{
+                                value: item[0],
+                                disabled: true
+                              }}
+                            />
+                          </GridItem>
+                          <GridItem xs={2}>
+                            {" "}
+                            <CustomInput
+                              labelText={"trigger"}
+                              id={"trigger"}
+                              formControlProps={{
+                                fullWidth: false
+                              }}
+                              inputProps={{
+                                onChange: event =>
+                                  editDCALevel(event, id, item[0], "trigger"),
+                                value: item[1].trigger
+                              }}
+                            />{" "}
+                          </GridItem>
+
+                          <GridItem xs={2}>
+                            <CustomInput
+                              labelText={"percentage"}
+                              id={"percentage"}
+                              formControlProps={{
+                                fullWidth: false
+                              }}
+                              inputProps={{
+                                onChange: event =>
+                                  editDCALevel(
+                                    event,
+                                    id,
+                                    item[0],
+                                    "percentage"
+                                  ),
+                                value: item[1].percentage
+                              }}
+                            />{" "}
+                          </GridItem>
+                          <GridItem xs={2}>
+                            {" "}
+                            {item[0] != "default" ? (
+                              <Button
+                                color={"warning"}
+                                onClick={() => removeDCALvl(id, item[0])}
+                              >
+                                {" "}
+                                -{" "}
+                              </Button>
+                            ) : null}
+                          </GridItem>
+                        </GridContainer>
+                      );
+                    })
                 : null}
               {/* add dca level */}
               <GridContainer justify={"center"} style={{ textAlign: "center" }}>
@@ -308,7 +315,6 @@ class StrategyCard extends React.Component {
                 </GridItem>
                 <GridItem xs={2}>
                   {" "}
-
                   <Button
                     color={"success"}
                     onClick={() => {

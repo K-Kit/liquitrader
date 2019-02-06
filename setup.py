@@ -128,10 +128,10 @@ def rmtree(pth: pathlib.Path):
 
 
 def copy_requirements():
-    if os.path.exists(BUILD_PATH / 'static'):
-        rmtree(BUILD_PATH / 'static')
+    if os.path.exists(BUILD_PATH / 'gui' / 'static'):
+        rmtree(BUILD_PATH / 'gui' / 'static')
 
-    shutil.copytree('LTGUI/build', BUILD_PATH / 'static')
+    shutil.copytree('LTGUI/build', BUILD_PATH / 'gui' / 'static')
 
     if sys.platform == 'win32':
         shutil.copy('build/liquitrader_win/lib/VCRUNTIME140.dll', 'build/liquitrader_win/')
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
             'bin_includes': ['openblas', 'libgfortran', 'libffi', 'numpy'],
 
-            'include_files': [('dependencies/liquitrader.ico', 'webserver/static/favicon.ico'),
+            'include_files': [('dependencies/liquitrader.ico', 'gui/static/favicon.ico'),
                               (requests.certs.where(), 'lib/cacert.pem'),
                               ('tos.txt', 'tos.txt'),
                               ('version.txt', 'version.txt'),

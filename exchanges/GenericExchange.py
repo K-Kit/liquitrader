@@ -206,10 +206,6 @@ class GenericExchange:
 
                     if average_data is None:
                         # if we cant calculate teh avg, print out some datas to help with debugging
-                        print('could not calculate average for: {}'.format(symbol))
-                        print(self.pairs[symbol]['limits'])
-                        print(self.pairs[symbol]['precision'])
-                        print(amount)
                         continue
 
                     self.pairs[symbol].update(average_data)

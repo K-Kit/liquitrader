@@ -12,6 +12,7 @@ import GlobalTrade from "views/Settings/GlobalTrade.jsx";
 
 import { fetchJSON, postJSON } from "../helpers/Helpers";
 import OverlayLoader from "react-overlay-loading/lib/OverlayLoader";
+import PairSettings from "../Settings/PairSettings.jsx";
 
 const wizsteps = [
   { stepName: "Account", stepComponent: Step1, stepId: "account" },
@@ -38,6 +39,11 @@ const wizsteps = [
     stepComponent: StrategyList,
     stepId: "dca_buy_strategies",
     strategyType: "dca"
+  },
+  {
+    stepName: "Pair Specific Settings",
+    stepComponent: PairSettings,
+    stepId: "pair_specific",
   }
 ];
 

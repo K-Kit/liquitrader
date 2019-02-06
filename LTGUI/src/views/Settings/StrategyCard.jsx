@@ -192,7 +192,7 @@ class StrategyCard extends React.Component {
               </GridContainer>
 
               {strategy.dca_strategy !== undefined
-                ? Object.entries(strategy.dca_strategy).map(item => {
+                ? Object.entries(strategy.dca_strategy).reverse().map(item => {
                     return (
                       <GridContainer
                         justify={"center"}
@@ -200,9 +200,10 @@ class StrategyCard extends React.Component {
                       >
                         <GridItem xs={2}>
                           {" "}
+
                           <CustomInput
-                            labelText={"trigger"}
-                            id={"trigger"}
+                            labelText={"Level"}
+                            id={"level"}
                             disabled
                             formControlProps={{
                               fullWidth: false
@@ -211,7 +212,7 @@ class StrategyCard extends React.Component {
                               value: item[0],
                               disabled: true
                             }}
-                          />{" "}
+                          />
                         </GridItem>
                         <GridItem xs={2}>
                           {" "}
@@ -245,13 +246,14 @@ class StrategyCard extends React.Component {
                         </GridItem>
                         <GridItem xs={2}>
                           {" "}
+                        {item[0] != 'default' ? (
                           <Button
                             color={"warning"}
                             onClick={() => removeDCALvl(id, item[0])}
                           >
                             {" "}
                             -{" "}
-                          </Button>{" "}
+                          </Button>):null}
                         </GridItem>
                       </GridContainer>
                     );
@@ -306,6 +308,7 @@ class StrategyCard extends React.Component {
                 </GridItem>
                 <GridItem xs={2}>
                   {" "}
+
                   <Button
                     color={"success"}
                     onClick={() => {

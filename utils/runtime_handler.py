@@ -200,7 +200,7 @@ def enable_faulthandler():
         with open(faulthandler_filename, 'w') as _:
             pass
 
-    crash_log = open(faulthandler_filename, 'r+')
+    crash_log = open(faulthandler_filename, 'a+')
 
     if crash_log.read(4):
         print('\n================', file=crash_log)

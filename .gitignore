@@ -122,3 +122,8 @@ vet_trades.json
 pips.txt
 *.db
 *.json
+LTGUI/static/*
+*.idea*
+scratch.py
+node_modules/*
+node_modules/.bin/*

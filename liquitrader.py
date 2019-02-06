@@ -138,7 +138,7 @@ class LiquiTrader:
         self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
-        # self.config.load_pair_settings()
+        self.config.load_pair_settings()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
@@ -366,7 +366,6 @@ class LiquiTrader:
                 continue
 
             lowest_sell_price = possible_sells[pair]
-            current_price = exch_pair['close']
 
             can_fill, minimum_fill = process_depth(orderbook, exch_pair['total'], min_cost)
             if can_fill is not None and can_fill.price > lowest_sell_price:
@@ -380,8 +379,6 @@ class LiquiTrader:
 
             current_value = exch_pair['total'] * price.average_price
 
-            # profits.append(
-            #     (current_value - exch_pair['total_cost']) / exch_pair['total_cost'] * 100)
             order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], price.price)
             self.trade_history.append(order)
             self.save_trade_history()

@@ -85,11 +85,11 @@ const defaultFont = {
   lineHeight: "1.5em"
 };
 
-const primaryColor = "#904bff";
+const primaryColor = colors.purp;
 const warningColor = "#FF9900";
-const dangerColor = '#904bff';
+const dangerColor = colors.purp;
 const successColor = "#4caf50";
-const infoColor = "#296ef5";
+const infoColor = colors.yetanotherblue;
 const roseColor = "#e91e63";
 const grayColor = "#999999";
 
@@ -132,7 +132,7 @@ const redCardHeader = {
   ...dangerBoxShadow
 };
 const blueCardHeader = {
-  background: "linear-gradient(60deg, #26c6da, #00acc1)",
+  background: colors.blue,
   ...infoBoxShadow
 };
 const purpleCardHeader = {
@@ -141,28 +141,28 @@ const purpleCardHeader = {
 };
 // new card headers
 const warningCardHeader = {
-  background: "linear-gradient(60deg, #FF9900, #FF9900)",
-  ...warningBoxShadow
+  background: warningColor,
+  // ...warningBoxShadow
 };
 const successCardHeader = {
-  background: "linear-gradient(60deg, #007e06, #007e06)",
-  ...successBoxShadow
+  background: successColor,
+  // ...successBoxShadow
 };
 const dangerCardHeader = {
-  background: "linear-gradient(60deg, #7E3CFF, #7E3CFF)",
-  ...dangerBoxShadow
+  background: dangerColor,
+  // ...dangerBoxShadow
 };
 const infoCardHeader = {
-  background: "linear-gradient(60deg, #296ef5, #296ef5)",
-  ...infoBoxShadow
+  background: infoColor,
+  // ...infoBoxShadow
 };
 const primaryCardHeader = {
-  background: "#7E3CFF",
-  ...primaryBoxShadow
+  background: primaryColor,
+  // ...primaryBoxShadow
 };
 const roseCardHeader = {
   background: "linear-gradient(60deg, #ec407a, #d81b60)",
-  ...roseBoxShadow
+  // ...roseBoxShadow
 };
 
 const cardActions = {

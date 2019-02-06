@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 // react plugin for creating charts
-import ChartistGraph from "react-chartist";
 import { Line, Bar } from "react-chartjs-2";
 // react plugin for creating vector maps
 
@@ -194,7 +193,7 @@ class Dashboard extends React.Component {
       return (
         <GridItem xs={12} sm={12} md={6}>
           <Card chart>
-            <CardHeader color={"danger"}>
+            <CardHeader color={"primary"}>
               <Line
                 // className="ct-chart-white-colors"
                 data={{
@@ -404,7 +403,7 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
-                  <CardHeader color="danger">
+                  <CardHeader color="primary">
                     <Line
                       // className="ct-chart-white-colors"
                       data={{

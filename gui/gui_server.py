@@ -56,6 +56,11 @@ else:
 
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
+# TODO remove for prod
+if not hasattr(sys, 'frozen'):
+    from flask_cors import CORS
+    CORS(_app)
+
 database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
 
 _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
@@ -194,6 +199,7 @@ class GUIServer:
 
         # AssertionError: A name collision occurred between blueprints
         # self._bootstrap = Bootstrap(_app)
+
         flask_compress.Compress(_app)
 
         self._shutdown_handler = shutdown_handler
@@ -287,9 +293,14 @@ def setup():
     return render_template('index.html')
 
 # ----
+@_app.route('/login')
+def loginroute():
+    return render_template('index.html')
+
+# ----
 @_app.route('/<path:path>')
 def get_file(path=''):
-    if not os.path.isfile('config/SellStrategies.json'):
+    if not users_exist():
         return flask.redirect('/setup')
     return render_template('index.html')
 

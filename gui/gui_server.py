@@ -49,7 +49,7 @@ abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
 bearpuncher_dir = abs_path
 
 if hasattr(sys, 'frozen'):
-    dist_path = abs_path / 'static'
+    dist_path = abs_path / 'gui' / 'static'
 else:
     dist_path = abs_path / 'LTGUI' / 'build'
 

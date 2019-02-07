@@ -6,7 +6,7 @@ import time
 import traceback
 import threading
 import functools
-import getpass
+import pathlib
 
 import arrow
 
@@ -23,27 +23,48 @@ from analyzers.TechnicalAnalysis import run_ta
 from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
-from conditions.condition_tools import percentToFloat
-
 from utils.Utils import *
+from conditions.condition_tools import get_buy_value
+
+
+from conditions.condition_tools import percentToFloat
 from utils.FormattingTools import prettify_dataframe
-from utils.column_labels import *
 
-import utils.path
-utils.path.set_path()
-
-import gui.gui_server
-
+import getpass
 
 LT_ENGINE = None
 
-# ----
-def get_keys():
-    fp = 'config/keys.json'
-    with open(fp, 'r') as f:
-        keys = json.load(f)
+APP_DIR = ''
+if hasattr(sys, 'frozen'):
+    APP_DIR = pathlib.Path(os.path.dirname(sys.executable))
+    os.chdir(APP_DIR)
+    os.environ["REQUESTS_CA_BUNDLE"] = str(APP_DIR / 'lib' / 'cacert.pem')
 
-    return keys
+else:
+    APP_DIR = pathlib.Path(os.path.dirname(__file__))
+
+DEFAULT_COLUMNS = ['last_order_time', 'symbol', 'avg_price', 'close', 'gain', 'quoteVolume', 'total_cost',
+                   'current_value', 'dca_level', 'total', 'percentage']
+
+# FRIENDLY_HOLDING_COLUMNS =  ['Last Purchase Time', 'Symbol', 'Price', 'Bought Price', '% Change', 'Volume',
+#                              'Bought Value', 'Current Value', 'DCA Level', 'Amount', '24h Change']
+COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
+                  'symbol': 'Symbol',
+                  'avg_price': 'Bought Price',
+                  'close': 'Price',
+                  'gain': '% Change',
+                  'quoteVolume': 'Volume',
+                  'total_cost': 'Bought Value',
+                  'current_value': 'Current Value',
+                  'dca_level': 'DCA Level',
+                  'total': 'Amount',
+                  'percentage': '24h Change'
+                  }
+
+FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
+                           'Amount', '24h Change']
+
+
 
 
 class ShutdownHandler:
@@ -117,7 +138,7 @@ class LiquiTrader:
         self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
-        self.config.load_pair_settings()
+        # self.config.load_pair_settings()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
@@ -143,6 +164,7 @@ class LiquiTrader:
     def initialize_exchange(self):
         general_settings = self.config.general_settings
         general_settings['starting_balance'] = float(general_settings['starting_balance'])
+        from gui.gui_server import get_keys
         keys = get_keys()
         if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
@@ -435,7 +457,7 @@ class LiquiTrader:
     def global_buy_checks(self):
         # Alleviate lookup cost
         quote_change_info = self.exchange.quote_change_info
-        market_change = self.config.global_trade_conditions['market_change']
+        market_change = self.config.global_trade_conditions
         self.market_change_24h = get_average_market_change(self.exchange.pairs)
         self.below_max_pairs = self.is_below_max_pairs(len(self.owned),
                                                        int(self.config.global_trade_conditions['max_pairs']))
@@ -655,17 +677,14 @@ class LiquiTrader:
 def print_line(text=''):
     sys.stdout.write(text + '\n')
 
-
 def get_password():
     while True:
-        print_line('\nNote: Your password will not be shown as you type below. This is for your safety.')
-        password = getpass.getpass('Password: ')
-        confirm = getpass.getpass('Repeat Password: ')
+        password = input('Password: ')
+        confirm = input('Confirm: ')
 
         if password == '':
             print_line('Password cannot be empty')
         elif password == confirm:
-            print_line()
             break
         else:
             print_line('Passwords did not match\n')
@@ -674,7 +693,7 @@ def get_password():
 
 
 def get_username():
-    while True:
+    while 1:
         username = input('Username: ')
 
         if username != '':
@@ -683,6 +702,8 @@ def get_username():
             print_line('Username cannot be empty')
 
     return username
+
+
 
 
 # ----
@@ -724,8 +745,7 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     _shutdown_handler.remove_task()
 
-
-def firsttime_init():
+def firsttime_init(shutdown_handler):
     """
     Create user account on first run
     """
@@ -737,12 +757,28 @@ def firsttime_init():
         sys.exit(0)
 
     print_line('\nFirst time configuration\n')
+    # get port and host ip to init gserver
+    port = input('Select a port (default: 7007): ')
+    if port is None or port =='':
+        port = 7007
+    else:
+        port = int(port)
 
-    username = get_username()
-    password = get_password()
+    host = input('Select a host IP (default: 0.0.0.0 this will expose your machine to the internet, 127.0.0.1 to run locally): ')
+    if host is None or host == '':
+        host = '0.0.0.0'
 
-    gui.gui_server.add_user(username, password)
-
+    import gui.gui_server
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                          host=host,
+                                          port=port,
+                                          )
+    gui_thread = threading.Thread(target=gui_server.run)
+    gui_thread.start()
+    while not gui.gui_server.users_exist():
+        time.sleep(1)
+    print("Restarting web server and getting LiquiTrader ready for action.")
+    gui_server.stop()
     return
 
 # ----
@@ -784,6 +820,7 @@ def main(ipython=False):
         # ----
         # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
         from analyzers import strategic_tools
+        from gui.gui_server import get_keys
         keys = get_keys()
         license_key = keys['liquitrader_key']
         api_key = keys['public']
@@ -800,9 +837,22 @@ def main(ipython=False):
     shutdown_handler = ShutdownHandler()
 
     lt_engine = LiquiTrader(shutdown_handler)
-    lt_engine.initialize_config()
+    # todo rewrite first time init
+    # take port as input in terminal
+    # write port to general settings
+    # start server  and reroute to '/setup'
+    # write '/first_run' endpoint which takes in a list of steps to init user and write config files
+    # list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    try:
+        lt_engine.initialize_config()
+    except FileNotFoundError:
+        firsttime_init(shutdown_handler)
+        time.sleep(1)
+        lt_engine.initialize_config()
 
     # ----
+    import gui.gui_server
+
     gui.gui_server.LT_ENGINE = lt_engine
 
     # get config from lt
@@ -815,7 +865,7 @@ def main(ipython=False):
                                           )
 
     if not gui.gui_server.users_exist():
-        firsttime_init()
+        firsttime_init(gui_server)
 
     try:
         lt_engine.load_trade_history()
@@ -882,7 +932,6 @@ def main(ipython=False):
 
             print('\nThanks for using LiquiTrader!\n')
             sys.exit(0)
-
-
-#if __name__ == '__main__':
-#    lt = main(ipython=True)
+#
+if __name__ == '__main__':
+    lt= main(ipython=True)

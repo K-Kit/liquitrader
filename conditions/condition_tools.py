@@ -88,6 +88,8 @@ def get_buy_value(x, total_balance):
 
 
 def percentToFloat(x):
+    if x == '':
+        raise Exception('error, required field in strategy may be missing')
     return float(x.strip('%')) / 100
 
 
@@ -200,8 +202,8 @@ def handle_gain_strat(pair, part, is_buy):
     :param is_buy:
     :return:
     """
-    indicator_value = get_val(pair, part[0])
-    gain_value = 1 + (get_val(pair, part[2]) / 100)
+    indicator_value = getCurrentValue(pair, part[0])
+    gain_value = 1 + (getCurrentValue(pair, part[2]) / 100)
 
     scaled_value = indicator_value * gain_value
 

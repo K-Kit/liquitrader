@@ -121,3 +121,9 @@ vet_trades.json
 *.map
 config/liquitrader.db
 exchange.json
+pips.txt
+*.db
+*.json
+LTGUI/static/*
+*.idea*
+scratch.py

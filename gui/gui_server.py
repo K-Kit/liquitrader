@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from datetime import datetime, timedelta
 
-from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
+from liquitrader import FRIENDLY_MARKET_COLUMNS
 from config.config import Config
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
@@ -50,7 +50,7 @@ if hasattr(sys, 'frozen'):
 else:
     dist_path = APP_DIR / 'LTGUI' / 'build'
 
-_app = flask.Flask('lt_flask', static_folder=dist_path, template_folder=dist_path)
+_app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
 # --------
@@ -165,10 +165,6 @@ class GUIServer:
         csp = {
             'default-src': [
                 '\'self\'',
-                #f'{host}:{port}',
-                'http://45.77.216.107:3000',
-                '45.77.216.107',
-                '45.77.216.107:3000',
                 'localhost'
             ],
             'style-src': [
@@ -199,13 +195,12 @@ class GUIServer:
                 '\'self\'',
                 '\'unsafe-inline\'',
                 'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
-            ]
+            ],
         }
-
         otp = OTP()
         otp.init_app(_app)
-        Talisman(_app, force_https=ssl, content_security_policy=csp)
-
+        # Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # Talisman.content_security_policy
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
         JWT(_app, user_authenticate, user_identity)
@@ -217,7 +212,6 @@ class GUIServer:
         self._use_ssl = ssl
         self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'
         self._keyfile_path = APP_DIR / 'lib' / 'liquitrader.key'
-
         # Set constants for WSGIServer
         WSGIServer.version = 'LiquiTrader/2.0'
 
@@ -239,13 +233,15 @@ class GUIServer:
         cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
         cert.set_issuer(cert.get_subject())
         cert.set_pubkey(k)
-        cert.sign(k, b'sha256')
+        cert.sign(k, 'sha256')
 
         with open(self._certfile_path, 'wb') as certfile:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
         with open(self._keyfile_path, 'wb') as keyfile:
             keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, k))
+
+
 
     # --
     def _init_ssl(self):
@@ -287,7 +283,7 @@ class GUIServer:
 def get_index():
     if not os.path.isfile('config/SellStrategies.json'):
         return flask.redirect('/setup')
-    return _app.send_static_file('index.html')
+    return render_template('index.html')
 
 
 # ----
@@ -308,12 +304,11 @@ def get_file(path=''):
             print(f'User attempted to get file "{path}", but it does not exist')
             return Response(status=404)
 
-    return _app.send_static_file('index.html')
-
+    return render_template('index.html')
 
 @_app.route('/logout')
 def do_logout():
-    return _app.send_static_file('index.html')
+    return render_template('index.html')
 
 # ----
 @_app.route("/first_run", methods=['POST', 'GET'])
@@ -514,4 +509,4 @@ def get_statistics():
 
 if __name__ == '__main__':
     gui = GUIServer(shutdown_handler=None)
-    _app.run()
+    _app.run(debug=True)

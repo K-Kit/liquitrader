@@ -16,3 +16,5 @@ def set_path():
 
     else:
         APP_DIR = pathlib.Path(os.path.dirname(__file__)).absolute().parent
+
+set_path()

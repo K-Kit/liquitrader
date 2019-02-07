@@ -62,7 +62,7 @@ class GlobalTrade extends React.Component {
       bear_override: {},
       blacklist: ["TRIG/ETH", "BCN/ETH", "CHAT/ETH", "ICN/ETH"],
       bull_override: {},
-      dca_min_buy_balance: "",
+      dca_min_buy_balance: "25%",
       dca_timeout: 60,
       max_1h_quote_change: 0,
       max_24h_market_change: 0,
@@ -74,9 +74,9 @@ class GlobalTrade extends React.Component {
       max_pairs: 10,
       max_spread: 1,
       min_available_volume: 0,
-      min_buy_balance: 0,
+      min_buy_balance: "50%",
       min_change: 0,
-      whitelist: [] // ["ALL"] to allow all pairs or comma seperated list of strs
+      whitelist: ["ALL"] // ["ALL"] to allow all pairs or comma seperated list of strs
     };
     this.updateTextField = this.updateTextField.bind(this);
     this.load = this.load.bind(this);
@@ -119,6 +119,9 @@ class GlobalTrade extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
+    if (config.status_code === 401) {
+      return
+    }
     this.setState({
       ...config.global_trade,
       ...config.global_trade.market_change,

@@ -1,24 +1,19 @@
-import React from "react";
-
+import Dialog from "@material-ui/core/Dialog";
+import Slide from "@material-ui/core/Slide";
+import withStyles from "@material-ui/core/styles/withStyles";
+import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
+import Button from "components/CustomButtons/Button";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import {
-  exampleBuyStrategies,
-  exampleDCAStrategies
-} from "views/Settings/data/ExampleStrategies.jsx";
-import Button from "components/CustomButtons/Button";
-import * as PropTypes from "prop-types";
-import StrategyCard from "views/Settings/StrategyCard.jsx";
-import Dialog from "@material-ui/core/Dialog";
-import ConditionInput from "./ConditionInput";
-import withStyles from "@material-ui/core/styles/withStyles";
-import extendedFormsStyle from "assets/jss/material-dashboard-pro-react/views/extendedFormsStyle";
-import Slide from "@material-ui/core/Slide";
+import React from "react";
 import { config_route, update_config } from "variables/global";
 import { fetchJSON, postJSON } from "views/helpers/Helpers.jsx";
+import StrategyCard from "views/Settings/StrategyCard.jsx";
+import ConditionInput from "./ConditionInput";
+import Save from "@material-ui/icons/Save";
 
-
+import * as lt_colors from "variables/lt_colors";
 
 function Transition(props) {
   return <Slide direction="down" {...props} />;
@@ -27,18 +22,17 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-const STRATEGYBASE = { conditions: [], dca_strategy: { default: {} } };
-
 class StrategyList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      strategies: exampleDCAStrategies,
+      strategies: [],
       open: false,
       targetStrategy: 0,
       leftValue: {},
       rightValue: {},
-      op: ""
+      op: "",
+      temp: null
     };
     this.updateTextField = this.updateTextField.bind(this);
     this.addCondition = this.addCondition.bind(this);
@@ -66,7 +60,7 @@ class StrategyList extends React.Component {
     this.setState({
       strategies: strategies
     });
-    console.log(this.state);
+    // console.log(this.state);
   }
   removeStrategy(id) {
     const strategies = [...this.state.strategies];
@@ -78,9 +72,7 @@ class StrategyList extends React.Component {
   removeDCALevel(strategyID, dcaLvl) {
     const strategies = [...this.state.strategies];
 
-    console.log(strategies)
     delete strategies[strategyID].dca_strategy[dcaLvl];
-    console.log(strategies[strategyID][dcaLvl], dcaLvl)
     this.setState({
       strategies: strategies
     });
@@ -88,26 +80,28 @@ class StrategyList extends React.Component {
   editDCALevel(event, strategyID, dcaLvl, field) {
     const target = event.target;
     const strategies = [...this.state.strategies];
-    console.log(strategies[strategyID].dca_strategy[dcaLvl][field]);
     strategies[strategyID].dca_strategy[dcaLvl][field] = target.value;
 
-    console.log(strategies[strategyID].dca_strategy[dcaLvl][field]);
     this.setState({
       strategies: strategies
     });
   }
   addDCALevel(strategyID, dcaLvl, trigger, percent) {
     const strategies = [...this.state.strategies];
-    console.log(strategies[strategyID].dca_strategy[dcaLvl]);
-    strategies[strategyID].dca_strategy[dcaLvl] = {trigger: trigger, percentage: percent};
+    strategies[strategyID].dca_strategy[dcaLvl] = {
+      trigger: trigger,
+      percentage: percent
+    };
 
-    console.log(strategies[strategyID].dca_strategy[dcaLvl]);
     this.setState({
       strategies: strategies
     });
   }
   addStrategy() {
-    const strategies = [...this.state.strategies, STRATEGYBASE];
+    const strategies = [
+      ...this.state.strategies,
+      { conditions: [], dca_strategy: { default: {} } }
+    ];
     this.setState({
       strategies: strategies
     });
@@ -115,7 +109,6 @@ class StrategyList extends React.Component {
   removeCondition(strategyID, conditionID) {
     const strategies = [...this.state.strategies];
     const strategy = strategies[strategyID];
-    console.log(conditionID);
     let conditions = [...strategy.conditions];
     conditions.splice(conditionID, 1);
     strategy.conditions = conditions;
@@ -124,6 +117,7 @@ class StrategyList extends React.Component {
     });
   }
   editCondition(strategyID, conditionID) {
+    // super sub optimal, lazy solution: delete the condition we're editing after we load it into the editor
     const strategies = [...this.state.strategies];
     const strategy = strategies[strategyID];
     let conditions = [...strategy.conditions];
@@ -134,8 +128,7 @@ class StrategyList extends React.Component {
       rightValue: condition.right,
       op: condition.op
     });
-    console.log(this.state);
-    console.log(condition);
+    this.removeCondition(strategyID, conditionID);
   }
   addCondition(condition) {
     const strategies = [...this.state.strategies];
@@ -171,12 +164,16 @@ class StrategyList extends React.Component {
     fetchJSON(config_route, this.load);
   }
   load(config) {
-    
     let strategy_type =
       this.props.strategyType === "dca" ? "dca_buy" : this.props.strategyType;
-    console.log(strategy_type, this)
-    if (!this.isCancelled) {
-      this.setState({ strategies: config[strategy_type + "_strategies"] });
+    console.log(strategy_type, this);
+    if (!this.isCancelled && config.status_code != 401) {
+      try {
+        this.setState({ strategies: config[strategy_type + "_strategies"] });
+      } catch (e) {
+        console.log(e);
+        this.setState({ strategies: [] });
+      }
     }
   }
 
@@ -190,6 +187,7 @@ class StrategyList extends React.Component {
             root: classes.center,
             paper: classes.modal
           }}
+          disableBackdropClick
           transition={Transition}
           open={this.state.open}
           onClose={this.handleClose}
@@ -243,7 +241,14 @@ class StrategyList extends React.Component {
             add strategy
           </Button>
         </GridContainer>
-        <Button onClick={this.save}>Save</Button>
+        <Button onClick={this.save}>
+          Save{" "}
+          <Save
+            style={{
+              fill: lt_colors.green
+            }}
+          />
+        </Button>
       </div>
     );
   }

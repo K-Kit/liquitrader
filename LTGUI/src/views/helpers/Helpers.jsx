@@ -2,13 +2,13 @@ export function loginUserSuccess(token) {
   localStorage.setItem("token", token);
 }
 
-export function fetchErrorHandler(response, error=false) {
+export function fetchErrorHandler(response, error = false) {
   if (error) {
-    console.log('error: ', error);
+    console.log("error: ", error);
   }
-  
-  if (response.status === 401){
-    window.location.pathname= '/login';
+
+  if (response.status === 401 && window.location.pathname != "/setup") {
+    window.location.pathname = "/login";
   }
 
   return response;

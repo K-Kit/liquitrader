@@ -10,11 +10,15 @@ from datetime import datetime, timedelta
 
 from datetime import datetime, timedelta
 
+from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
+from config.config import Config
+
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response, render_template
+from flask import jsonify, Response, render_template, redirect
+from flask_jwt import JWT, jwt_required, current_identity
 
 import database_models
 
@@ -67,6 +71,25 @@ _database.create_all()
 # Perform any necessary database structure updates
 database_models.migrate_table(_database)
 
+
+def add_keys(public, private, license):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+
+    _database.session.add(_KeyStore(exchange_key_public=public, exchange_key_private=private, license=license))
+    _database.session.commit()
+
+    return True
+
+def get_keys():
+    keys = _KeyStore.query.first()
+    return {
+        "public": keys.exchange_key_public,
+        "secret": keys.exchange_key_private,
+        'liquitrader_key': keys.license
+    }
 
 # ----
 def add_user(username, password, role='admin'):
@@ -261,12 +284,22 @@ class GUIServer:
 
 # ----
 @_app.route('/')
-def get_home():
+def get_index():
+    if not os.path.isfile('config/SellStrategies.json'):
+        return flask.redirect('/setup')
     return _app.send_static_file('index.html')
 
 
+# ----
+@_app.route('/setup')
+def setup():
+    return render_template('index.html')
+
+# ----
 @_app.route('/<path:path>')
 def get_file(path=''):
+    if not users_exist():
+        return flask.redirect('/setup')
     if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
         try:
             return _app.send_static_file(path)
@@ -281,6 +314,50 @@ def get_file(path=''):
 @_app.route('/logout')
 def do_logout():
     return _app.send_static_file('index.html')
+
+# ----
+@_app.route("/first_run", methods=['POST', 'GET'])
+def first_run():
+    """
+    takes in list
+    list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    generate config files and instantiate db
+    block endpoint if userdb already exists
+    :return:
+    """
+    if users_exist():
+        print('Attempt to access first time setup while DB already exists. '
+              ' If you would like to rerun first time setup delete config/liquitrader.db and try again')
+        return 'Attempt to access first time setup while DB already exists'
+    data = flask.request.get_json(force=True)
+    # track user exists, lazy solution because front end occasionally
+    #  sends list where first 2 items are account and item[0] is blank
+    #  item[1] is actual account, likely issue with component did mount
+    u = False
+    config = Config()
+    for item in data:
+        print(item)
+        k, v = list(item.items())[0]
+        if k ==  'account':
+            username = v['firstname']
+            password = v['password']
+            public = v['public']
+            private = v['private']
+            license = v['license']
+            if username == '':
+                pass
+            else:
+                add_user(username, password)
+                add_keys(public, private, license)
+                u = True
+        else:
+            if not u:
+                raise Exception('error creating user')
+            if 'strategies' in v:
+                v = v['strategies']
+
+            config.update_config(k,v)
+    return flask.redirect('/')
 
 # ----
 @_app.route("/api/holding")

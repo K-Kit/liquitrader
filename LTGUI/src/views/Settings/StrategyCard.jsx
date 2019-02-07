@@ -1,21 +1,24 @@
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-import React from "react";
-import GridItem from "components/Grid/GridItem";
+import IconButton from "@material-ui/core/IconButton";
+import withStyles from "@material-ui/core/styles/withStyles";
+import Tooltip from "@material-ui/core/Tooltip";
+import Close from "@material-ui/icons/Close";
+import Delete from "@material-ui/icons/Delete";
+import Save from "@material-ui/icons/Save";
+import Edit from "@material-ui/icons/Edit";
+import Card from "components/Card/Card";
+import Button from "components/CustomButtons/Button";
 import CustomInput from "components/CustomInput/CustomInput";
 import GridContainer from "components/Grid/GridContainer";
-import Button from "components/CustomButtons/Button";
-import Card from "components/Card/Card";
-import IconButton from "@material-ui/core/IconButton";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import classnames from "classnames";
-import Collapse from "@material-ui/core/Collapse";
-import withStyles from "@material-ui/core/styles/withStyles";
-import Close from "@material-ui/icons/Close";
-import Tooltip from "@material-ui/core/Tooltip";
-import Edit from "@material-ui/icons/Edit";
+import GridItem from "components/Grid/GridItem";
+import React from "react";
+import * as lt_colors from "variables/lt_colors";
 
-import { PATTERNS } from "views/Settings/data/Indicators.jsx";
+const deleteButtonStyle = {
+  position: "absolute",
+  top: ".05em",
+  right: ".15em",
+  fontSize: "1.5em"
+};
 
 const styles = theme => ({
   card: {
@@ -103,7 +106,32 @@ class StrategyCard extends React.Component {
     let fields = FIELDS[props.strategyType];
     return (
       <Card>
-        <GridContainer justify="center">
+        {/* todo add are you sure modal for delete */}
+        <IconButton
+          style={deleteButtonStyle}
+          aria-label="Delete"
+          onClick={() => removeStrategy(id)}
+        >
+          <Close
+            style={{
+              fill: lt_colors.warning
+            }}
+          />
+          <small
+            style={{
+              fontSize: ".5em",
+              color: lt_colors.fontcolor
+            }}
+          >
+            (delete)
+          </small>
+        </IconButton>
+        <GridContainer
+          justify="center"
+          styles={{
+            padding: "1em .2em"
+          }}
+        >
           <GridItem xs={12}>
             <GridContainer justify={"center"}>
               {strategy.conditions.map(item => {
@@ -122,7 +150,12 @@ class StrategyCard extends React.Component {
                   </div>
                 );
               })}
-              <Button color="info" onClick={() => handleOpen(id)}>
+              <Button
+                style={{
+                  background: lt_colors.yetanotherblue
+                }}
+                onClick={() => handleOpen(id)}
+              >
                 add condition
               </Button>
             </GridContainer>
@@ -158,70 +191,72 @@ class StrategyCard extends React.Component {
                 <GridItem xs={2}>Add/Remove</GridItem>
               </GridContainer>
 
-              {strategy.dca_strategy !== undefined ? Object.entries(strategy.dca_strategy).map(item => {
-                return (
-                  <GridContainer
-                    justify={"center"}
-                    style={{ textAlign: "center" }}
-                  >
-                    <GridItem xs={2}>
-                      {" "}
-                      <CustomInput
-                        labelText={"trigger"}
-                        id={"trigger"}
-                        disabled
-                        formControlProps={{
-                          fullWidth: false
-                        }}
-                        inputProps={{
-                          value: item[0],
-                          disabled: true
-                        }}
-                      />{" "}
-                    </GridItem>
-                    <GridItem xs={2}>
-                      {" "}
-                      <CustomInput
-                        labelText={"trigger"}
-                        id={"trigger"}
-                        formControlProps={{
-                          fullWidth: false
-                        }}
-                        inputProps={{
-                          onChange: event =>
-                            editDCALevel(event, id, item[0], "trigger"),
-                          value: item[1].trigger
-                        }}
-                      />{" "}
-                    </GridItem>
-
-                    <GridItem xs={2}>
-                      <CustomInput
-                        labelText={"percentage"}
-                        id={"percentage"}
-                        formControlProps={{
-                          fullWidth: false
-                        }}
-                        inputProps={{
-                          onChange: event =>
-                            editDCALevel(event, id, item[0], "percentage"),
-                          value: item[1].percentage
-                        }}
-                      />{" "}
-                    </GridItem>
-                    <GridItem xs={2}>
-                      {" "}
-                      <Button
-                        color={"warning"}
-                        onClick={() => removeDCALvl(id, item[0])}
+              {strategy.dca_strategy !== undefined
+                ? Object.entries(strategy.dca_strategy).map(item => {
+                    return (
+                      <GridContainer
+                        justify={"center"}
+                        style={{ textAlign: "center" }}
                       >
-                        {" "}
-                        -{" "}
-                      </Button>{" "}
-                    </GridItem>
-                  </GridContainer>
-                );
-              }): null}
+                        <GridItem xs={2}>
+                          {" "}
+                          <CustomInput
+                            labelText={"trigger"}
+                            id={"trigger"}
+                            disabled
+                            formControlProps={{
+                              fullWidth: false
+                            }}
+                            inputProps={{
+                              value: item[0],
+                              disabled: true
+                            }}
+                          />{" "}
+                        </GridItem>
+                        <GridItem xs={2}>
+                          {" "}
+                          <CustomInput
+                            labelText={"trigger"}
+                            id={"trigger"}
+                            formControlProps={{
+                              fullWidth: false
+                            }}
+                            inputProps={{
+                              onChange: event =>
+                                editDCALevel(event, id, item[0], "trigger"),
+                              value: item[1].trigger
+                            }}
+                          />{" "}
+                        </GridItem>
+
+                        <GridItem xs={2}>
+                          <CustomInput
+                            labelText={"percentage"}
+                            id={"percentage"}
+                            formControlProps={{
+                              fullWidth: false
+                            }}
+                            inputProps={{
+                              onChange: event =>
+                                editDCALevel(event, id, item[0], "percentage"),
+                              value: item[1].percentage
+                            }}
+                          />{" "}
+                        </GridItem>
+                        <GridItem xs={2}>
+                          {" "}
+                          <Button
+                            color={"warning"}
+                            onClick={() => removeDCALvl(id, item[0])}
+                          >
+                            {" "}
+                            -{" "}
+                          </Button>{" "}
+                        </GridItem>
+                      </GridContainer>
+                    );
+                  })
+                : null}
               {/* add dca level */}
               <GridContainer justify={"center"} style={{ textAlign: "center" }}>
                 <GridItem xs={2}>
@@ -295,17 +330,25 @@ class StrategyCard extends React.Component {
             </GridContainer>
           ) : null}
         </GridContainer>
-        <Button color={"warning"} onClick={() => removeStrategy(id)}>
-          {" "}
-          DELETE STRATEGY{" "}
-        </Button>
+
+        {/* <IconButton
+          style={deleteButtonStyle}
+          aria-label="Save"
+          onClick={() => removeStrategy(id)}
+        >
+          <Save
+            style={{
+              fill: lt_colors.green
+            }}
+          />
+        </IconButton> */}
       </Card>
     );
   }
 }
 
 const cardstyle = {
-  background: "#904bff",
+  background: lt_colors.purp,
   textAlign: "center",
   justify: "center",
   padding: "10px 10px"

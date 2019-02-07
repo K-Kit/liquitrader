@@ -127,3 +127,5 @@ pips.txt
 LTGUI/static/*
 *.idea*
 scratch.py
+node_modules/*
+node_modules/.bin/*

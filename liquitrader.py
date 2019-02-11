@@ -137,7 +137,7 @@ class LiquiTrader:
         self.config = Config(self.update_config)
         self.config.load_general_settings()
         self.config.load_global_trade_conditions()
-        # self.config.load_pair_settings()
+        self.config.load_pair_settings()
         self.indicators = self.config.get_indicators()
         self.timeframes = self.config.timeframes
 
@@ -365,7 +365,6 @@ class LiquiTrader:
                 continue
 
             lowest_sell_price = possible_sells[pair]
-            current_price = exch_pair['close']
 
             can_fill, minimum_fill = process_depth(orderbook, exch_pair['total'], min_cost)
             if can_fill is not None and can_fill.price > lowest_sell_price:
@@ -379,8 +378,6 @@ class LiquiTrader:
 
             current_value = exch_pair['total'] * price.average_price
 
-            # profits.append(
-            #     (current_value - exch_pair['total_cost']) / exch_pair['total_cost'] * 100)
             order = exchange.place_order(pair, 'limit', 'sell', exch_pair['total'], price.price)
             self.trade_history.append(order)
             self.save_trade_history()
@@ -793,6 +790,43 @@ def main(ipython=False):
     if 'python' not in sys.executable.lower():
         setattr(sys, 'frozen', True)
 
+
+
+    # ----
+    shutdown_handler = ShutdownHandler()
+
+    lt_engine = LiquiTrader(shutdown_handler)
+    # todo rewrite first time init
+    # take port as input in terminal
+    # write port to general settings
+    # start server  and reroute to '/setup'
+    # write '/first_run' endpoint which takes in a list of steps to init user and write config files
+    # list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    try:
+        lt_engine.initialize_config()
+    except FileNotFoundError:
+        firsttime_init(shutdown_handler)
+        time.sleep(1)
+        lt_engine.initialize_config()
+
+    # ----
+    import gui.gui_server
+
+    gui.gui_server.LT_ENGINE = lt_engine
+
+    # get config from lt
+    config = lt_engine.config
+
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                          host=config.general_settings['host'],
+                                          port=config.general_settings['port'],
+                                          ssl=config.general_settings['use_ssl'],
+                                          )
+
+    if not gui.gui_server.users_exist():
+        firsttime_init(gui_server)
+
+    # ---- moved this because it cant happen before first run
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         import analyzers.strategic_analysis as strategic_analysis
         # Check that verifier string hasn't been modified, it exists, and it is a reasonable size

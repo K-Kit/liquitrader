@@ -49,12 +49,17 @@ abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
 bearpuncher_dir = abs_path
 
 if hasattr(sys, 'frozen'):
-    dist_path = abs_path / 'static'
+    dist_path = abs_path / 'gui' / 'static'
 else:
     dist_path = abs_path / 'LTGUI' / 'build'
 
 
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
+
+# TODO remove for prod
+if not hasattr(sys, 'frozen'):
+    from flask_cors import CORS
+    CORS(_app)
 
 database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
 
@@ -199,6 +204,7 @@ class GUIServer:
 
         # AssertionError: A name collision occurred between blueprints
         # self._bootstrap = Bootstrap(_app)
+
         flask_compress.Compress(_app)
 
         self._shutdown_handler = shutdown_handler
@@ -289,6 +295,11 @@ def get_index():
 # ----
 @_app.route('/setup')
 def setup():
+    return render_template('index.html')
+
+# ----
+@_app.route('/login')
+def loginroute():
     return render_template('index.html')
 
 # ----

@@ -73,6 +73,7 @@ class GlobalTrade extends React.Component {
       max_change: 0,
       max_pairs: 10,
       max_spread: 1,
+        market: 'Base Asset',
       min_available_volume: 0,
       min_buy_balance: "50%",
       min_change: 0,

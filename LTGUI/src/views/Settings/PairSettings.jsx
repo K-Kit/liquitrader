@@ -51,6 +51,7 @@ class PairSettings extends React.Component {
     this.handleWhitelist = this.handleWhitelist.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
+    this.sendState = this.sendState.bind(this);
   }
   sendState() {
     return this.state;

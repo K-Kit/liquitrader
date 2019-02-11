@@ -3,7 +3,7 @@
 import binascii
 import os
 # from io import BytesIO
-import pathlib
+# import pathlib
 import sys
 
 from datetime import timedelta
@@ -22,7 +22,12 @@ import database_models
 import flask_compress
 from flask_talisman import Talisman
 from flask_otp import OTP
-from flask_jwt import JWT, jwt_required
+from flask_jwt import JWT, jwt_required, current_identity
+from flask_jwt_extended import (
+    JWTManager, verify_jwt_in_request, create_access_token,
+    get_jwt_claims
+)
+from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 
 from OpenSSL import crypto
@@ -33,6 +38,7 @@ import pandas as pd
 from utils.FormattingTools import eight_decimal_format, decimal_with_usd
 from utils.path import APP_DIR
 from utils.column_labels import *
+
 
 LT_ENGINE = None
 
@@ -162,6 +168,18 @@ def get_role(id):
     return _UserModel.query.filter_by(id=int(id)).first().role
 
 
+# TODO actually utilize flask_jwt_extended
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        role = get_role(current_identity)
+        if role != 'admin':
+            return jsonify(msg='Admins only!'), 403
+        else:
+            return fn(*args, **kwargs)
+    return wrapper
+
+
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
@@ -206,13 +224,11 @@ class GUIServer:
         otp = OTP()
         otp.init_app(_app)
 
-        #self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
-        JWT(_app, user_authenticate, user_identity)
 
         self._shutdown_handler = shutdown_handler
         self._host = host
-        self._port = port
+        self._port = int(port)
 
         self._use_ssl = ssl
         self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'
@@ -508,6 +524,7 @@ def get_dashboard_data():
 # ----
 @_app.route('/api/update_config', methods=['POST'])
 @jwt_required()
+@admin_required
 def update_config():
     data = flask.request.get_json(force=True)
     print(data)
@@ -519,6 +536,7 @@ def update_config():
 # ----
 @_app.route("/api/config")
 @jwt_required()
+@admin_required
 def get_config():
     return LT_ENGINE.config.get_config()
     #return jsonify(LT_ENGINE.config.get_config())  TODO :: Make frontend receive JSON
@@ -536,6 +554,25 @@ def get_analyzers():
 @jwt_required()
 def get_statistics():
     return pd.DataFrame(LT_ENGINE.statistics.values()).to_json(orient="records")
+
+#---
+@_app.route('/api/add_user', methods=['POST'])
+@jwt_required()
+@admin_required
+def add_user_api():
+    data = flask.request.get_json(force=True)
+    add_user(data['username'], data['password'], data['role'])
+    return Response('success')
+
+#---
+@_app.route('/api/is_admin', methods=['POST'])
+@jwt_required()
+def is_admin_api():
+    role = get_role(current_identity)
+    if role != 'admin':
+        return Response('not_admin', 403)
+    else:
+        return Response('is_admin', 200)
 
 
 if __name__ == '__main__':

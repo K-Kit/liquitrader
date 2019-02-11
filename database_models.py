@@ -140,15 +140,15 @@ def create_keystore_database_model(database):
 
         # ----
         @property
-        def bearpuncher_license_key(self):
+        def liquitrader_license_key(self):
             # Decrypt private key and return
-            return str(self._decrypt(self.bearpuncher_license))[2:-1]
+            return str(self._decrypt(self.license))[2:-1]
 
         # --
-        @bearpuncher_license_key.setter
-        def bearpuncher_license_key(self, value):
+        @liquitrader_license_key.setter
+        def liquitrader_license_key(self, value):
             # Encrypt bearpuncher license and store
-            self.bearpuncher_license = self._encrypt(value)
+            self.license = self._encrypt(value)
 
     return KeyStore
 

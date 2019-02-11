@@ -32,6 +32,7 @@ export const url =
     ? "http://45.77.216.107:8080/auth"
     : window.location.origin + "/auth";
 
+
 class LoginPage extends React.Component {
   constructor(props) {
     super(props);
@@ -41,8 +42,11 @@ class LoginPage extends React.Component {
       password: "",
       username: ""
     };
+
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleLogin = this.handleLogin.bind(this);
   }
+
   componentDidMount() {
     // we add a hidden class to the card and after 700 ms we delete it and the transition appears
     this.timeOutFunction = setTimeout(
@@ -51,11 +55,24 @@ class LoginPage extends React.Component {
       }.bind(this),
       700
     );
+
+    // Allow users to submit the login form by pressing enter in the password input
+    document.getElementById("password").addEventListener('keyup',
+        (event) => {
+            if (event.which == 13 || event.keyCode == 13) {
+                document.querySelector('form div > div > button').click();
+                return false;  // Prevent event from bubbling further
+            }
+            return true;  // Bubble up event
+        }
+    );
   }
+
   componentWillUnmount() {
     clearTimeout(this.timeOutFunction);
     this.timeOutFunction = null;
   }
+
   handleInputChange(event) {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
@@ -65,6 +82,41 @@ class LoginPage extends React.Component {
       [name]: value
     });
   }
+
+  handleLogin() {
+    postJSON(url, {
+      username: this.state.username,
+      password: this.state.password
+    })
+    .then(token => {
+      token = JSON.parse(token);
+      if (Object.values(token)[0] !== undefined) {
+        localStorage.setItem(
+          "token", "JWT " + Object.values(token)[0]
+        );
+        window.location.pathname = "dashboard";
+      }
+    });
+  }
+
+  /*
+  {() => {
+      postJSON(url, {
+        username: this.state.username,
+        password: this.state.password
+      }).then(token => {
+        token = JSON.parse(token);
+        if (Object.values(token)[0] !== undefined) {
+          localStorage.setItem(
+            "token",
+            "JWT " + Object.values(token)[0]
+          );
+          window.location.pathname = "dashboard";
+        }
+      });
+    }}
+  */
+
   render() {
     const { classes } = this.props;
     return (
@@ -89,6 +141,7 @@ class LoginPage extends React.Component {
                     inputProps={{
                       name: "username",
                       onChange: this.handleInputChange,
+                      autoComplete: "username",
                       value: this.state.username,
                       endAdornment: (
                         <InputAdornment position="end">
@@ -106,6 +159,8 @@ class LoginPage extends React.Component {
                     }}
                     inputProps={{
                       name: "password",
+                      type: "password",
+                      autoComplete: "current-password",
                       onChange: this.handleInputChange,
                       value: this.state.password,
                       endAdornment: (
@@ -124,23 +179,7 @@ class LoginPage extends React.Component {
                     simple
                     size="lg"
                     block
-                    onClick={() => {
-                      postJSON(url, {
-                        username: this.state.username,
-                        password: this.state.password
-                      }).then(token => {
-                        token = JSON.parse(token);
-                        console.log(token);
-                        console.log(token.access_token);
-                        if (Object.values(token)[0] !== undefined) {
-                          localStorage.setItem(
-                            "token",
-                            "JWT " + Object.values(token)[0]
-                          );
-                          window.location.pathname = "dashboard";
-                        }
-                      });
-                    }}
+                    onClick={this.handleLogin}
                   >
                     Log in
                   </Button>

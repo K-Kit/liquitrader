@@ -779,6 +779,9 @@ def firsttime_init(shutdown_handler):
 
 # ----
 def main(ipython=False):
+    import gui.gui_server
+
+
     def err_msg():
         sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
         sys.stdout.write(
@@ -796,6 +799,8 @@ def main(ipython=False):
     shutdown_handler = ShutdownHandler()
 
     lt_engine = LiquiTrader(shutdown_handler)
+    if not gui.gui_server.users_exist():
+        firsttime_init(shutdown_handler)
     # todo rewrite first time init
     # take port as input in terminal
     # write port to general settings
@@ -809,8 +814,6 @@ def main(ipython=False):
         time.sleep(1)
         lt_engine.initialize_config()
 
-    # ----
-    import gui.gui_server
 
     gui.gui_server.LT_ENGINE = lt_engine
 
@@ -823,8 +826,7 @@ def main(ipython=False):
                                           ssl=config.general_settings['use_ssl'],
                                           )
 
-    if not gui.gui_server.users_exist():
-        firsttime_init(gui_server)
+
 
     # ---- moved this because it cant happen before first run
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
@@ -885,7 +887,6 @@ def main(ipython=False):
         lt_engine.initialize_config()
 
     # ----
-    import gui.gui_server
 
     gui.gui_server.LT_ENGINE = lt_engine
 

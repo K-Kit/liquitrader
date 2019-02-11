@@ -10,7 +10,6 @@ import pathlib
 
 import arrow
 
-import analyzers.strategic_analysis as strategic_analysis
 
 from config.config import Config
 from exchanges import BinanceExchange
@@ -829,6 +828,7 @@ def main(ipython=False):
 
     # ---- moved this because it cant happen before first run
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
+        import analyzers.strategic_analysis as strategic_analysis
         # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
         # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
         if sys.platform == 'win32':
@@ -866,6 +866,41 @@ def main(ipython=False):
             print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
                   'please stop trying to crack our license system. This is how we keep food on our tables.)')
             sys.exit(1)
+
+    # ----
+    shutdown_handler = ShutdownHandler()
+
+    lt_engine = LiquiTrader(shutdown_handler)
+    # todo rewrite first time init
+    # take port as input in terminal
+    # write port to general settings
+    # start server  and reroute to '/setup'
+    # write '/first_run' endpoint which takes in a list of steps to init user and write config files
+    # list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    try:
+        lt_engine.initialize_config()
+    except FileNotFoundError:
+        firsttime_init(shutdown_handler)
+        time.sleep(1)
+        lt_engine.initialize_config()
+
+    # ----
+    import gui.gui_server
+
+    gui.gui_server.LT_ENGINE = lt_engine
+
+    # get config from lt
+    config = lt_engine.config
+    if not gui.gui_server.users_exist():
+        firsttime_init(shutdown_handler)
+
+    gui_server = gui.gui_server.GUIServer(shutdown_handler,
+                                          host=config.general_settings['host'],
+                                          port=config.general_settings['port'],
+                                          ssl=config.general_settings['use_ssl'],
+                                          )
+
+
 
     try:
         lt_engine.load_trade_history()

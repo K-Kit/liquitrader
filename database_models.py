@@ -2,11 +2,12 @@ import os
 import base64
 
 import onetimepass
+import scrypt
+
+from cryptography.hazmat.primitives.constant_time import bytes_eq
+from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-
-from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 
 
 def create_user_database_model(database):
@@ -15,6 +16,8 @@ def create_user_database_model(database):
 
         id = database.Column(database.Integer, primary_key=True)
         username = database.Column(database.String(64), index=True, unique=True)
+
+        salt = database.Column(database.String(56))
         password_hash = database.Column(database.String(128))
 
         tfa_secret = database.Column(database.String(16))
@@ -25,16 +28,18 @@ def create_user_database_model(database):
         def __init__(self, **kwargs):
             super(User, self).__init__(**kwargs)
 
-            if self.tfa_secret is None:
-                # generate a random secret
-                self.tfa_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
-
-            if self.tfa_active is None:
-                self.tfa_active = 0
+            # Password salt
+            if self.salt is None:
+                self.salt = base64.b32encode(os.urandom(32)).decode('utf-8')
 
             if self.role is None:
                 self.role = 'admin'
 
+            if self.tfa_secret is None:
+                self.tfa_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
+
+            if self.tfa_active is None:
+                self.tfa_active = 0
 
         @property
         def password(self):
@@ -42,10 +47,14 @@ def create_user_database_model(database):
 
         @password.setter
         def password(self, password):
-            self.password_hash = generate_password_hash(password)
+            if self.salt is None:
+                self.salt = base64.b32encode(os.urandom(32)).decode('utf-8')
+
+            self.password_hash = base64.b64encode(scrypt.hash(base64.b64decode(self.salt), password, buflen=128)).decode('utf-8')
 
         def verify_password(self, password):
-            return check_password_hash(self.password_hash, password)
+            return bytes_eq(scrypt.hash(base64.b64decode(self.salt), password, buflen=128),
+                            base64.b64decode(self.password_hash.encode()))
 
         def get_totp_uri(self):
             return 'otpauth://totp/Liquitrader:{0}?secret={1}&issuer=Liquitrader'.format(self.username, self.tfa_secret)
@@ -164,6 +173,7 @@ def migrate_table(database):
     user_column_defs = ', '.join([
         'id INTEGER NOT NULL',
         'username VARCHAR(64) NOT NULL',
+        'salt VARCHAR(56) NOT NULL',
         'password_hash VARCHAR(128) NOT NULL',
         'tfa_active INTEGER',
         'tfa_secret VARCHAR(16)',

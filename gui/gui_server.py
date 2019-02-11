@@ -381,7 +381,6 @@ def first_run():
 # ----
 @_app.route("/api/holding")
 @jwt_required()
-@admin_required
 def get_holding():
     df = LT_ENGINE.pairs_to_df(friendly=True, holding=True)
 

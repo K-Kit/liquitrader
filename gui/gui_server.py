@@ -5,10 +5,8 @@ import os
 # from io import BytesIO
 import pathlib
 import sys
-import psutil
-from datetime import datetime, timedelta
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS
 from config.config import Config
@@ -18,17 +16,14 @@ from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
 from flask import jsonify, Response, render_template, redirect
-from flask_jwt import JWT, jwt_required, current_identity
 
 import database_models
 
 import flask_compress
-from flask_bootstrap import Bootstrap
 from flask_talisman import Talisman
 from flask_otp import OTP
 from flask_jwt import JWT, jwt_required
 from flask_sqlalchemy import SQLAlchemy
-# from flask_wtf import FlaskForm
 
 from OpenSSL import crypto
 
@@ -39,10 +34,6 @@ from utils.FormattingTools import eight_decimal_format, decimal_with_usd
 from utils.path import APP_DIR
 from utils.column_labels import *
 
-# from wtforms import StringField, PasswordField, SubmitField, BooleanField
-# from wtforms.validators import DataRequired, Length
-
-
 LT_ENGINE = None
 
 if hasattr(sys, 'frozen'):
@@ -50,7 +41,8 @@ if hasattr(sys, 'frozen'):
 else:
     dist_path = APP_DIR / 'LTGUI' / 'build'
 
-_app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
+STATIC_FILE_PATH = dist_path / 'static'
+_app = flask.Flask('lt_flask', static_folder=STATIC_FILE_PATH, template_folder=dist_path)
 
 
 # --------
@@ -214,7 +206,7 @@ class GUIServer:
         otp = OTP()
         otp.init_app(_app)
 
-        self._bootstrap = Bootstrap(_app)
+        #self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
         JWT(_app, user_authenticate, user_identity)
 
@@ -274,7 +266,7 @@ class GUIServer:
         if self._use_ssl:
             self._init_ssl()
 
-        self._wsgi_server = WSGIServer((self._host, self._port), PathInfoDispatcher({'/': _app}))
+        self._wsgi_server = WSGIServer((self._host, int(self._port)), PathInfoDispatcher({'/': _app}))
 
         # TODO: Issue with SSL:
         # Firefox causes a (socket.error 1) exception to be thrown on initial connection (before accepting cert)
@@ -312,7 +304,9 @@ def _get_mimetype(ext):
         'html': 'text/html',
         'css': 'text/css',
         'js': 'text/javascript',
-        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif'
+        'json': 'application/json',
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif',
+        'ico': 'image/vnd.microsoft.icon'
     }.get(ext.replace('.', ''), 'text/plain')
 
 @_app.route('/<path:path>')
@@ -320,11 +314,14 @@ def get_file(path=''):
     if not users_exist():
         return flask.redirect('/setup')
 
+    # Flask should do this automatically, but better safe than sorry
+    path = path.replace('..', '')
+
     if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
         try:
             mimetype = _get_mimetype(path.split('.')[-1])
 
-            with open(path, 'rb') as f:
+            with open(STATIC_FILE_PATH / path, 'rb') as f:
                 return Response(f.read(), mimetype=mimetype, content_type=mimetype)
 
         except FileNotFoundError:

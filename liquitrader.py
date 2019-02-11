@@ -10,7 +10,6 @@ import pathlib
 
 import arrow
 
-import analyzers.strategic_analysis as strategic_analysis
 
 from config.config import Config
 from exchanges import BinanceExchange
@@ -795,6 +794,7 @@ def main(ipython=False):
         setattr(sys, 'frozen', True)
 
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
+        import analyzers.strategic_analysis as strategic_analysis
         # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
         # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
         if sys.platform == 'win32':

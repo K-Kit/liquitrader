@@ -141,7 +141,10 @@ def user_authenticate(username=None, password=None):
 
 def user_identity(payload):
     # For JWT
-    return _UserModel.query.filter_by(id=payload['identity']).first().id
+    user = _UserModel.query.filter_by(id=payload['identity']).first()
+
+    if user is not None:
+        return user.id
 
 
 # --

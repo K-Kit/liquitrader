@@ -41,13 +41,13 @@ class GeneralSettings extends React.Component {
     super(props);
     this.state = {
       exchange: "binance",
-      paper_trading: false,
+      paper_trading: true,
       starting_balance: 3,
       market: "ETH",
       timezone: "US/Pacific",
       start_delay: 0,
-      host: "0.0.0.0",
-      port: 8080,
+      host: window.location.hostname,
+      port: window.location.port,
       use_ssl: false,
       sell_only_mode: false,
       trading_enabled: true
@@ -72,7 +72,7 @@ class GeneralSettings extends React.Component {
     this.setState({ multipleSelect: event.target.value });
   };
   handleChange = name => event => {
-    this.setState({ [name]: event.target.checked });
+    this.setState({ [name]: event.target.value });
     console.log(this.state);
   };
   handleBlacklist(regularTags) {
@@ -256,26 +256,66 @@ class GeneralSettings extends React.Component {
               })}
               <br />
               <br />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={this.state.paper_trading}
-                    onChange={this.handleChange("paper_trading")}
-                    value={this.state.paper_trading}
-                    classes={{
-                      switchBase: classes.switchBase,
-                      checked: classes.switchChecked,
-                      icon: classes.switchIcon,
-                      iconChecked: classes.switchIconChecked,
-                      bar: classes.switchBar
-                    }}
-                  />
-                }
-                classes={{
-                  label: classes.label
+              <InputLabel
+                    htmlFor="market-select"
+                    className={classes.selectLabel}
+                  >
+                    Mode: &thinsp;&thinsp;
+                  </InputLabel>
+              <Select
+                MenuProps={{
+                  className: classes.selectMenu
                 }}
-                label="Paper / Live Trading (left = paper trading, right(checked) = live"
-              />
+                classes={{
+                  select: classes.select
+                }}
+                autoWidth
+                value={this.state.paper_trading}
+                onChange={this.handleChange("paper_trading")}
+                inputProps={{
+                  name: "Mode",
+                  id: "Mode"
+                }}
+              >
+                <MenuItem
+                  classes={{
+                    root: classes.selectMenuItem,
+                    selected: classes.selectMenuItemSelected
+                  }}
+                  value={false}
+                >
+                  Live
+                </MenuItem>
+                <MenuItem
+                  classes={{
+                    root: classes.selectMenuItem,
+                    selected: classes.selectMenuItemSelected
+                  }}
+                  value={true}
+                >
+                  Simulated
+                </MenuItem>
+              </Select>
+              {/*<FormControlLabel*/}
+              {/*control={*/}
+              {/*<Switch*/}
+              {/*checked={!this.state.paper_trading}*/}
+              {/*onChange={this.handleChange("paper_trading")}*/}
+              {/*value={this.state.paper_trading}*/}
+              {/*classes={{*/}
+              {/*switchBase: classes.switchBase,*/}
+              {/*checked: classes.switchChecked,*/}
+              {/*icon: classes.switchIcon,*/}
+              {/*iconChecked: classes.switchIconChecked,*/}
+              {/*bar: classes.switchBar*/}
+              {/*}}*/}
+              {/*/>*/}
+              {/*}*/}
+              {/*classes={{*/}
+              {/*label: classes.label*/}
+              {/*}}*/}
+              {/*label="Paper / Live Trading (left = paper trading, right(checked) = live"*/}
+              {/*/>*/}
             </GridContainer>
           </GridItem>
 

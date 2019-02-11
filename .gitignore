@@ -120,3 +120,12 @@ buildtools/bearpuncher_verification_implementation.py
 vet_trades.json
 *.map
 config/liquitrader.db
+exchange.json
+pips.txt
+*.db
+*.json
+LTGUI/static/*
+*.idea*
+scratch.py
+node_modules/*
+node_modules/.bin/*

@@ -3,14 +3,12 @@ export function loginUserSuccess(token) {
 }
 
 export function fetchErrorHandler(response, error = false) {
-  
-  console.log('noerror', response, error);
   if (error) {
-    console.log('error', response, error);
-    
+    console.log("error: ", error);
   }
-  if (response.status === 401){
-    window.location.pathname= '/login';
+
+  if (response.status === 401 && window.location.pathname != "/setup") {
+    window.location.pathname = "/login";
   }
 
   return response;
@@ -18,8 +16,10 @@ export function fetchErrorHandler(response, error = false) {
 
 export function fetchJSON(uri, callback, log_error = true) {
   fetch(uri, {
-    // credentials: "include",
-    headers: { Authorization: localStorage.getItem("token") }
+    credentials: "include",
+    headers: {
+        "Authorization": localStorage.getItem("token")
+    }
   })
     .then(response => {
       if (log_error) {
@@ -65,14 +65,15 @@ export function postJSON(uri, data, callback) {
     // credentials: "include",
     method: "post",
     headers: {
-      Accept: "application/json, text/plain, */*",
+      "Accept": "application/json, text/plain, */*",
       "Content-Type": "application/json",
-      Authorization: localStorage.getItem("token")
+      "Authorization": localStorage.getItem("token")
     },
     body: JSON.stringify(data)
   })
     .then(fetchErrorHandler)
     .then(response => {
+      console.log(response);
       return response.text();
     })
     .then(response_body => {

@@ -10,23 +10,23 @@ from datetime import datetime, timedelta
 
 from datetime import datetime, timedelta
 
-from liquitrader import FRIENDLY_MARKET_COLUMNS, APP_DIR
+from liquitrader import FRIENDLY_MARKET_COLUMNS
+from config.config import Config
 
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
-from flask import jsonify, Response, render_template
+from flask import jsonify, Response, render_template, redirect
 from flask_jwt import JWT, jwt_required, current_identity
 
 import database_models
 
 import flask_compress
-import flask_login
-
 from flask_bootstrap import Bootstrap
 from flask_talisman import Talisman
 from flask_otp import OTP
+from flask_jwt import JWT, jwt_required
 from flask_sqlalchemy import SQLAlchemy
 # from flask_wtf import FlaskForm
 
@@ -36,54 +36,146 @@ import pandas as pd
 # import pyqrcode
 
 from utils.FormattingTools import eight_decimal_format, decimal_with_usd
+from utils.path import APP_DIR
+from utils.column_labels import *
 
 # from wtforms import StringField, PasswordField, SubmitField, BooleanField
 # from wtforms.validators import DataRequired, Length
 
 
 LT_ENGINE = None
-# FRIENDLY_MARKET_COLUMNS = liquitrader.FRIENDLY_MARKET_COLUMNS
-_cmdline = psutil.Process().cmdline()
-abs_path = pathlib.Path(_cmdline[len(_cmdline) - 1]).absolute().parent
-bearpuncher_dir = abs_path
 
 if hasattr(sys, 'frozen'):
-    dist_path = abs_path / 'static'
+    dist_path = APP_DIR / 'gui'
 else:
-    dist_path = abs_path / 'LTGUI' / 'build'
+    dist_path = APP_DIR / 'LTGUI' / 'build'
+
 _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
 
 
+# --------
+# Database configuration
 
+database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
+_app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# STORE IN DATABASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+_app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
+_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
+
+_database = SQLAlchemy(_app)
+_UserModel = database_models.create_user_database_model(_database)
+_KeyStore = database_models.create_keystore_database_model(_database)
+_FlaskStore = database_models.create_flask_database_model(_database)
+_database.create_all()
+
+# Perform any necessary database structure updates
+database_models.migrate_table(_database)
+
+
+def add_keys(public, private, license_key):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+
+    _database.session.add(_KeyStore(exchange_key_public=public, exchange_key_private=private, license=license_key))
+    _database.session.commit()
+
+    return True
+
+
+def get_keys():
+    keys = _KeyStore.query.first()
+    return {
+        "public": keys.exchange_key_public,
+        "secret": keys.exchange_key_private,
+        'liquitrader_key': keys.license
+    }
+
+
+# ----
+def add_user(username, password, role='admin'):
+    """
+    Adds a user to the database
+    Returns True on success, False on failure (user existed)
+    """
+
+    username = username.lower()
+
+    if _UserModel.query.filter_by(username=username).first() is not None:
+        return False
+
+    _database.session.add(_UserModel(username=username, password=password, role=role))
+    _database.session.commit()
+
+    return True
+
+
+def user_exists(user_id):
+    """
+    Check if a user exists
+    :return: Bool
+    """
+
+    return _UserModel.query.get(user_id) is not None
+
+
+def users_exist():
+    """
+    Check if any users exist
+    :return: Bool
+    """
+
+    return len(_UserModel.query.all()) > 0
+
+
+# ----
+# Auth stuff
+def user_authenticate(username=None, password=None):
+    # For JWT
+    user = _UserModel.query.filter_by(username=username).first()
+
+    if user is not None and user.verify_password(password):
+        return user
+
+
+def user_identity(payload):
+    # For JWT
+    return _UserModel.query.filter_by(id=payload['identity']).first().id
+
+
+# --
+@_app.before_request
+def before_request_handler():
+    """
+    Performs tasks that happen before a request is processed
+    """
+
+    path = flask.request.path
+    if '..' in path:
+        return Response(status=400)
+
+
+# --------
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
+
+
+jwt = JWT(_app, user_authenticate, user_identity)
+
+
+def get_role(id):
+    return _UserModel.query.filter_by(id=int(id)).first().role
 
 
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
-        database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
-        _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
-        _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        _app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
-        _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
-
-        self._database = SQLAlchemy(_app)
-        self._user = database_models.create_user_database_model(self._database)
-        self._keyStore = database_models.create_keystore_database_model(self._database)
-        self._flaskStore = database_models.create_flask_database_model(self._database)
-        self._database.create_all()
-        # Perform any necessary database structure updates
-        database_models.migrate_table(self._database)
-
-        self._login_man = flask_login.LoginManager(_app)
-
         csp = {
             'default-src': [
                 '\'self\'',
-                'http://45.77.216.107:3000',
-                '45.77.216.107',
-                '45.77.216.107:3000',
                 'localhost'
             ],
             'style-src': [
@@ -114,18 +206,17 @@ class GUIServer:
                 '\'self\'',
                 '\'unsafe-inline\'',
                 'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
-            ]
+            ],
         }
+
+        Talisman(_app, force_https=ssl, content_security_policy=csp)
 
         otp = OTP()
         otp.init_app(_app)
-        # from flask_cors import CORS
-        # CORS(_app)
-        # Talisman(_app, force_https=ssl, content_security_policy=csp)
-        # from flask_cors import CORS
-        # CORS(_app)
+
         self._bootstrap = Bootstrap(_app)
         flask_compress.Compress(_app)
+        JWT(_app, user_authenticate, user_identity)
 
         self._shutdown_handler = shutdown_handler
         self._host = host
@@ -134,62 +225,10 @@ class GUIServer:
         self._use_ssl = ssl
         self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'
         self._keyfile_path = APP_DIR / 'lib' / 'liquitrader.key'
-
         # Set constants for WSGIServer
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
-        jwt = JWT(_app, self.authenticate, self.identity)
-
-    def add_user(self, username, password, role='admin'):
-        """
-        Adds a user to the database
-        Returns True on success, False on failure (user existed)
-        """
-        User = self._user
-        username = username.lower()
-
-        user = User.query.filter_by(username=username).first()
-
-        if user is not None:
-            return False
-
-        self._database.session.add(User(username=username, password=password, role=role))
-        self._database.session.commit()
-
-        return True
-
-    def authenticate(self, username=None, password=None):
-        user = self._user.query.filter_by(username=username.lower()).first()
-
-        if user is None or not user.verify_password(password):
-            return False
-
-        return user
-
-    def identity(self, payload):
-        user_id = payload['identity']
-        return self._user.query.filter_by(id=user_id).first().id
-
-    def user_exists(self, user_id):
-        """
-        Check if a user exists
-        :return: Bool
-        """
-
-        user = self._user.query.get(user_id)
-        return user is not None
-
-    def users_exist(self):
-        """
-        Check if any users exist
-        :return: Bool
-        """
-
-        users = self._user.query.all()
-        return len(users) > 0
-
-
 
     # ----
     def _create_self_signed_cert(self):
@@ -207,7 +246,7 @@ class GUIServer:
         cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
         cert.set_issuer(cert.get_subject())
         cert.set_pubkey(k)
-        cert.sign(k, b'sha256')
+        cert.sign(k, 'sha256')
 
         with open(self._certfile_path, 'wb') as certfile:
             certfile.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
@@ -256,13 +295,97 @@ class GUIServer:
 # ----
 @_app.route('/')
 def get_index():
+    if not os.path.isfile('config/SellStrategies.json'):
+        return flask.redirect('/setup')
     return render_template('index.html')
 
 
 # ----
+@_app.route('/setup')
+def setup():
+    return render_template('index.html')
+
+
+# ----
+def _get_mimetype(ext):
+    return {
+        'html': 'text/html',
+        'css': 'text/css',
+        'js': 'text/javascript',
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif'
+    }.get(ext.replace('.', ''), 'text/plain')
+
 @_app.route('/<path:path>')
 def get_file(path=''):
+    if not users_exist():
+        return flask.redirect('/setup')
+
+    if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
+        try:
+            mimetype = _get_mimetype(path.split('.')[-1])
+
+            with open(path, 'rb') as f:
+                return Response(f.read(), mimetype=mimetype, content_type=mimetype)
+
+        except FileNotFoundError:
+            print(f'User attempted to get file "{path}", but it does not exist')
+            return Response(status=404)
+
     return render_template('index.html')
+
+
+@_app.route('/logout')
+def do_logout():
+    return render_template('index.html')
+
+
+# ----
+@_app.route("/first_run", methods=['POST', 'GET'])
+def first_run():
+    """
+    takes in list
+    list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
+    generate config files and instantiate db
+    block endpoint if userdb already exists
+    :return:
+    """
+    if users_exist():
+        print('Attempt to access first time setup while DB already exists. '
+              ' If you would like to rerun first time setup delete config/liquitrader.db and try again')
+        return 'Attempt to access first time setup while DB already exists'
+
+    data = flask.request.get_json(force=True)
+
+    # track user exists, lazy solution because front end occasionally
+    #  sends list where first 2 items are account and item[0] is blank
+    #  item[1] is actual account, likely issue with component did mount
+    u = False
+    config = Config()
+    for item in data:
+        k, v = list(item.items())[0]
+        if k == 'account':
+            username = v['firstname']
+            password = v['password']
+            public = v['public']
+            private = v['private']
+            license = v['license']
+
+            if username == '':
+                pass
+            else:
+                add_user(username, password)
+                add_keys(public, private, license)
+                u = True
+        else:
+            if not u:
+                raise Exception('error creating user')
+            if 'strategies' in v:
+                v = v['strategies']
+
+            config.update_config(k, v)
+
+    return flask.redirect('/')
+
 
 # ----
 @_app.route("/api/holding")
@@ -307,9 +430,11 @@ def get_sell_log_frame():
 
     if 'bought_price' not in df:
         return jsonify([])
+
     df['bought_cost'] = df.bought_price * df.filled
     df['gain'] = (df.cost - df.bought_cost) / df.bought_cost * 100
-    cols = ['timestamp', 'symbol', 'bought_price', 'price','cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+    cols = ['timestamp', 'symbol', 'bought_price', 'price', 'cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+
     return jsonify(df[df.side == 'sell'][cols].dropna().to_json(orient='records'))
 
 
@@ -324,7 +449,6 @@ def latest_sales():
     cols = ['symbol', 'gain']
     df=df[df.side == 'sell'][cols].dropna().tail(4)
 
-
     return df.to_dict(orient="records")
 
 
@@ -338,15 +462,21 @@ def get_dashboard_data():
     profit = LT_ENGINE.get_total_profit()
     profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
-    if len(profit_data) > 0:
-        average_daily_gain = profit / len(profit_data)
-    else:
-        average_daily_gain = 0
+
+    average_daily_gain = profit / len(profit_data) if len(profit_data) > 0 else 0
+
     market = LT_ENGINE.config.general_settings['market'].upper()
     recent_sales = latest_sales()
+
     def reorient(df):
         # return [{k: v for (k, v) in row.items() if k != 'foo'} for row in df.to_dict(orient='record')]
         return [{col: getattr(row, col) for col in df} for row in df.itertuples()]
+
+    # Run global buy checks if it hasn't been already
+    if not all([hasattr(LT_ENGINE, 'check_24h_quote_change'),
+                hasattr(LT_ENGINE, 'check_1h_quote_change'),
+                hasattr(LT_ENGINE, 'check_24h_market_change')]):
+        LT_ENGINE.global_buy_checks()
 
     data = {
         "quote_balance": eight_decimal_format(balance),
@@ -403,6 +533,7 @@ def get_config():
 def get_analyzers():
     return jsonify(LT_ENGINE.get_trailing_pairs())
 
+
 # ----
 @_app.route("/api/stats")
 @jwt_required()
@@ -412,4 +543,4 @@ def get_statistics():
 
 if __name__ == '__main__':
     gui = GUIServer(shutdown_handler=None)
-    _app.run()
+    _app.run(debug=True)

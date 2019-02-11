@@ -542,6 +542,15 @@ def add_user_api():
     add_user(data['username'], data['password'], data['role'])
     return Response('success')
 
+#---
+@_app.route('/api/is_admin', methods=['POST'])
+@jwt_required()
+def is_admin_api():
+    role = get_role(current_identity)
+    if role != 'admin':
+        return Response('not_admin', 403)
+    else:
+        return Response('is_admin', 200)
 
 
 if __name__ == '__main__':

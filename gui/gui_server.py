@@ -159,6 +159,11 @@ def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
 
+jwt = JWT(_app, user_authenticate, user_identity)
+
+def get_role(id):
+    return User.query.filter_by(id=int(id)).first().role
+
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
@@ -216,6 +221,9 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
+
+
+
 
     # ----
     def _create_self_signed_cert(self):

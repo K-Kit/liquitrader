@@ -145,6 +145,11 @@ def users_exist():
     users = User.query.all()
     return len(users) > 0
 
+jwt = JWT(_app, authenticate, identity)
+
+def get_role(id):
+    return User.query.filter_by(id=int(id)).first().role
+
 class GUIServer:
 
     def __init__(self, shutdown_handler, host='localhost', port=5000, ssl=False):
@@ -208,7 +213,7 @@ class GUIServer:
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
-        JWT(_app, authenticate, identity)
+
 
 
 

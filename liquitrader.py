@@ -857,6 +857,8 @@ def main(ipython=False):
 
     # get config from lt
     config = lt_engine.config
+    if not gui.gui_server.users_exist():
+        firsttime_init(shutdown_handler)
 
     gui_server = gui.gui_server.GUIServer(shutdown_handler,
                                           host=config.general_settings['host'],
@@ -864,8 +866,7 @@ def main(ipython=False):
                                           ssl=config.general_settings['use_ssl'],
                                           )
 
-    if not gui.gui_server.users_exist():
-        firsttime_init(gui_server)
+
 
     try:
         lt_engine.load_trade_history()

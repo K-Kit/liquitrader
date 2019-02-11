@@ -820,14 +820,6 @@ def main(ipython=False):
     # get config from lt
     config = lt_engine.config
 
-    gui_server = gui.gui_server.GUIServer(shutdown_handler,
-                                          host=config.general_settings['host'],
-                                          port=config.general_settings['port'],
-                                          ssl=config.general_settings['use_ssl'],
-                                          )
-
-
-
     # ---- moved this because it cant happen before first run
     if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
         import analyzers.strategic_analysis as strategic_analysis

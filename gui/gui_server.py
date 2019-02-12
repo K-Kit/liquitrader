@@ -160,6 +160,8 @@ def before_request_handler():
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
+
+# ----
 def get_role(id):
     return _UserModel.query.filter_by(id=int(id)).first().role
 
@@ -215,7 +217,7 @@ class GUIServer:
             ],
         }
 
-        Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # Talisman(_app, force_https=ssl, content_security_policy=csp)
 
         otp = OTP()
         otp.init_app(_app)
@@ -582,7 +584,20 @@ def is_admin_api():
     else:
         return Response('is_admin', 200)
 
+#---
+@_app.route('/api/all_users')
+@jwt_required()
+@admin_required
+def all_users_api():
+    return jsonify(
+        list(
+            map(
+                lambda user: [user.username, user.role],
+                _UserModel.query.all())
+        )
+    )
 
 if __name__ == '__main__':
     gui = GUIServer(shutdown_handler=None)
-    _app.run(debug=True)
+    # _app.run(debug=True)
+    import json

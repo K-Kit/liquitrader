@@ -146,7 +146,7 @@ def create_keystore_database_model(database):
             if attempts > 1:
                 self.private_exchange_key = engine.decrypt(master_nonce, self.exchange_key_private, working_dat)
                 self.public_exchange_key = engine.decrypt(master_nonce, self.exchange_key_public, working_dat)
-                self.self._flask_secret = self._encrypt(engine.decrypt(master_nonce, self._flask_secret, working_dat))
+                self._flask_secret = self._encrypt(engine.decrypt(master_nonce, self._flask_secret, working_dat))
 
             return dec
 

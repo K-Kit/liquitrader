@@ -16,6 +16,7 @@ import GlobalTrade from "views/Settings/GlobalTrade.jsx";
 import BuyStrategies from "views/Settings/BuyStrategies.jsx";
 import DCAStrategies from "views/Settings/DCAStrategies.jsx";
 import SellStrategies from "views/Settings/SellStrategies.jsx";
+import Users from "views/Settings/Users.jsx";
 
 import Holding from "views/DataTables/Holding";
 import BuyLog from "views/DataTables/BuyLog";
@@ -126,6 +127,13 @@ var dashRoutes = [
     mini: "PS",
     icon: DateRange,
     component: PairSettings
+  },
+  {
+    path: "/users",
+    name: "User Management",
+    mini: "USR",
+    icon: DateRange,
+    component: Users
   },
     ]
   },

@@ -58,18 +58,15 @@ database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
 _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# STORE IN DATABASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-_app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
-_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
-
 _database = SQLAlchemy(_app)
 _UserModel = database_models.create_user_database_model(_database)
 _KeyStore = database_models.create_keystore_database_model(_database)
-_FlaskStore = database_models.create_flask_database_model(_database)
 _database.create_all()
 
 # Perform any necessary database structure updates
 database_models.migrate_table(_database)
+
+_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
 
 def add_keys(public, private, license_key):
@@ -163,10 +160,6 @@ def before_request_handler():
 def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
-
-jwt = JWT(_app, user_authenticate, user_identity)
-
-
 def get_role(id):
     return _UserModel.query.filter_by(id=int(id)).first().role
 
@@ -236,6 +229,9 @@ class GUIServer:
         self._use_ssl = ssl
         self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'
         self._keyfile_path = APP_DIR / 'lib' / 'liquitrader.key'
+
+        self._jwt = None
+
         # Set constants for WSGIServer
         WSGIServer.version = 'LiquiTrader/2.0'
 
@@ -285,6 +281,15 @@ class GUIServer:
         if self._use_ssl:
             self._init_ssl()
 
+        ks = _KeyStore.query.first()
+        if ks is not None:
+            _app.config['SECRET_KEY'] = ks.flask_secret
+        else:
+            # Temporary static key for first run. We should roll this occasionally.
+            _app.config['SECRET_KEY'] = b'\xee\xf0\xabc>\xc8\xa4S\xa1\x89\xff\xa3\xaf\xcfX\xac'
+
+        self._jwt = JWT(_app, user_authenticate, user_identity)
+
         self._wsgi_server = WSGIServer((self._host, int(self._port)), PathInfoDispatcher({'/': _app}))
 
         # TODO: Issue with SSL:
@@ -330,9 +335,6 @@ def _get_mimetype(ext):
 
 @_app.route('/<path:path>')
 def get_file(path=''):
-    if not users_exist():
-        return flask.redirect('/setup')
-
     # Flask should do this automatically, but better safe than sorry
     path = path.replace('..', '')
 
@@ -346,6 +348,9 @@ def get_file(path=''):
         except FileNotFoundError:
             print(f'User attempted to get file "{path}", but it does not exist')
             return Response(status=404)
+
+    if not users_exist():
+        return redirect('/setup')
 
     return render_template('index.html')
 

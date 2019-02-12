@@ -79,6 +79,8 @@ def create_keystore_database_model(database):
         master_key = database.Column(database.String(60))
         master_nonce = database.Column(database.String(30))
 
+        _flask_secret = database.Column(database.String(32))
+
         def __init__(self, **kwargs):
             super(KeyStore, self).__init__(**kwargs)
 
@@ -87,6 +89,9 @@ def create_keystore_database_model(database):
 
             if self.master_nonce is None:
                 self.master_nonce = self._to_b32(os.urandom(13))
+
+            if self._flask_secret is None:
+                self._flask_secret = self._encrypt(os.urandom(16))
 
         # ----
         def _to_b32(self, data):
@@ -105,7 +110,10 @@ def create_keystore_database_model(database):
             engine = self._get_engine()
             master_nonce = self._from_b32(self.master_nonce)
 
-            return self._to_b32(engine.encrypt(master_nonce, bytes(data, 'utf-8'), b'\xd7\x83>}\xc4<\xcd\xfd+?'))
+            if type(data) == str:
+                data = bytes(data, 'utf-8')
+
+            return self._to_b32(engine.encrypt(master_nonce, data, b'\xd7\x83>}\xc4<\xcd\xfd+?'))
 
         # --
         def _decrypt(self, data):
@@ -120,21 +128,25 @@ def create_keystore_database_model(database):
 
             attempts = 0
             dec = None
-            for dat_ind in range(len(assoc_data), 0, -1):
+            working_dat = None
+            for dat in reversed(assoc_data):
                 attempts += 1
 
                 try:
-                    dec = engine.decrypt(master_nonce, data, assoc_data[dat_ind])
+                    dec = engine.decrypt(master_nonce, data, dat)
                 except cryptography.exceptions.InvalidTag:
-                    pass
+                    continue
 
-            if dec is None:
+                working_dat = dat
+
+            if dec is None or working_dat is None:
                 raise ValueError('Critical error: Database is corrupted')
 
             # This looks weird, but they are actually re-encrypted here due to the way properties work
             if attempts > 1:
-                self.private_exchange_key = self.private_exchange_key
-                self.public_exchange_key = self.public_exchange_key
+                self.private_exchange_key = engine.decrypt(master_nonce, self.exchange_key_private, working_dat)
+                self.public_exchange_key = engine.decrypt(master_nonce, self.exchange_key_public, working_dat)
+                self.self._flask_secret = self._encrypt(engine.decrypt(master_nonce, self._flask_secret, working_dat))
 
             return dec
 
@@ -171,26 +183,15 @@ def create_keystore_database_model(database):
         # --
         @liquitrader_license_key.setter
         def liquitrader_license_key(self, value):
-            # Encrypt bearpuncher license and store
+            # Encrypt LiquiTrader license and store
             self.license = self._encrypt(value)
 
+        # --
+        @property
+        def flask_secret(self):
+            return str(self._decrypt(self._flask_secret))[2:-1]
+
     return KeyStore
-
-
-def create_flask_database_model(database):
-    class FlaskStore(database.Model):
-        __tablename__ = 'flaskstore'
-
-        id = database.Column(database.Integer, primary_key=True)
-        session_secret = database.Column(database.String(20))
-        wtf_crsf_secret = database.Column(database.String(20))
-
-        def __init__(self):
-            if self.session_secret is None or self.wtf_crsf_secret is None:
-                self.session_secret = os.urandom(16)
-                self.wtf_crsf_secret = os.urandom(16)
-
-    return FlaskStore
 
 
 def migrate_table(database):

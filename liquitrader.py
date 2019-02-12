@@ -64,8 +64,7 @@ FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
                            'Amount', '24h Change']
 
 
-
-
+# =============================
 class ShutdownHandler:
 
     def __init__(self):

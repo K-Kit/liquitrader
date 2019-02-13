@@ -10,6 +10,8 @@ cryptography
 cx_freeze
 cython
 
+distro
+
 flask
 flask_bootstrap
 flask_compress

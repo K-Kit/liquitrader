@@ -80,7 +80,7 @@ def make_verifier():
         signature_tools.generate_private_key()
 
     exclude = ['strategic_analysis']
-    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg', '.db']
+    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg', '.db', '.log']
     to_sign = []
     for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
         bad = False
@@ -233,6 +233,7 @@ if __name__ == '__main__':
                 'OpenSSL',
                 'scrypt', '_scrypt',
                 'arrow', 'dateutil', 'dateutil.tz', 'dateutil.zoneinfo',
+                'distro',
                 'jinja2',
                 'sqlalchemy',
                 'pyqrcode',

@@ -16,6 +16,7 @@ import GlobalTrade from "views/Settings/GlobalTrade.jsx";
 import BuyStrategies from "views/Settings/BuyStrategies.jsx";
 import DCAStrategies from "views/Settings/DCAStrategies.jsx";
 import SellStrategies from "views/Settings/SellStrategies.jsx";
+import Users from "views/Settings/Users.jsx";
 
 import Holding from "views/DataTables/Holding";
 import BuyLog from "views/DataTables/BuyLog";
@@ -32,6 +33,61 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 // import pagesRoutes from "./pages.jsx";
 // var pages = pagesRoutes
+
+let adminroutes = {
+    collapse: true,
+    path: "/settings",
+    name: "Settings",
+    state: "openSettings",
+    icon: Setting,
+    views: [
+      {
+        path: "/Settings/General",
+        name: "General",
+        mini: "G",
+        component: GeneralSettings
+      },
+      {
+        path: "/Settings/GlobalTrade",
+        name: "Global Trade",
+        mini: "GT",
+        component: GlobalTrade
+      },
+      {
+        path: "/Settings/BuyStrategies",
+        name: "Buy Strategies",
+        mini: "BS",
+        component: BuyStrategies
+      },
+      {
+        path: "/Settings/DCAStrategies",
+        name: "DCA Strategies",
+        mini: "DCA",
+        component: DCAStrategies
+      },
+      {
+        path: "/Settings/SellStrategies",
+        name: "Sell Strategies",
+        mini: "SS",
+        component: SellStrategies
+      },
+
+  {
+    path: "/pairSettings",
+    name: "Pair Specific Settings",
+    mini: "PS",
+    icon: DateRange,
+    component: PairSettings
+  },
+  {
+    path: "/users",
+    name: "User Management",
+    mini: "USR",
+    icon: DateRange,
+    component: Users
+  },
+    ]
+  };
 var dashRoutes = [
   {
     path: "/dashboard",
@@ -82,53 +138,7 @@ var dashRoutes = [
     component: DCAAnalyzer
   },
   // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
-  {
-    collapse: true,
-    path: "/settings",
-    name: "Settings",
-    state: "openSettings",
-    icon: Setting,
-    views: [
-      {
-        path: "/Settings/General",
-        name: "General",
-        mini: "G",
-        component: GeneralSettings
-      },
-      {
-        path: "/Settings/GlobalTrade",
-        name: "Global Trade",
-        mini: "GT",
-        component: GlobalTrade
-      },
-      {
-        path: "/Settings/BuyStrategies",
-        name: "Buy Strategies",
-        mini: "BS",
-        component: BuyStrategies
-      },
-      {
-        path: "/Settings/DCAStrategies",
-        name: "DCA Strategies",
-        mini: "DCA",
-        component: DCAStrategies
-      },
-      {
-        path: "/Settings/SellStrategies",
-        name: "Sell Strategies",
-        mini: "SS",
-        component: SellStrategies
-      },
-
-  {
-    path: "/pairSettings",
-    name: "Pair Specific Settings",
-    mini: "PS",
-    icon: DateRange,
-    component: PairSettings
-  },
-    ]
-  },
+  adminroutes,
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }
 ];
 export default dashRoutes;

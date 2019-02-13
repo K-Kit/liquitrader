@@ -3,12 +3,10 @@
 import binascii
 import os
 # from io import BytesIO
-import pathlib
+# import pathlib
 import sys
-import psutil
-from datetime import datetime, timedelta
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS
 from config.config import Config
@@ -18,22 +16,19 @@ from cheroot.ssl.builtin import BuiltinSSLAdapter
 
 import flask
 from flask import jsonify, Response, render_template, redirect
-from flask_jwt import JWT, jwt_required, current_identity
 
 import database_models
 
 import flask_compress
-from flask_bootstrap import Bootstrap
 from flask_talisman import Talisman
 from flask_otp import OTP
-from flask_jwt import JWT, jwt_required
+from flask_jwt import JWT, jwt_required, current_identity
 from flask_jwt_extended import (
     JWTManager, verify_jwt_in_request, create_access_token,
     get_jwt_claims
 )
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
-# from flask_wtf import FlaskForm
 
 from OpenSSL import crypto
 
@@ -45,10 +40,6 @@ from utils.path import APP_DIR
 from utils.column_labels import *
 
 
-# from wtforms import StringField, PasswordField, SubmitField, BooleanField
-# from wtforms.validators import DataRequired, Length
-
-
 LT_ENGINE = None
 
 if hasattr(sys, 'frozen'):
@@ -56,7 +47,8 @@ if hasattr(sys, 'frozen'):
 else:
     dist_path = APP_DIR / 'LTGUI' / 'build'
 
-_app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_folder=dist_path)
+STATIC_FILE_PATH = dist_path / 'static'
+_app = flask.Flask('lt_flask', static_folder=STATIC_FILE_PATH, template_folder=dist_path)
 
 
 # --------
@@ -65,29 +57,29 @@ _app = flask.Flask('lt_flask', static_folder=dist_path / 'static', template_fold
 database_uri = f'sqlite:///{APP_DIR / "config" / "liquitrader.db"}'
 _app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 _app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-_app.config['SECRET_KEY'] = 'asdfghadfgh@#$@%^@^584798798476agadgfADSFGAFDGA234151tgdfadg4w3ty'
-_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
 _database = SQLAlchemy(_app)
 _UserModel = database_models.create_user_database_model(_database)
 _KeyStore = database_models.create_keystore_database_model(_database)
-_FlaskStore = database_models.create_flask_database_model(_database)
 _database.create_all()
 
 # Perform any necessary database structure updates
 database_models.migrate_table(_database)
 
+_app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
-def add_keys(public, private, license):
+
+def add_keys(public, private, license_key):
     """
     Adds a user to the database
     Returns True on success, False on failure (user existed)
     """
 
-    _database.session.add(_KeyStore(exchange_key_public=public, exchange_key_private=private, license=license))
+    _database.session.add(_KeyStore(exchange_key_public=public, exchange_key_private=private, license=license_key))
     _database.session.commit()
 
     return True
+
 
 def get_keys():
     keys = _KeyStore.query.first()
@@ -96,6 +88,7 @@ def get_keys():
         "secret": keys.exchange_key_private,
         'liquitrader_key': keys.license
     }
+
 
 # ----
 def add_user(username, password, role='admin'):
@@ -145,7 +138,10 @@ def user_authenticate(username=None, password=None):
 
 def user_identity(payload):
     # For JWT
-    return _UserModel.query.filter_by(id=payload['identity']).first().id
+    user = _UserModel.query.filter_by(id=payload['identity']).first()
+
+    if user is not None:
+        return user.id
 
 
 # --
@@ -165,11 +161,10 @@ def to_usd(val):
     return f'${round(val*LT_ENGINE.exchange.quote_price, 2)}'
 
 
-jwt = JWT(_app, user_authenticate, user_identity)
-
-
+# ----
 def get_role(id):
     return _UserModel.query.filter_by(id=int(id)).first().role
+
 
 # TODO actually utilize flask_jwt_extended
 def admin_required(fn):
@@ -181,6 +176,7 @@ def admin_required(fn):
         else:
             return fn(*args, **kwargs)
     return wrapper
+
 
 class GUIServer:
 
@@ -220,10 +216,12 @@ class GUIServer:
                 'http://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js'
             ],
         }
+
+        # Talisman(_app, force_https=ssl, content_security_policy=csp)
+
         otp = OTP()
         otp.init_app(_app)
-        # Talisman(_app, force_https=ssl, content_security_policy=csp)
-        # Talisman.content_security_policy
+
         flask_compress.Compress(_app)
 
         self._shutdown_handler = shutdown_handler
@@ -233,13 +231,13 @@ class GUIServer:
         self._use_ssl = ssl
         self._certfile_path = APP_DIR / 'lib' / 'liquitrader.crt'
         self._keyfile_path = APP_DIR / 'lib' / 'liquitrader.key'
+
+        self._jwt = None
+
         # Set constants for WSGIServer
         WSGIServer.version = 'LiquiTrader/2.0'
 
         self._wsgi_server = None
-
-
-
 
     # ----
     def _create_self_signed_cert(self):
@@ -265,8 +263,6 @@ class GUIServer:
         with open(self._keyfile_path, 'wb') as keyfile:
             keyfile.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, k))
 
-
-
     # --
     def _init_ssl(self):
         import flask_sslify
@@ -279,12 +275,24 @@ class GUIServer:
 
     # ----
     def run(self):
+        import utils.runtime_handler
+        utils.runtime_handler.enable_traceback_hook()  # Enable custom traceback handling (to strip build path info)
+
         self._shutdown_handler.add_task()
 
         if self._use_ssl:
             self._init_ssl()
 
-        self._wsgi_server = WSGIServer((self._host, self._port), PathInfoDispatcher({'/': _app}))
+        ks = _KeyStore.query.first()
+        if ks is not None:
+            _app.config['SECRET_KEY'] = ks.flask_secret
+        else:
+            # Temporary static key for first run. We should roll this occasionally.
+            _app.config['SECRET_KEY'] = b'\xee\xf0\xabc>\xc8\xa4S\xa1\x89\xff\xa3\xaf\xcfX\xac'
+
+        self._jwt = JWT(_app, user_authenticate, user_identity)
+
+        self._wsgi_server = WSGIServer((self._host, int(self._port)), PathInfoDispatcher({'/': _app}))
 
         # TODO: Issue with SSL:
         # Firefox causes a (socket.error 1) exception to be thrown on initial connection (before accepting cert)
@@ -315,24 +323,44 @@ def get_index():
 def setup():
     return render_template('index.html')
 
+
 # ----
+def _get_mimetype(ext):
+    return {
+        'html': 'text/html',
+        'css': 'text/css',
+        'js': 'text/javascript',
+        'json': 'application/json',
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif',
+        'ico': 'image/vnd.microsoft.icon'
+    }.get(ext.replace('.', ''), 'text/plain')
+
 @_app.route('/<path:path>')
 def get_file(path=''):
-    if not users_exist():
-        return flask.redirect('/setup')
+    # Flask should do this automatically, but better safe than sorry
+    path = path.replace('..', '')
+
     if 'static' in path or path == 'manifest.json' or path == 'favicon.ico':
         try:
-            return _app.send_static_file(path)
+            mimetype = _get_mimetype(path.split('.')[-1])
+
+            with open(STATIC_FILE_PATH / path, 'rb') as f:
+                return Response(f.read(), mimetype=mimetype, content_type=mimetype)
 
         except FileNotFoundError:
             print(f'User attempted to get file "{path}", but it does not exist')
             return Response(status=404)
 
+    if not users_exist():
+        return redirect('/setup')
+
     return render_template('index.html')
+
 
 @_app.route('/logout')
 def do_logout():
     return render_template('index.html')
+
 
 # ----
 @_app.route("/first_run", methods=['POST', 'GET'])
@@ -348,21 +376,23 @@ def first_run():
         print('Attempt to access first time setup while DB already exists. '
               ' If you would like to rerun first time setup delete config/liquitrader.db and try again')
         return 'Attempt to access first time setup while DB already exists'
+
     data = flask.request.get_json(force=True)
+
     # track user exists, lazy solution because front end occasionally
     #  sends list where first 2 items are account and item[0] is blank
     #  item[1] is actual account, likely issue with component did mount
     u = False
     config = Config()
     for item in data:
-        print(item)
         k, v = list(item.items())[0]
-        if k ==  'account':
+        if k == 'account':
             username = v['firstname']
             password = v['password']
             public = v['public']
             private = v['private']
             license = v['license']
+
             if username == '':
                 pass
             else:
@@ -375,8 +405,10 @@ def first_run():
             if 'strategies' in v:
                 v = v['strategies']
 
-            config.update_config(k,v)
+            config.update_config(k, v)
+
     return flask.redirect('/')
+
 
 # ----
 @_app.route("/api/holding")
@@ -421,9 +453,11 @@ def get_sell_log_frame():
 
     if 'bought_price' not in df:
         return jsonify([])
+
     df['bought_cost'] = df.bought_price * df.filled
     df['gain'] = (df.cost - df.bought_cost) / df.bought_cost * 100
     cols = ['timestamp', 'symbol', 'bought_price', 'price', 'cost', 'bought_cost', 'amount', 'side', 'status', 'remaining', 'filled', 'gain']
+
     return jsonify(df[df.side == 'sell'][cols].dropna().to_json(orient='records'))
 
 
@@ -438,7 +472,6 @@ def latest_sales():
     cols = ['symbol', 'gain']
     df=df[df.side == 'sell'][cols].dropna().tail(4)
 
-
     return df.to_dict(orient="records")
 
 
@@ -452,12 +485,12 @@ def get_dashboard_data():
     profit = LT_ENGINE.get_total_profit()
     profit_data = LT_ENGINE.get_daily_profit_data()
     total_profit = LT_ENGINE.get_total_profit()
-    if len(profit_data) > 0:
-        average_daily_gain = profit / len(profit_data)
-    else:
-        average_daily_gain = 0
+
+    average_daily_gain = profit / len(profit_data) if len(profit_data) > 0 else 0
+
     market = LT_ENGINE.config.general_settings['market'].upper()
     recent_sales = latest_sales()
+
     def reorient(df):
         # return [{k: v for (k, v) in row.items() if k != 'foo'} for row in df.to_dict(orient='record')]
         return [{col: getattr(row, col) for col in df} for row in df.itertuples()]
@@ -551,7 +584,20 @@ def is_admin_api():
     else:
         return Response('is_admin', 200)
 
+#---
+@_app.route('/api/all_users')
+@jwt_required()
+@admin_required
+def all_users_api():
+    return jsonify(
+        list(
+            map(
+                lambda user: [user.username, user.role],
+                _UserModel.query.all())
+        )
+    )
 
 if __name__ == '__main__':
     gui = GUIServer(shutdown_handler=None)
-    _app.run(debug=True)
+    # _app.run(debug=True)
+    import json

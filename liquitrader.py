@@ -798,8 +798,6 @@ def main(ipython=False):
     if 'python' not in sys.executable.lower():
         setattr(sys, 'frozen', True)
 
-
-
     # ----
     shutdown_handler = ShutdownHandler()
 

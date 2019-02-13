@@ -105,7 +105,7 @@ class GlobalTrade extends React.Component {
                 value: this.state.role
               }}
             />
-            <Button onClick={this.save}> add user </Button>
+            <Button onClick={this.save} color={'primary'}> add user </Button>
           </GridItem>
         </GridContainer>
       </div>

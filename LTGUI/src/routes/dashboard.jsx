@@ -33,57 +33,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 // import pagesRoutes from "./pages.jsx";
 // var pages = pagesRoutes
-var dashRoutes = [
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: DashboardIcon,
-    component: Dashboard
-  },
-  //   {
-  //   collapse: true,
-  //   path: "-page",
-  //   name: "Pages",
-  //   state: "openPages",
-  //   icon: Image,
-  //   views: pages
-  // },
-  { path: "/market", name: "Market", icon: MarketIcon, component: Market },
-  { path: "/holding", name: "Holding", icon: Timeline, component: Holding },
 
-  {
-    path: "/buys",
-    name: "Buy Log",
-    icon: BuyIcon,
-    component: BuyLog
-  },
-
-  {
-    path: "/sales",
-    name: "Sales Log",
-    icon: SellIcon,
-    component: SellLog
-  },
-  {
-    path: "/buyAnalyzer",
-    name: "Buy Analyzer",
-    icon: LocationSearch,
-    component: BuyAnalyzer
-  },
-  {
-    path: "/sellAnalyzer",
-    name: "Sell Analyzer",
-    icon: LocationSearch,
-    component: SellAnalyzer
-  },
-  {
-    path: "/dcaAnalyzer",
-    name: "DCA Analyzer",
-    icon: LocationSearch,
-    component: DCAAnalyzer
-  },
-  // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
-  {
+let adminroutes = {
     collapse: true,
     path: "/settings",
     name: "Settings",
@@ -136,7 +87,58 @@ var dashRoutes = [
     component: Users
   },
     ]
+  };
+var dashRoutes = [
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    icon: DashboardIcon,
+    component: Dashboard
   },
+  //   {
+  //   collapse: true,
+  //   path: "-page",
+  //   name: "Pages",
+  //   state: "openPages",
+  //   icon: Image,
+  //   views: pages
+  // },
+  { path: "/market", name: "Market", icon: MarketIcon, component: Market },
+  { path: "/holding", name: "Holding", icon: Timeline, component: Holding },
+
+  {
+    path: "/buys",
+    name: "Buy Log",
+    icon: BuyIcon,
+    component: BuyLog
+  },
+
+  {
+    path: "/sales",
+    name: "Sales Log",
+    icon: SellIcon,
+    component: SellLog
+  },
+  {
+    path: "/buyAnalyzer",
+    name: "Buy Analyzer",
+    icon: LocationSearch,
+    component: BuyAnalyzer
+  },
+  {
+    path: "/sellAnalyzer",
+    name: "Sell Analyzer",
+    icon: LocationSearch,
+    component: SellAnalyzer
+  },
+  {
+    path: "/dcaAnalyzer",
+    name: "DCA Analyzer",
+    icon: LocationSearch,
+    component: DCAAnalyzer
+  },
+  // { path: "/calendar", name: "Analyzer", icon: DateRange, component: Holding },
+  adminroutes,
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }
 ];
 export default dashRoutes;

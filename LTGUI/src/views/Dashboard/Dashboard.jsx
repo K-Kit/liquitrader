@@ -187,7 +187,8 @@ class Dashboard extends React.Component {
       pointBorderWidth: 20,
       pointHoverRadius: 4,
       pointHoverBorderWidth: 15,
-      pointRadius: 4
+      pointRadius: 4,
+      maxHeight: "200px"
     };
     let cum_profit_chart = data => {
       return (
@@ -450,12 +451,9 @@ class Dashboard extends React.Component {
                 <CardIcon color="info">
                   <Language />
                 </CardIcon>
-                <h4 className={classes.cardIconTitle}>
-                  Daily profit distribution
-                </h4>
               </CardHeader>
               <CardBody>
-                <GridContainer justify="space-between" alignItems="stretch">
+                <GridContainer justify="space-between" >
                   <GridItem xs={12} sm={12} md={6}>
                     <Table
                       tableHead={["Date", "Bought Value", "Sold Value", "Gain"]}
@@ -472,7 +470,7 @@ class Dashboard extends React.Component {
                   <GridItem xs={12} sm={12} md={6}>
                     <Card chart>
                       <CardHeader color="danger">
-                        <Bar
+                      <Bar
                           className="ct-chart-white-colors"
                           data={{
                             labels: sliced_daily.reverse().map(item => {
@@ -497,9 +495,10 @@ class Dashboard extends React.Component {
                             ]
                           }}
                           options={chart1_2_options}
-                        />
+                        />  
                       </CardHeader>
-                      <CardBody>
+                      <CardBody >
+                      
                         <h4 className={classes.cardTitle}>Daily Profit</h4>
                       </CardBody>
                     </Card>

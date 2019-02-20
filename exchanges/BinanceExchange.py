@@ -273,7 +273,7 @@ class BinanceExchange(GenericExchange):
         self.last_candle_update_time = time.time()+5
         self.last_depth_update_time = time.time()+5
         self.last_ticker_update_time = time.time()+5
-        time.sleep(10) # cool down, likely caused by lots of api calls, not a major loss to shut down for a few on rare cases
+        time.sleep(5) # cool down, likely caused by lots of api calls, not a major loss to shut down for a few on rare cases
         self.start_sockets()
 
     # ----
@@ -283,7 +283,7 @@ class BinanceExchange(GenericExchange):
         def not_stale(now, last_check):
             if last_check is None:
                 return True
-            return now-last_check < 5
+            return now-last_check < 15
 
         deltas = [
             not_stale(now, self.last_candle_update_time),

@@ -42,7 +42,9 @@ from utils.column_labels import *
 
 LT_ENGINE = None
 
-if hasattr(sys, 'frozen'):
+FROZEN=hasattr(sys, 'frozen')
+
+if FROZEN:
     dist_path = APP_DIR / 'gui'
 else:
     dist_path = APP_DIR / 'LTGUI' / 'build'
@@ -171,7 +173,8 @@ def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         role = get_role(current_identity)
-        if role != 'admin':
+        # check users exist to allow config loading pre-setup, might revert this
+        if role != 'admin' and users_exist():
             return jsonify(msg='Admins only!'), 403
         else:
             return fn(*args, **kwargs)
@@ -217,7 +220,11 @@ class GUIServer:
             ],
         }
 
-        # Talisman(_app, force_https=ssl, content_security_policy=csp)
+        if FROZEN:
+            Talisman(_app, force_https=ssl, content_security_policy=csp)
+        else:
+            from flask_cors import CORS
+            CORS(_app)
 
         otp = OTP()
         otp.init_app(_app)
@@ -309,11 +316,16 @@ class GUIServer:
         self._wsgi_server.stop()
         self._shutdown_handler.remove_task()
 
+@_app.route('/static/js/main.4c66cd4b.js')
+def getjs():
+    with open(STATIC_FILE_PATH / 'js' / 'main.4c66cd4b.js', 'r') as f:
+        return Response(f.read(), mimetype='text/javascript', content_type='text/javascript')
+
 
 # ----
 @_app.route('/')
 def get_index():
-    if not os.path.isfile('config/SellStrategies.json'):
+    if not users_exist():
         return flask.redirect('/setup')
     return render_template('index.html')
 

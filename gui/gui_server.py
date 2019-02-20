@@ -54,7 +54,6 @@ _app = flask.Flask('lt_flask', static_folder=STATIC_FILE_PATH, template_folder=d
 
 if not FROZEN:
     from flask_cors import CORS
-
     CORS(_app)
 
 # --------
@@ -136,7 +135,7 @@ def users_exist():
 # Auth stuff
 def user_authenticate(username=None, password=None):
     # For JWT
-    user = _UserModel.query.filter_by(username=username).first()
+    user = _UserModel.query.filter_by(username=username.lower()).first()
 
     if user is not None and user.verify_password(password):
         return user

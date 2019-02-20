@@ -197,7 +197,6 @@ const components = {
 class IntegrationReactSelect extends React.Component {
   constructor(props) {
     super(props);
-    console.log(this.props);
     this.state = {
       single: this.props.val,
       multi: null
@@ -222,7 +221,6 @@ class IntegrationReactSelect extends React.Component {
         }
       })
     };
-    console.log(this.state);
     return (
       // <div className={classes.root}>
       // <NoSsr>

@@ -52,7 +52,6 @@ export default class Operand extends React.Component {
   }
 
   handleChange(event) {
-    console.log(event, event.value)
     this.setState({
       "value": event.value
     });

@@ -399,11 +399,11 @@ def first_run():
     for item in data:
         k, v = list(item.items())[0]
         if k == 'account':
-            username = v['firstname']
-            password = v['password']
-            public = v['public']
-            private = v['private']
-            license = v['license']
+            username = v['firstname'].strip()
+            password = v['password'].strip()
+            public = v['public'].strip()
+            private = v['private'].strip()
+            license = v['license'].strip()
 
             if username == '':
                 pass

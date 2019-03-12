@@ -131,11 +131,12 @@ class Dashboard extends React.Component {
         display: false
       },
       tooltips: {
-        backgroundColor: "#f5f5f5",
-        titleFontColor: "#333",
-        bodyFontColor: "#666",
+        backgroundColor: colors.light,
+        titleFontColor: colors.fontcolor,
+        bodyFontColor: colors.fontcolor,
         bodySpacing: 4,
         xPadding: 12,
+        fontColor: colors.fontcolor,
         mode: "nearest",
         intersect: 0,
         position: "nearest"
@@ -144,7 +145,7 @@ class Dashboard extends React.Component {
       scales: {
         yAxes: [
           {
-            barPercentage: 1.6,
+            barPercentage: 1,
             gridLines: {
               drawBorder: false,
               color: "darkgrey",
@@ -154,13 +155,13 @@ class Dashboard extends React.Component {
               // suggestedMin: 60,
               // suggestedMax: 125,
               padding: 20,
-              fontColor: colors.light
+              fontColor: colors.mainFontColor
             }
           }
         ],
         xAxes: [
           {
-            barPercentage: 1.6,
+            barPercentage: 1,
             gridLines: {
               drawBorder: false,
               color: "darkgrey",
@@ -168,7 +169,7 @@ class Dashboard extends React.Component {
             },
             ticks: {
               padding: 20,
-              fontColor: colors.light
+              fontColor: colors.mainFontColor
             }
           }
         ]
@@ -177,11 +178,12 @@ class Dashboard extends React.Component {
     let chartvars = {
       fill: false,
       backgroundColor: "inherit",
-      borderColor: colors.light,
+      borderColor: colors.yetanotherblue,
       borderWidth: 2,
       borderDash: [],
       borderDashOffset: 0.0,
-      pointBackgroundColor: colors.light,
+      pointBackgroundColor: colors.yetanotherblue,
+      fontColor: colors.fontcolor,
       pointBorderColor: "rgba(255,255,255,0)",
       pointHoverBackgroundColor: "#1f8ef1",
       pointBorderWidth: 20,
@@ -194,7 +196,7 @@ class Dashboard extends React.Component {
       return (
         <GridItem xs={12} sm={12} md={6}>
           <Card chart>
-            <CardHeader color={"primary"}>
+            <CardHeader color={""}>
               <Line
                 // className="ct-chart-white-colors"
                 data={{
@@ -406,7 +408,7 @@ class Dashboard extends React.Component {
               </GridItem>
               <GridItem xs={12} sm={12} md={12}>
                 <Card chart>
-                  <CardHeader color="primary">
+                  <CardHeader color="">
                     <Line
                       // className="ct-chart-white-colors"
                       data={{
@@ -420,6 +422,8 @@ class Dashboard extends React.Component {
                         }),
                         datasets: [
                           {
+                            borderColor: colors.yetanotherblue,
+                            backgroundColor: colors.yetanotherblue,
                             label: "Price",
                             ...chartvars,
                             data: [
@@ -469,10 +473,10 @@ class Dashboard extends React.Component {
                       })}
                     />
                   </GridItem>
-                  <GridItem xs={12} sm={12} md={6}>
-                    <Card chart>
-                      <CardHeader color="danger">
-                      <Bar
+                  <GridItem xs={12} sm={12} md={6} styles={
+                    {background: "purple "}
+                  }>
+                      <Bar styles={{height: "80%"}}
                           className="ct-chart-white-colors"
                           data={{
                             labels: sliced_daily.reverse().map(item => {
@@ -482,10 +486,10 @@ class Dashboard extends React.Component {
                               {
                                 label: "Profit",
                                 fill: true,
-                                backgroundColor: colors.light,
+                                backgroundColor: colors.yetanotherblue,
                                 hoverBackgroundColor: "inherit",
                                 borderColor: colors.light,
-                                borderWidth: 2,
+                                borderWidth: 0,
                                 borderDash: [],
                                 borderDashOffset: 0.0,
                                 data: [
@@ -498,12 +502,6 @@ class Dashboard extends React.Component {
                           }}
                           options={chart1_2_options}
                         />  
-                      </CardHeader>
-                      <CardBody >
-                      
-                        <h4 className={classes.cardTitle}>Daily Profit</h4>
-                      </CardBody>
-                    </Card>
                   </GridItem>
                 </GridContainer>
               </CardBody>

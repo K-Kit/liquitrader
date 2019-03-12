@@ -2511,3 +2511,6 @@ img {
       width: 100%; }
   .picture-container .picture-src {
     width: 100%; }
+
+.ReactTable .rt-thead .rt-th:last-child {
+  text-align: left !important; }

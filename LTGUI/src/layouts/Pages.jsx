@@ -48,7 +48,7 @@ class Pages extends React.Component {
                 );
               })}
             </Switch>
-            <Footer white />
+            {/* <Footer white /> */}
           </div>
         </div>
       </div>

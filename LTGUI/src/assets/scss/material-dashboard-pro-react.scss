@@ -52,3 +52,5 @@
 // Core CSS
 @import "material-dashboard-pro-react/misc";
 @import "material-dashboard-pro-react/fileupload";
+
+.ReactTable .rt-thead .rt-th:last-child { text-align: left !important; }

@@ -2514,3 +2514,23 @@ img {
 
 .ReactTable .rt-thead .rt-th:last-child {
   text-align: left !important; }
+
+.ReactTable .-pagination .-pageInfo {
+  width: 75px !important; }
+
+.ReactTable .-pagination .-pageInfo .-pageJump {
+  vertical-align: bottom;
+  margin: 0 5px; }
+
+.ReactTable .-pagination .-btn,
+.ReactTable .-pagination select,
+.ReactTable .-pagination input {
+  color: white !important;
+  /* Change this to the proper light color */ }
+
+.ReactTable .-pagination .-pageInfo input [type=number]::-webkit-inner-spin-button,
+.ReactTable .-pagination .-pageInfo input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0; }

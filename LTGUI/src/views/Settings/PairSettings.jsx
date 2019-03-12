@@ -47,6 +47,7 @@ class PairSettings extends React.Component {
       }
     };
     this.editPairSetting = this.editPairSetting.bind(this);
+    this.removePair = this.removePair.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
     this.sendState = this.sendState.bind(this);
@@ -59,7 +60,7 @@ class PairSettings extends React.Component {
     const state = { ...this.state };
     delete state[pair];
     console.log(state)
-    this.setState({...state});
+    this.setState(state);
   }
   editPairSetting(event, pair, side, field) {
     const target = event.target;

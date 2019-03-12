@@ -270,10 +270,9 @@ class BinanceExchange(GenericExchange):
         print('detected closed sockets, re-opening connection')
         self.socket_manager.close()
         self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
-        self.last_candle_update_time = time.time()+5
-        self.last_depth_update_time = time.time()+5
-        self.last_ticker_update_time = time.time()+5
-        time.sleep(5) # cool down, likely caused by lots of api calls, not a major loss to shut down for a few on rare cases
+        self.last_candle_update_time = time.time()+10
+        self.last_depth_update_time = time.time()+10
+        self.last_ticker_update_time = time.time()+10
         self.start_sockets()
 
     # ----

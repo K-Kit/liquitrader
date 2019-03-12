@@ -47,8 +47,6 @@ class PairSettings extends React.Component {
       }
     };
     this.editPairSetting = this.editPairSetting.bind(this);
-    this.handleEditor = this.handleEditor.bind(this);
-    this.handleWhitelist = this.handleWhitelist.bind(this);
     this.load = this.load.bind(this);
     this.save = this.save.bind(this);
     this.sendState = this.sendState.bind(this);
@@ -56,52 +54,19 @@ class PairSettings extends React.Component {
   sendState() {
     return this.state;
   }
-  removePair(pair, dcaLvl) {
+  removePair(pair) {
+    console.log(this.state)
     const state = { ...this.state };
     delete state[pair];
-    this.setState(state);
+    console.log(state)
+    this.setState({...state});
   }
   editPairSetting(event, pair, side, field) {
     const target = event.target;
     const state = { ...this.state };
     state[pair][side][field] = target.value;
     this.setState(state);
-  }
-
-  handleEditor(event, side, field) {
-    const target = event.target;
-    const state = { ...this.state };
-    if (side === "pair") {
-      state.editor.pair = target.value;
-    } else {
-      state.editor[side][field] = target.value;
-    }
-
-    this.setState(state);
-  }
-  handleSimple = event => {
-    this.setState({ [event.target.name]: event.target.value });
-    console.log(this.state.exchange);
-  };
-  handleExchange = event => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
-  handleMultiple = event => {
-    this.setState({ multipleSelect: event.target.value });
-  };
-  handleChange = name => event => {
-    this.setState({ [name]: event.target.checked });
-    console.log(this.state);
-  };
-  handleBlacklist(regularTags) {
-    this.setState({ blacklist: regularTags });
-  }
-  handleWhitelist(regularTags) {
-    this.setState({ whitelist: regularTags });
-  }
-  change(event, stateName) {
-    this.setState({ [stateName]: event.target.value });
-  }
+  }  
   save() {
     let data = {
       section: "pair_specific",
@@ -164,7 +129,7 @@ class PairSettings extends React.Component {
                     })}
 
                       <GridItem xs={2}>
-                        <Button> Delete </Button>
+                        <Button onClick={() => this.removePair(pair[0])}> Delete </Button>
                       </GridItem>
                   </GridContainer>
                 </div>

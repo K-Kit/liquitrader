@@ -16,7 +16,6 @@ export function fetchErrorHandler(response, error = false) {
 
 export function fetchJSON(uri, callback, log_error = true) {
   fetch(uri, {
-    credentials: "include",
     headers: {
         "Authorization": localStorage.getItem("token")
     }

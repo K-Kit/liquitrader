@@ -314,27 +314,26 @@ class Dashboard extends React.Component {
                   justify="center"
                   alignItems="stretch"
                 >
-                  <Typography noWrap>
-                    {this.state.market_conditions.map(condition => {
-                      return (
-                        <div>
-                          <GridItem xs={6} className={classes.cardCategory}>
-                            <p style={lightgreyfont}>{condition[0]}</p>
-                          </GridItem>
-                          <GridItem
-                            xs={1}
-                            style={{
-                              color: condition[1].includes("True")
+                <Table
+                    tableHead={["Condition", "Status"]}
+                    tableData={this.state.market_conditions.map(value => {
+                      return [
+                        value[0],
+                        <span
+                        style={{
+                              color: value[1].includes("True")
                                 ? "#85cc00"
                                 : "#ff2e00"
                             }}
-                          >
-                            {condition[1]}
-                          </GridItem>
-                        </div>
-                      );
+                        >
+                          {" "}
+                          {value[1]}
+                          <small></small>
+                        </span>
+                      ];
                     })}
-                  </Typography>
+                  />
+                  
                 </GridContainer>
               </CardBody>
             </Card>
@@ -349,7 +348,6 @@ class Dashboard extends React.Component {
                 <p className={classes.cardCategory}>Recent Sales</p>
               </CardHeader>
               <CardBody>
-                <p>
                   <Table
                     tableHead={["Symbol", "Gain"]}
                     tableData={this.state.recent_sales.map(value => {
@@ -367,7 +365,6 @@ class Dashboard extends React.Component {
                       ];
                     })}
                   />
-                </p>
               </CardBody>
             </Card>
           </GridItem>

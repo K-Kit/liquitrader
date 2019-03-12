@@ -76,3 +76,7 @@
     appearance: none;
     margin: 0; 
 }
+
+.ReactTable .-pagination .-btn[disabled] {
+    cursor: default;
+}

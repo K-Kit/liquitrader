@@ -2534,3 +2534,6 @@ img {
   -moz-appearance: none;
   appearance: none;
   margin: 0; }
+
+.ReactTable .-pagination .-btn[disabled] {
+  cursor: default; }

@@ -44,7 +44,8 @@ const cardstyle = {
   background: "#904bff",
   textAlign: "center",
   justify: "center",
-  padding: "10px 10px"
+  padding: "10px 10px",
+  marginRight: "15px"
 };
 
 const analyzerCard = props => {
@@ -53,21 +54,21 @@ const analyzerCard = props => {
   pairs = typeof pairs !== "undefined" ? pairs : [];
   return (
     <div>
-      <Card>
+      <Card styles={{overflow: "hidden"}}>
         <CardHeader>{analyzer.conditions_list.map(condition => {
 
         })}</CardHeader>
-        <CardBody>
-          <Table
+        <CardBody styles={{overflow: "hidden"}}>
+          <Table 
             tableHead={headers}
+            styles={{overflow: "hidden !important", width: "90%"}}
             tableData={pairs.map(pair => {
               return accessors.map(accesor => {
                 if (accesor === "stats") {
                   return (
-                    <GridContainer justify={"center"}>
+                    <div>
                       {pair.stats.map(stat => {
                         return (
-                          <GridItem>
                             <Button style={cardstyle}>
                               {stat[0]}: &nbsp; &nbsp;
                               {stat[1] === null
@@ -76,10 +77,9 @@ const analyzerCard = props => {
                                   ? stat[1].toFixed(8)
                                   : stat[1].toFixed(2)}
                             </Button>
-                          </GridItem>
                         );
                       })}
-                    </GridContainer>
+                      </div>
                   );
                 } else {
                   return (
@@ -127,7 +127,7 @@ class GenericAnalyzer extends React.Component {
           i++;
 
           return (
-            <div>
+            <div styles={{overflowX: "hidden"}}>
               <legend>Strategy: {i}</legend>
 
               {analyzerCard({ analyzer: analyzer })}

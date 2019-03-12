@@ -56,10 +56,11 @@ class PairSettings extends React.Component {
     return this.state;
   }
   removePair(pair) {
-    console.log(this.state)
+    console.log(this.state);
     const state = { ...this.state };
     delete state[pair];
-    console.log(state)
+    delete this.state[pair];
+    console.log(state);
     this.setState(state);
   }
   editPairSetting(event, pair, side, field) {

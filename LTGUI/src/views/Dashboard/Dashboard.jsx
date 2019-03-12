@@ -387,15 +387,20 @@ class Dashboard extends React.Component {
                 </Card>
               </GridItem>
               <GridItem xs={12} sm={12} md={6}>
-                <Card>
+                <Card >
                   <CardHeader color={"info"} stats icon>
                     <CardIcon color={"info"}>
                       <FontAwesomeIcon icon={faChartLine} />
                     </CardIcon>
                     <p className={classes.cardCategory}>24h Market Change</p>
-                    <h3 className={classes.cardTitle}>
+                    <h3 className={classes.cardTitle} styles={{
+                      paddingBottom: "13px"
+                    }}>
                       {this.state.market_change_24h}
                     </h3>
+                    <small style={{
+                      color: "transparent"
+                    }}>  0</small>
                   </CardHeader>
                 </Card>
               </GridItem>

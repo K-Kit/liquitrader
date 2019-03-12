@@ -130,7 +130,6 @@ class Dashboard extends React.Component {
           ) : (
             <div className={classes.map}>{switchRoutes}</div>
           )}
-          {/* {this.getRoute() ?  : null} */}
         </div>
       </div>
     );

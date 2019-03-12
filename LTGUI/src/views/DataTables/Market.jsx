@@ -98,7 +98,6 @@ class ReactTables extends React.Component {
                     <CardIcon color="info">
                 <Assignment />
               </CardIcon>
-              <h4 className={classes.cardIconTitle}>Market Data</h4>
             </CardHeader>
             <CardBody>
               <ReactTable

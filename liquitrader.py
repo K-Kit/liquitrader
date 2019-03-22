@@ -722,11 +722,15 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     exchange = lt_engine.exchange
     config = lt_engine.config
-
+    i = 0
     while not _shutdown_handler.running_or_complete():
         try:
             # timed @ 1.1 seconds 128ms stdev
-            do_technical_analysis()
+            # only run once per minute, any more than that is not necessary  
+            if i % 60 == 0:
+                do_technical_analysis()
+            i += 1
+
             from pprint import pprint
             # pprint(exchange.pairs)
 

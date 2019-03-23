@@ -164,6 +164,8 @@ class LiquiTrader:
         general_settings['starting_balance'] = float(general_settings['starting_balance'])
         from gui.gui_server import get_keys
         keys = get_keys()
+        if general_settings["start_delay"]:
+            time.sleep(int(general_settings["start_delay"]))
         if general_settings['exchange'].lower() == 'binance' and general_settings['paper_trading']:
             self.exchange = PaperBinance.PaperBinance('binance',
                                                       general_settings['market'].upper(),
@@ -722,14 +724,15 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     exchange = lt_engine.exchange
     config = lt_engine.config
-    i = 0
+    last_run_ta = 0
     while not _shutdown_handler.running_or_complete():
         try:
             # timed @ 1.1 seconds 128ms stdev
             # only run once per minute, any more than that is not necessary
-            if i % 200 == 0:
+            now = time.time()
+            if now - last_run_ta > 60:
                 do_technical_analysis()
-            i += 1
+                last_run_ta=now
 
             from pprint import pprint
             # pprint(exchange.pairs)

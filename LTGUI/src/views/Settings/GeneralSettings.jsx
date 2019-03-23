@@ -33,7 +33,8 @@ const fields = [
   ["sell_only_mode", "Sell Only Mode"],
   ["trading_enabled", "Trading Enabled"],
   ["timezone", "Timezone"],
-  ["starting_balance", "Starting Balance"]
+  ["starting_balance", "Starting Balance"],
+  ["start_delay", "Start Delay"]
 ];
 
 class GeneralSettings extends React.Component {

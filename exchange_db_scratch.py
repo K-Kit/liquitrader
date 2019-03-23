@@ -5,13 +5,13 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-class Department(Base):
+class Pair(Base):
     __tablename__ = 'department'
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
 
-class Employee(Base):
+class Candle(Base):
     __tablename__ = 'employee'
     id = Column(Integer, primary_key=True)
     name = Column(String)

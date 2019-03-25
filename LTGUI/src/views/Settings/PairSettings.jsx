@@ -25,6 +25,9 @@ import { config_route, update_config } from "../../variables/global";
 import { fetchJSON, postJSON } from "../helpers/Helpers";
 import Button from "../../../node_modules/@material-ui/core/Button/Button";
 import Card from "../../components/Card/Card";
+import Table from "components/Table/Table.jsx";
+import { CardHeader } from "@material-ui/core";
+
 let exchanges = ["binance", "bittrex"];
 let markets = ["BTC", "ETH", "BNB", "USDT"];
 
@@ -68,7 +71,7 @@ class PairSettings extends React.Component {
     const state = { ...this.state };
     state[pair][side][field] = target.value;
     this.setState(state);
-  }  
+  }
   save() {
     let data = {
       section: "pair_specific",
@@ -87,56 +90,67 @@ class PairSettings extends React.Component {
   }
   render() {
     const { classes } = this.props;
+    console.log(this.state);
     return (
       <div>
         <GridContainer justify="center">
           <Card>
-            {Object.entries(this.state).map(pair => {
-              if (pair[0] === "editor") {
-                return null;
-              }
-              return (
-                <div>
-                  <GridContainer justify={"center"}>
-                    <GridItem xs={2}>
-                      <CustomInput
-                        inputProps={{
-                          disabled: true,
-                          value: pair[0]
-                        }}
-                      />
-                    </GridItem>
-                    {fields.map(field => {
-                      return (
-                        <GridItem xs={2}>
-                          <CustomInput
-                            labelText={field[0] + " " + field[1]}
-                            id={"value"}
-                            formControlProps={{
-                              fullWidth: false
-                            }}
-                            inputProps={{
-                              onChange: event =>
-                                this.editPairSetting(
-                                  event,
-                                  pair[0],
-                                  field[0],
-                                  field[1]
-                                ),
-                              value: pair[1][field[0]][field[1]]
-                            }}
-                          />
-                        </GridItem>
-                      );
-                    })}
+            <h4>buy modifier methods: "modify" and "override"</h4>
+            <p>modify multiplies the strategies buy value</p>
+            <p>
+              override will make the buy value that number in ALL strategies
+            </p>
+            <small>
+              will explain this better later and add dropdown options
+            </small>
+          </Card>
+          <Card>
+            <Table
+              tableData={Object.entries(this.state)
+                .filter(pair => pair[0] !== "editor")
+                .map(pair => {
+                  console.log(pair[0]);
+                  if (pair[0] !== "editor") {
+                    return [pair[0]]
+                      .concat(
+                        fields.map(field => {
+                          return (
+                            <CustomInput
+                              labelText={field[0] + " " + field[1]}
+                              id={"value"}
+                              formControlProps={{
+                                fullWidth: false
+                              }}
+                              inputProps={{
+                                onChange: event =>
+                                  this.editPairSetting(
+                                    event,
+                                    pair[0],
+                                    field[0],
+                                    field[1]
+                                  ),
+                                value: pair[1][field[0]][field[1]]
+                              }}
+                            />
+                          );
+                        })
+                      )
+                      .concat([
+                        <Button
+                          style={{
+                            background: "#FF9900",
+                            color: "#3057D3"
+                          }}
+                          onClick={() => this.removePair(pair[0])}
+                        >
+                          {" "}
+                          Delete{" "}
+                        </Button>
+                      ]);
+                  }
+                })}
+            />
 
-                      <GridItem xs={2}>
-                        <Button onClick={() => this.removePair(pair[0])}> Delete </Button>
-                      </GridItem>
-                  </GridContainer>
-                </div>
-              );
-            })}
             <GridContainer justify={"center"}>
               {/*new pair editor*/}
               {editorfields.map(field => {
@@ -160,6 +174,10 @@ class PairSettings extends React.Component {
                 );
               })}
               <Button
+                style={{
+                  background: "#4caf50",
+                  color: "#3057D3"
+                }}
                 color={"success"}
                 onClick={() => {
                   let editor = this.state.editor;
@@ -183,4 +201,4 @@ class PairSettings extends React.Component {
   }
 }
 
-export default withStyles(extendedFormsStyle)(PairSettings);
+export default PairSettings;

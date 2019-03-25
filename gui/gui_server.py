@@ -228,9 +228,9 @@ class GUIServer:
         else:
             from flask_cors import CORS
             CORS(_app)
-
-        otp = OTP()
-        otp.init_app(_app)
+        #
+        # otp = OTP()
+        # otp.init_app(_app)
 
         flask_compress.Compress(_app)
 

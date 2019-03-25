@@ -129,3 +129,4 @@ LTGUI/static/*
 scratch.py
 node_modules/*
 node_modules/.bin/*
+LTGUI/.idea/workspace.xml

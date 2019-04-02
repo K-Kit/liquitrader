@@ -27,7 +27,6 @@ flask_jwt_extended
 
 json_minify
 lxml
-encodings
 psutil
 numpy
 

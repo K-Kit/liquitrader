@@ -829,47 +829,9 @@ def main(ipython=False):
 
     # get config from lt
     config = lt_engine.config
-
-    # ---- moved this because it cant happen before first run
-    if hasattr(sys, 'frozen') or not (os.path.isfile('requirements-win.txt') and os.path.isfile('.gitignore')):
-        import analyzers.strategic_analysis as strategic_analysis
-        # Check that verifier string hasn't been modified, it exists, and it is a reasonable size
-        # If "LiquiTrader has been illegitimately..." is thrown when it shouldn't, check strategic_analysis file size
-        if sys.platform == 'win32':
-            if ((not os.path.isfile('lib/analyzers.strategic_analysis.pyd'))
-                    or os.stat('lib/analyzers.strategic_analysis.pyd').st_size < 268000):
-                err_msg()
-                sys.exit(1)
-
-        else:
-            if ((not os.path.isfile('lib/analyzers.strategic_analysis.so'))
-                    or os.stat('lib/analyzers.strategic_analysis.so').st_size < 760000):
-                err_msg()
-                sys.exit(1)
-
-        time.perf_counter()
-        strategic_analysis.verify()
-
-        # Check that verifier took a reasonable amount of time to execute (prevent simple NOPing)
-        if time.perf_counter() < .01:
-            err_msg()
-            sys.exit(1)
-
-        # ----
-        # TODO: GET LICENSE KEY AND PUBLIC API KEY FROM CONFIG HERE
-        from analyzers import strategic_tools
-        from gui.gui_server import get_keys
-        keys = get_keys()
-        license_key = keys['liquitrader_key']
-        api_key = keys['public']
-
-        start = time.perf_counter()
-        strategic_tools.verify(license_key, api_key)
-
-        if (time.perf_counter() - start) < .01:
-            print('Verification error (A plea from the devs: we\'ve poured our souls into LiquiTrader;'
-                  'please stop trying to crack our license system. This is how we keep food on our tables.)')
-            sys.exit(1)
+    from gui.gui_server import get_keys
+    keys = get_keys()
+    api_key = keys['public']
 
     # ----
     shutdown_handler = ShutdownHandler()

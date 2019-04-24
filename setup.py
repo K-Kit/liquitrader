@@ -9,7 +9,7 @@ import py_compile
 
 import requests.certs
 
-from buildtools import cython_setup, build_verifier, signature_tools, monkey_patcher
+from buildtools import cython_setup, monkey_patcher
 
 # ----
 # TOGGLE WHAT GETS BUILT HERE
@@ -75,9 +75,9 @@ def make_verifier():
     # Build the new verifier
     opsys = 'win' if sys.platform == 'win32' else 'linux'
 
-    print('Signing files...')
-    if not os.path.exists('./buildtools/liquitrader.pem'):
-        signature_tools.generate_private_key()
+    # print('Signing files...')
+    # if not os.path.exists('./buildtools/liquitrader.pem'):
+    #     signature_tools.generate_private_key()
 
     exclude = ['strategic_analysis']
     exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg', '.db', '.log']
@@ -101,7 +101,7 @@ def make_verifier():
     if opsys == 'linux':
         to_sign.append('./build/liquitrader_linux/liquitrader')
 
-    build_verifier.build_verifier(to_sign=to_sign)
+    # build_verifier.build_verifier(to_sign=to_sign)
     cython_setup.run_cython(source_file='analyzers/strategic_analysis.py')
 
     new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
@@ -377,9 +377,9 @@ if __name__ == '__main__':
     #     #os.remove(file)
 
     # ----
-    if BUILD_VERIFIER:
-        time.sleep(1)  # wait for zip to flush
-        make_verifier()
+    # if BUILD_VERIFIER:
+    #     time.sleep(1)  # wait for zip to flush
+    #     make_verifier()
 
     # ----
     # Clean up .pyd/.so's alongside .py's leftover from build

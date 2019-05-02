@@ -52,9 +52,9 @@ else:
 STATIC_FILE_PATH = dist_path / 'static'
 _app = flask.Flask('lt_flask', static_folder=STATIC_FILE_PATH, template_folder=dist_path)
 
-if not FROZEN:
-    from flask_cors import CORS
-    CORS(_app)
+# if not FROZEN:
+#     from flask_cors import CORS
+#     CORS(_app)
 
 # --------
 # Database configuration

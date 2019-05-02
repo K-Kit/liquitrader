@@ -228,7 +228,8 @@ class LiquiTrader:
         for pair, value in self.exchange.pairs.items():
             if 'total' not in value or 'close' not in value:
                 continue
-
+            if value['close'] is None:
+                continue
             pending += value['close'] * value['total']
 
             if value['close'] * value['total'] > self.exchange.get_min_cost(pair):

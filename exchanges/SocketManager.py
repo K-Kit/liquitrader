@@ -13,10 +13,10 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
     :param debug: if "True", prints 1 ask and 1 bid
     :param verbose: if "True", prints the order books using pretty print
     :param order_books: "buffer" dictionary containing the order books (it is used to update the DB)
+    :param callback: function, params symbol, data
+    :param interval: applies to  OHLCV socket to set candle interval
     :return:
     """
-
-
 
     @exchange.on('err')
     async def websocket_error(err, conxid):  # pylint: disable=W0612
@@ -56,6 +56,8 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
 
 
 if __name__ == '__main__':
+    import sys
+    sys.path.append('..')
     from gui.gui_server import get_keys
     import BinanceExchange
     keys = get_keys()

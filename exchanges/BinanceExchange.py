@@ -184,7 +184,8 @@ class BinanceExchange(GenericExchange):
             await asyncio.sleep(self._socket_upkeep_schedule)
 
     def restart_sockets(self):
-        raise('kyles dumbass broke this with websocket changes, will fix eventually')
+        pass
+        # raise('kyles dumbass broke this with websocket changes, will fix eventually')
         # print('detected closed sockets, re-opening connection')
         # self.socket_manager.close()
         # self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
@@ -195,8 +196,8 @@ class BinanceExchange(GenericExchange):
 
     # ----
     def check_sockets(self):
-
-        raise('kyles dumbass broke this with websocket changes, will fix eventually')
+        pass
+        # raise('kyles dumbass broke this with websocket changes, will fix eventually')
         # now = time.time()
         #
         # def not_stale(now, last_check):

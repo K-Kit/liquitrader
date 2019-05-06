@@ -4,7 +4,7 @@ appdirs
 
 binance
 
-ccxt
+git+git://github.com/firepol/ccxt-websockets#egg=ccxt&subdirectory=python
 cheroot
 cryptography
 cx_freeze

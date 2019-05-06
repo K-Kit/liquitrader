@@ -1,7 +1,5 @@
 import traceback
 import datetime
-import sys
-import asyncio
 
 async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=False, order_books=None, callback=None, interval=None):
     """
@@ -19,7 +17,7 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
     """
 
     @exchange.on('err')
-    async def websocket_error(err, conxid):  # pylint: disable=W0612
+    def websocket_error(err, conxid):  # pylint: disable=W0612
         error_stack = traceback.extract_stack()
         # TODO: log and handle errors https://github.com/firepol/ccxt-websockets-db-updater/issues/4
         print(f'{exchange.id}, {datetime.datetime.now()}, {error_stack}')
@@ -30,16 +28,6 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
             callback(symbol, data, interval)
         else:
             callback(symbol, data)
-
-        # TODO: check if there are exchanges ending with 2 & in that case don't truncate the last character
-        exchange_name = exchange.id
-        if exchange.id.endswith('2'):
-            exchange_name = exchange.id[:-1]
-
-        if order_books:
-            order_books[exchange_name][symbol] = {'asks': asks, 'bids': bids, 'datetime': ob_datetime}
-
-    sys.stdout.flush()
 
     eventSymbols = []
     for symbol in symbols:
@@ -54,33 +42,3 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
 
     await exchange.websocket_subscribe_all(eventSymbols)
 
-
-if __name__ == '__main__':
-    import sys
-    sys.path.append('..')
-    from gui.gui_server import get_keys
-    import BinanceExchange
-    keys = get_keys()
-    exchange = BinanceExchange.BinanceExchange('binance', 'ETH', 3, keys,['5m', '15m'])
-    ccxt_ex = exchange._client_async
-    # loop = exchange._loop
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(exchange.initialize())
-    except:
-        pass
-    exchange._initialize_pairs()
-    print('initialized')
-    try:
-        loop.create_task(subscribe_ws('ob', ccxt_ex, list(exchange.pairs.keys())))
-        # loop.create_task(subscribe_ws('ticker', ccxt_ex, list(exchange.pairs.keys())))
-        # loop.create_task(subscribe_ws('ohlcv', ccxt_ex, list(exchange.pairs.keys()), interval='5m'))
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print("Closing Loop")
-        loop.close()
-    # loop.stop()
-    # loop.close()
-    print("after complete")

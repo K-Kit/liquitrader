@@ -9,7 +9,7 @@ import asyncio
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df
 # import SocketManager
-from SocketManager import subscribe_ws
+from exchanges.SocketManager import subscribe_ws
 
 
 # TODO check last socket update time and restart if needed

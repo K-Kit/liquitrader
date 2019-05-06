@@ -3,9 +3,6 @@ Bearpuncher refactor
 
 Will update soon^tm
 
-for any support, information or inquiries get in touch on discord (https://discord.gg/qmMmUWE) or spectrum (https://spectrum.chat/liquitrader)
-
-
 #### Quick Setup with docker
 docker build .
 docker run -it {container name}

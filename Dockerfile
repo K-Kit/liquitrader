@@ -75,4 +75,6 @@ RUN pip install -r requirements.txt
 # build and install the catalyst package into the image
 #
 
+EXPOSE 7007
+
 CMD bash

@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
             'packages': TARGET_PACKAGES + [  # LiquiTrader internal packages
                 'os', 'asyncio', 'configparser', 'datetime', 'io', 'json', 'database_models',
-                'pkg_resources._vendor', 'flask_jwt_extended',
+                'pkg_resources._vendor',
                 'cffi', '_cffi_backend',
                 'encodings', 'encodings.cp949', 'encodings.utf_8', 'encodings.ascii',
                 'appdirs',

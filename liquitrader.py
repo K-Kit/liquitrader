@@ -838,18 +838,7 @@ def main(ipython=False):
     shutdown_handler = ShutdownHandler()
 
     lt_engine = LiquiTrader(shutdown_handler)
-    # todo rewrite first time init
-    # take port as input in terminal
-    # write port to general settings
-    # start server  and reroute to '/setup'
-    # write '/first_run' endpoint which takes in a list of steps to init user and write config files
-    # list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
-    try:
-        lt_engine.initialize_config()
-    except FileNotFoundError:
-        firsttime_init(shutdown_handler)
-        time.sleep(1)
-        lt_engine.initialize_config()
+    lt_engine.initialize_config()
 
     # ----
 

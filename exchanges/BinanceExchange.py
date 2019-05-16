@@ -133,16 +133,18 @@ class BinanceExchange(GenericExchange):
         """
         if not self._loop:
             self._loop = asyncio.get_event_loop()
+
         self._loop.create_task(self._quote_change_upkeep())
         self._loop.create_task(self._balances_upkeep())
         self._loop.create_task(self._socket_upkeep())
+
         pairs_list = list(self.pairs.keys())
         self._loop.create_task(subscribe_ws('ob', self._client_async, pairs_list, callback=self.handle_depth_socket))
-        self._loop.create_task(
-            subscribe_ws('ticker', self._client_async, pairs_list, callback=self.handle_ticker_socket))
+        self._loop.create_task(subscribe_ws('ticker', self._client_async, pairs_list, callback=self.handle_ticker_socket))
+
         for interval in self._candle_timeframes:
             self._loop.create_task(subscribe_ws('ohlcv', self._client_async, pairs_list, interval=interval,
-                                          callback=self.handle_candle_socket))
+                                                callback=self.handle_candle_socket))
         self._loop.run_forever()
 
     # ----

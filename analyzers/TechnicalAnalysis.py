@@ -63,7 +63,6 @@ def get_indicators(df, indicator_name, candle_period=0):
             res = indicator_calculation(inputs)
 
     except Exception as ex:
-        print("hello world")
         res = indicator_calculation(inputs)
         print(ex)
 

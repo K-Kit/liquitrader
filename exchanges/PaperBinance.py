@@ -121,8 +121,6 @@ class PaperBinance(BinanceExchange):
         return order
 
 if __name__ == '__main__':
-    from dev_keys_binance import keys
-
     ex = PaperBinance('binance', 'USDT', 10,  {'public': keys.public, 'secret': keys.secret}, ['5m'])
     ex.initialize()
 

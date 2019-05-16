@@ -356,7 +356,7 @@ def get_file(path=''):
                 return Response(f.read(), mimetype=mimetype, content_type=mimetype)
 
         except FileNotFoundError:
-            print(f'User attempted to get file "{path}", but it does not exist')
+            # print(f'User attempted to get file "{path}", but it does not exist')
             return Response(status=404)
 
     if not users_exist():

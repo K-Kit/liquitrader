@@ -139,7 +139,6 @@ if __name__ == '__main__':
             "includes": [
                 'cryptography',
                 'binance',
-                # 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
 
             'bin_includes': ['openblas', 'libgfortran', 'libffi', 'numpy'],

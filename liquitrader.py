@@ -58,8 +58,7 @@ COLUMN_ALIASES = {'last_order_time': 'Last Purchase Time',
                   'percentage': '24h Change'
                   }
 
-FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume',
-                           'Amount', '24h Change']
+FRIENDLY_MARKET_COLUMNS = ['Symbol', 'Price', 'Volume', 'Amount', '24h Change']
 
 
 # =============================
@@ -550,6 +549,7 @@ class LiquiTrader:
         if 'total_cost' in df and 'close' in df:
             df['current_value'] = df.close * df.total * (1 - (fee / 100))
             df['gain'] = (df.bid - df.avg_price) / df.avg_price * 100 - fee
+
             if holding:
                 dust = 0.02 if self.config.general_settings['market'].upper() == 'ETH' else 0.002
                 df = df[df.total_cost > dust]

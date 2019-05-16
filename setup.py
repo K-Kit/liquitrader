@@ -170,7 +170,7 @@ if __name__ == '__main__':
                 'wtforms',
                 'requests',
                 'numpy', 'numpy.core.numeric', 'numpy.core.multiarray',
-                'pandas',
+                'pandas', 'pandas.core.computation',
                 'json_minify',
                 'packaging',
                 'ccxt',
@@ -191,7 +191,7 @@ if __name__ == '__main__':
             'zip_exclude_packages': ['flask_bootstrap', 'dateutil'],
 
             'include_msvcr': True,
-            'optimize': 2,
+            #'optimize': 2,
         }
     }
 

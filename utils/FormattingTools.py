@@ -30,10 +30,18 @@ COLUMN_FORMATS = {'last_order_time': str,
 
 def prettify_dataframe(df, quote_price=200):
     usdformat = partial(decimal_with_usd, quote_price=quote_price)
+
     for column_name, format_func in COLUMN_FORMATS.items():
         if format_func is not None:
-           df[column_name] = list(map(format_func, df[column_name])) if str(format_func) != str(decimal_with_usd) else \
-                list(map(usdformat, df[column_name]))
+            if column_name not in df:
+                print(f'{column_name} missing from dataframe')
+                continue  # Skip formatting
+
+            if str(format_func) != str(decimal_with_usd):
+                df[column_name] = list(map(format_func, df[column_name]))
+            else:
+                df[column_name] = list(map(usdformat, df[column_name]))
+
     return df
 
 

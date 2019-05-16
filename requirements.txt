@@ -48,5 +48,6 @@ sqlalchemy
 
 ta-lib
 twisted
+service_identity>=18.1.0
 
 wtforms

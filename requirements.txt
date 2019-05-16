@@ -22,8 +22,7 @@ flask_jwt
 flask_sqlalchemy
 flask_sslify
 flask_wtf
-flask_jwt
-flask_jwt_extended
+flask_cors
 
 json_minify
 lxml

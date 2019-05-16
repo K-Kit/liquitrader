@@ -68,7 +68,7 @@ class _Hook(object):
             entry[2]
         ]
 
-        # Actual line printout; exclude from builds for security reasons=
+        # Actual line printout; exclude from builds for security reasons
         if not hasattr(sys, 'frozen'):
             new_entry.append(entry[3])
 

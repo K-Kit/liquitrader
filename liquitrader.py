@@ -7,6 +7,7 @@ import traceback
 import threading
 import functools
 import pathlib
+import getpass
 
 import arrow
 
@@ -23,14 +24,11 @@ from conditions.BuyCondition import BuyCondition
 from conditions.DCABuyCondition import DCABuyCondition
 from conditions.SellCondition import SellCondition
 from utils.Utils import *
-from conditions.condition_tools import get_buy_value
-
-
-from conditions.condition_tools import percentToFloat
+from conditions.condition_tools import get_buy_value, percentToFloat
 from utils.FormattingTools import prettify_dataframe
 
-import getpass
 
+# ======
 LT_ENGINE = None
 
 APP_DIR = ''
@@ -754,6 +752,8 @@ def trader_thread_loop(lt_engine, _shutdown_handler):
 
     _shutdown_handler.remove_task()
 
+
+# ======
 def firsttime_init(shutdown_handler):
     """
     Create user account on first run
@@ -795,12 +795,6 @@ def firsttime_init(shutdown_handler):
 def main(ipython=False):
     import gui.gui_server
 
-    def err_msg():
-        sys.stdout.write('LiquiTrader has been illegitimately modified and must be reinstalled.\n')
-        sys.stdout.write(
-            'We recommend downloading it manually from our website in case your updater has been compromised.\n\n')
-        sys.stdout.flush()
-
     print('Starting LiquiTrader...\n')
 
     if 'python' not in sys.executable.lower():
@@ -813,41 +807,16 @@ def main(ipython=False):
     if not gui.gui_server.users_exist():
         firsttime_init(shutdown_handler)
 
-    # todo rewrite first time init
-    # take port as input in terminal
-    # write port to general settings
-    # start server  and reroute to '/setup'
-    # write '/first_run' endpoint which takes in a list of steps to init user and write config files
-    # list order: account info, general settings, global trade, buy strats, sell strats, dca strats, pair_specific
     try:
         lt_engine.initialize_config()
+
     except FileNotFoundError:
         firsttime_init(shutdown_handler)
         time.sleep(1)
         lt_engine.initialize_config()
 
     gui.gui_server.LT_ENGINE = lt_engine
-
-    # get config from lt
     config = lt_engine.config
-    from gui.gui_server import get_keys
-    keys = get_keys()
-    api_key = keys['public']
-
-    # ----
-    shutdown_handler = ShutdownHandler()
-
-    lt_engine = LiquiTrader(shutdown_handler)
-    lt_engine.initialize_config()
-
-    # ----
-
-    gui.gui_server.LT_ENGINE = lt_engine
-
-    # get config from lt
-    config = lt_engine.config
-    if not gui.gui_server.users_exist():
-        firsttime_init(shutdown_handler)
 
     gui_server = gui.gui_server.GUIServer(shutdown_handler,
                                           host=config.general_settings['host'],
@@ -855,8 +824,7 @@ def main(ipython=False):
                                           ssl=config.general_settings['use_ssl'],
                                           )
 
-
-
+    # ----
     try:
         lt_engine.load_trade_history()
     except FileNotFoundError:

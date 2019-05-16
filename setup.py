@@ -25,11 +25,6 @@ BUILD_PATH = pathlib.Path(BUILD_PATH).absolute()
 
 
 def cythonize_liquitrader(target_packages):
-    if not os.path.exists('analyzers/strategic_analysis.py'):
-        # Write out placeholder verifier
-        with open('analyzers/strategic_analysis.py', 'w') as f:
-            f.write('def verify(): pass\n')
-
     cython_setup.run_cython(['.'] + target_packages)
 
     for src_dir, dirs, files in os.walk('./liquitrader'):
@@ -44,72 +39,6 @@ def cythonize_liquitrader(target_packages):
             if os.path.exists(dst_file):
                 os.remove(dst_file)
             shutil.copy(src_file, dst_dir)
-
-
-def make_verifier():
-    """Dynamically generate verifier.py and build into package"""
-
-    # Delete the old verifier source files to make sure they're rebuilt
-    opsys = 'win' if sys.platform == 'win32' else 'linux'
-
-    try:
-        os.remove(f'build/{opsys}_cython_source/analyzers/strategic_analysis.c')
-    except FileNotFoundError:
-        pass
-
-    platform_build_path = f'{opsys}-{"amd" if opsys == "win" else "x86_"}64-3.6'
-
-    try:
-        os.remove(f'build/temp.{platform_build_path}/build/{opsys}_cython_source/analyzers/strategic_analysis.o')
-    except FileNotFoundError:
-        pass
-
-    plaform_file_end = 'cp36-win_amd64.pyd' if sys.platform == 'win' else 'cpython-36m-x86_64-linux-gnu.so'
-
-    try:
-        os.remove(f'build/lib.{platform_build_path}/analyzers/strategic_analysis.{plaform_file_end}')
-    except FileNotFoundError:
-        pass
-
-    # =====
-    # Build the new verifier
-    opsys = 'win' if sys.platform == 'win32' else 'linux'
-
-    # print('Signing files...')
-    # if not os.path.exists('./buildtools/liquitrader.pem'):
-    #     signature_tools.generate_private_key()
-
-    exclude = ['strategic_analysis']
-    exclude_ext = ['.txt', '.json', '.sqlite', '.ini', '.cfg', '.db', '.log']
-    to_sign = []
-    for file in glob.glob(f'./build/liquitrader_{opsys}/**/*.*', recursive=True):
-        bad = False
-
-        for ext in exclude_ext:
-            if file.endswith(ext):
-                bad = True
-                break
-
-        for exclu in exclude:
-            if bad or exclu in file:
-                bad = True
-                break
-
-        if not bad:
-            to_sign.append(file)
-
-    if opsys == 'linux':
-        to_sign.append('./build/liquitrader_linux/liquitrader')
-
-    # build_verifier.build_verifier(to_sign=to_sign)
-    cython_setup.run_cython(source_file='analyzers/strategic_analysis.py')
-
-    new_verifier = 'analyzers/' + [f for f in os.listdir('analyzers/') if f.startswith('strategic_analysis')][0]
-
-    verifier_outpath = f'./build/liquitrader_{opsys}/lib/analyzers.strategic_analysis.' + \
-                       ("pyd" if sys.platform == "win32" else "so")
-
-    shutil.move(new_verifier, verifier_outpath)
 
 
 def rmtree(pth: pathlib.Path):
@@ -210,7 +139,7 @@ if __name__ == '__main__':
             "includes": [
                 'cryptography',
                 'binance',
-                'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                # 'dev_keys_binance'  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ],
 
             'bin_includes': ['openblas', 'libgfortran', 'libffi', 'numpy'],
@@ -297,6 +226,7 @@ if __name__ == '__main__':
     from cx_Freeze import setup, Executable
 
     os.makedirs(BUILD_PATH / 'setup', exist_ok=True)
+    os.makedirs(BUILD_PATH / 'config', exist_ok=True)  # Where database and config is stored
 
     if sys.platform == 'win32':
         executables = [Executable('runner.py',
@@ -330,7 +260,7 @@ if __name__ == '__main__':
               description='LiquiTrader',
               options=build_options,
               executables=executables
-              )
+        )
 
     if BUILD_UPDATER:
         print('\n=====\nBuilding Updater...\n')
@@ -339,22 +269,22 @@ if __name__ == '__main__':
               description='LiquiTrader updater',
               executables=[Executable('updater.py')],
               options={
-                  'build_exe': {
-                      'build_exe': BUILD_PATH / 'updater',
-                      'packages': ['ctypes', '_ctypes', 'requests', 'idna', 'idna.idnadata', 'psutil'],
-                      'include_files': [(requests.certs.where(), 'lib/cacert.pem')],
-                      # 'zip_include_packages': '*',
-                      # 'zip_exclude_packages': [],
+                'build_exe': {
+                    'build_exe': BUILD_PATH / 'updater',
+                    'packages': ['ctypes', '_ctypes', 'requests', 'idna', 'idna.idnadata', 'psutil'],
+                    'include_files': [(requests.certs.where(), 'lib/cacert.pem')],
+                    # 'zip_include_packages': '*',
+                    # 'zip_exclude_packages': [],
 
-                      'excludes': ['tkinter'],
+                    'excludes': ['tkinter'],
 
-                      # Remove package paths from tracebacks
-                      # 'replace_paths': [('*', '/')],
+                    # Remove package paths from tracebacks
+                    # 'replace_paths': [('*', '/')],
 
-                      'include_msvcr': True
-                  }
-              }
-              )
+                    'include_msvcr': True
+                }
+            }
+        )
 
     # ----
     copy_requirements()
@@ -369,17 +299,11 @@ if __name__ == '__main__':
     monkey_patcher.do_postbuild_patches()
 
     # ----
-    # python_files = glob.glob(f'{BUILD_PATH}**/*.py', recursive=True)
-    # for file in python_files:
-    #     print(file)
-    #     py_compile.compile(file, optimize=1)
-    #     time.sleep(1)
-    #     #os.remove(file)
-
-    # ----
-    # if BUILD_VERIFIER:
-    #     time.sleep(1)  # wait for zip to flush
-    #     make_verifier()
+    for file in glob.glob(f'{BUILD_PATH}**/*.py', recursive=True):
+        print(f'Compiling {file} to bytecode')
+        py_compile.compile(file, optimize=1)
+        time.sleep(1)
+        os.remove(file)
 
     # ----
     # Clean up .pyd/.so's alongside .py's leftover from build

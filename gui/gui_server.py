@@ -3,10 +3,11 @@
 import binascii
 import os
 # from io import BytesIO
-# import pathlib
+import pathlib
 import sys
 
 from datetime import timedelta
+from functools import wraps
 
 from liquitrader import FRIENDLY_MARKET_COLUMNS
 from config.config import Config
@@ -23,11 +24,7 @@ import flask_compress
 from flask_talisman import Talisman
 from flask_otp import OTP
 from flask_jwt import JWT, jwt_required, current_identity
-from flask_jwt_extended import (
-    JWTManager, verify_jwt_in_request, create_access_token,
-    get_jwt_claims
-)
-from functools import wraps
+
 from flask_sqlalchemy import SQLAlchemy
 
 from OpenSSL import crypto
@@ -42,7 +39,7 @@ from utils.column_labels import *
 
 LT_ENGINE = None
 
-FROZEN=hasattr(sys, 'frozen')
+FROZEN = hasattr(sys, 'frozen')
 
 if FROZEN:
     dist_path = APP_DIR / 'gui'
@@ -74,13 +71,13 @@ database_models.migrate_table(_database)
 _app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=604800)
 
 
-def add_keys(public, private, license_key):
+def add_keys(public, private):
     """
     Adds a user to the database
     Returns True on success, False on failure (user existed)
     """
 
-    _database.session.add(_KeyStore(exchange_key_public=public, exchange_key_private=private, license=license_key))
+    _database.session.add(_KeyStore(exchange_key_public=public, exchange_key_private=private))
     _database.session.commit()
 
     return True
@@ -90,8 +87,7 @@ def get_keys():
     keys = _KeyStore.query.first()
     return {
         "public": keys.exchange_key_public,
-        "secret": keys.exchange_key_private,
-        'liquitrader_key': keys.license
+        "secret": keys.exchange_key_private
     }
 
 
@@ -171,16 +167,13 @@ def get_role(id):
     return _UserModel.query.filter_by(id=int(id)).first().role
 
 
-# TODO actually utilize flask_jwt_extended
+
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        role = get_role(current_identity)
         # check users exist to allow config loading pre-setup, might revert this
-        if role != 'admin' and users_exist():
-            return jsonify(msg='Admins only!'), 403
-        else:
-            return fn(*args, **kwargs)
+        return fn(*args, **kwargs) if get_role(current_identity) == 'admin' and users_exist() else (jsonify(msg='Admins only!'), 403) 
+
     return wrapper
 
 
@@ -363,7 +356,7 @@ def get_file(path=''):
                 return Response(f.read(), mimetype=mimetype, content_type=mimetype)
 
         except FileNotFoundError:
-            print(f'User attempted to get file "{path}", but it does not exist')
+            # print(f'User attempted to get file "{path}", but it does not exist')
             return Response(status=404)
 
     if not users_exist():
@@ -404,15 +397,14 @@ def first_run():
         if k == 'account':
             username = v['firstname'].strip()
             password = v['password'].strip()
-            public = v['public'].strip()
-            private = v['private'].strip()
-            license = v['license'].strip()
+            public_key = v['public'].strip()
+            private_key = v['private'].strip()
 
             if username == '':
                 pass
             else:
                 add_user(username, password)
-                add_keys(public, private, license)
+                add_keys(public_key, private_key)
                 u = True
         else:
             if not u:

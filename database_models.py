@@ -71,8 +71,6 @@ def create_keystore_database_model(database):
         __tablename__ = 'keystore'
 
         id = database.Column(database.Integer, primary_key=True)
-
-        license = database.Column(database.String(50))
         exchange_key_public = database.Column(database.String(50))
         exchange_key_private = database.Column(database.String(50))
 
@@ -173,18 +171,6 @@ def create_keystore_database_model(database):
         def private_exchange_key(self, value):
             # Encrypt private key and store
             self.exchange_key_private = self._encrypt(value)
-
-        # ----
-        @property
-        def liquitrader_license_key(self):
-            # Decrypt private key and return
-            return str(self._decrypt(self.license))[2:-1]
-
-        # --
-        @liquitrader_license_key.setter
-        def liquitrader_license_key(self, value):
-            # Encrypt LiquiTrader license and store
-            self.license = self._encrypt(value)
 
         # --
         @property

@@ -1,6 +1,8 @@
 # liquitrader
 Bearpuncher refactor
 
+Supported exchange: binance https://www.binance.com/?ref=23688595
+
 Will update soon^tm
 
 #### Quick Setup with docker
@@ -15,3 +17,4 @@ crypto trading bot
 todo
  - write readme
  - finish open source gui rewrite (currently using a paid template, 80% done on rewrite)
+

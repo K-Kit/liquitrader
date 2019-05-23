@@ -1,0 +1,263 @@
+FORMAT: 1A
+HOST: http://polls.apiblueprint.org/
+
+# bpmock
+
+Polls is a simple API allowing consumers to view polls and vote in them.
+
+## update config [/update_config]
+
+### update config [POST]
+
++ Attributes
+    + param1: section (string) - section (ie buy_strategies)
+    + param2: values (object) - json object of values to update
+
++ Request (application/x-www-form-urlencoded)
+
++ Response 201
+
+## Get full config [/config]
+### returns all config subsections as dict [GET]
++ Response 200 (application/json)
+    {'buy_strategies': [{'conditions': [{'left': {'value': 'MFI',
+      'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 40}},
+    {'left': {'value': 'MFI',
+      'change_over': 2,
+      'candle_period': 30,
+      'timeframe': '5m'},
+     'op': '>',
+     'right': {'value': 1}},
+    {'left': {'value': 'MFI', 'timeframe': '1h'},
+     'op': '<',
+     'right': {'value': 50}}],
+   'buy_value': '2%',
+   'trailing %': 0.3},
+  {'conditions': [{'left': {'value': 'RSI', 'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 10}},
+    {'left': {'value': 'MFI',
+      'change_over': 2,
+      'candle_period': 30,
+      'timeframe': '5m'},
+     'op': '>',
+     'right': {'value': 1}},
+    {'left': {'value': 'MFI', 'timeframe': '1h'},
+     'op': '<',
+     'right': {'value': 50}}],
+   'buy_value': '2%',
+   'trailing %': 0.3}],
+ 'dca_buy_strategies': [{'conditions': [{'left': {'value': 'MFI',
+      'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 40}},
+    {'left': {'value': 'MFI',
+      'change_over': 2,
+      'candle_period': 30,
+      'timeframe': '5m'},
+     'op': '>',
+     'right': {'value': 1}},
+    {'left': {'value': 'MFI', 'timeframe': '1h'},
+     'op': '<',
+     'right': {'value': 50}}],
+   'max_dca_level': 4,
+   'trailing %': 0.3,
+   'dca_strategy': {'default': {'trigger': -3.5, 'percentage': 50},
+    '1': {'trigger': -5.5, 'percentage': 50},
+    '0': {'trigger': -1, 'percentage': 50}}}],
+ 'sell_strategies': [{'conditions': [{'left': {'value': 'MFI',
+      'timeframe': '30m'},
+     'op': '>',
+     'right': {'value': 40}}],
+   'sell_value': 0.8,
+   'trailing %': 0.3},
+  {'conditions': [{'left': {'value': 'MFI', 'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 4}},
+    {'left': {'value': 'EMA', 'timeframe': '30m'},
+     'op': '>',
+     'right': {'value': 0}}],
+   'sell_value': 1,
+   'minimum_volume': 2,
+   'trailing %': 3}],
+ 'general_settings': {'exchange': 'binance',
+  'paper_trading': False,
+  'starting_balance': 3,
+  'market': 'ETH',
+  'gui_port': 5000,
+  'start_delay': 0},
+ 'pair_specific_settings': None,
+ 'global_trade_conditions': {'min_buy_balance': '50%',
+  'dca_min_buy_balance': '30%',
+  'max_pairs': 8,
+  'blacklist': ['TRIG/ETH', 'BCN/ETH', 'CHAT/ETH', 'ICN/ETH'],
+  'whitelist': ['ALL'],
+  'max_change': 0,
+  'min_change': 0,
+  'market_change': {'max_1h_quote_change': 10,
+   'min_1h_quote_change': -10,
+   'max_24h_quote_change': 10,
+   'min_24h_quote_change': -10,
+   'min_24h_market_change': -3.5,
+   'max_24h_market_change': 5},
+  'dca_timeout': 30,
+  'max_spread': 0,
+  'min_available_volume': 0,
+  'bear_override': {},
+  'bull_override': {}}
+  }
+
+## Dashboard Data [/dashboard_data]
+### get dashboard data [GET]
++ Response 200 (application/json)
+   {'quote_balance': 1.06893226,
+ 'total_pending_value': 3.1022548800000003,
+ 'total_current_value': 3.09401328093,
+ 'total_profit': 0.012891938553986428,
+ 'total_profit_percent': 1.2060575806727387,
+ 'daily_profit_data': '[{"amount":4977.0,"bought_price":0.0032762711,"cost":0.58552161,"filled":4314.0,"lastTradeTimestamp":0.0,"price":0.0042766509,"remaining":663.0,"timestamp":12312748921623.0,"total_cost":0.16090248,"gain":0.00127972,"percent_gain":1.5118699875},{"amount":10537.0,"bought_price":0.0025690151,"cost":0.77629489,"filled":8497.0,"lastTradeTimestamp":0.0,"price":0.0100825249,"remaining":2040.0,"timestamp":20009684270553.0,"total_cost":0.3184029134,"gain":0.0027281066,"percent_gain":3.0800579426},{"amount":10679.3,"bought_price":0.0053487611,"cost":1.11001893,"filled":10432.38,"lastTradeTimestamp":0.0,"price":0.1566978231,"remaining":246.92,"timestamp":24627771538651.0,"total_cost":0.5145853268,"gain":0.0030721832,"percent_gain":3.0003383494},{"amount":4487.44,"bought_price":0.0017968368,"cost":0.46797381,"filled":1238.44,"lastTradeTimestamp":0.0,"price":0.0111189325,"remaining":3249.0,"timestamp":13854374016802.0,"total_cost":0.1603029558,"gain":0.0007865042,"percent_gain":0.5982522697},{"amount":0.0,"bought_price":0.0,"cost":0.0,"filled":0.0,"lastTradeTimestamp":0.0,"price":0.0,"remaining":0.0,"timestamp":0.0,"total_cost":0.0,"gain":0.0,"percent_gain":0.0},{"amount":0.0,"bought_price":0.0,"cost":0.0,"filled":0.0,"lastTradeTimestamp":0.0,"price":0.0,"remaining":0.0,"timestamp":0.0,"total_cost":0.0,"gain":0.0,"percent_gain":0.0},{"amount":6080.0,"bought_price":0.0017960545,"cost":0.6756018,"filled":6080.0,"lastTradeTimestamp":0.0,"price":0.0092606088,"remaining":0.0,"timestamp":13856276807176.0,"total_cost":0.0574737455,"gain":0.0023118545,"percent_gain":4.0224532561},{"amount":13109.0,"bought_price":0.0021385953,"cost":0.98760275,"filled":11850.0,"lastTradeTimestamp":1539723295478.873046875,"price":0.00656108,"remaining":1259.0,"timestamp":20015872806070.875,"total_cost":0.23990057,"gain":0.00271357,"percent_gain":6.1027155453}]',
+ 'holding_chart_data': '[0.06186356,0.08670537,0.09159609,0.13664055,1.65651705]',
+ 'cum_profit': '[{"amount":4977.0,"bought_price":0.0032762711,"cost":0.58552161,"filled":4314.0,"lastTradeTimestamp":0.0,"price":0.0042766509,"remaining":663.0,"timestamp":12312748921623.0,"total_cost":0.16090248,"gain":0.00127972,"percent_gain":1.5118699875},{"amount":15514.0,"bought_price":0.0058452862,"cost":1.3618165,"filled":12811.0,"lastTradeTimestamp":0.0,"price":0.0143591759,"remaining":2703.0,"timestamp":32322433192176.0,"total_cost":0.4793053934,"gain":0.0040078266,"percent_gain":4.5919279301},{"amount":26193.3,"bought_price":0.0111940473,"cost":2.47183543,"filled":23243.38,"lastTradeTimestamp":0.0,"price":0.1710569989,"remaining":2949.92,"timestamp":56950204730827.0,"total_cost":0.9938907201,"gain":0.0070800099,"percent_gain":7.5922662795},{"amount":30680.74,"bought_price":0.0129908841,"cost":2.93980924,"filled":24481.82,"lastTradeTimestamp":0.0,"price":0.1821759314,"remaining":6198.92,"timestamp":70804578747629.0,"total_cost":1.154193676,"gain":0.007866514,"percent_gain":8.1905185492},{"amount":30680.74,"bought_price":0.0129908841,"cost":2.93980924,"filled":24481.82,"lastTradeTimestamp":0.0,"price":0.1821759314,"remaining":6198.92,"timestamp":70804578747629.0,"total_cost":1.154193676,"gain":0.007866514,"percent_gain":8.1905185492},{"amount":30680.74,"bought_price":0.0129908841,"cost":2.93980924,"filled":24481.82,"lastTradeTimestamp":0.0,"price":0.1821759314,"remaining":6198.92,"timestamp":70804578747629.0,"total_cost":1.154193676,"gain":0.007866514,"percent_gain":8.1905185492},{"amount":36760.74,"bought_price":0.0147869386,"cost":3.61541104,"filled":30561.82,"lastTradeTimestamp":0.0,"price":0.1914365402,"remaining":6198.92,"timestamp":84660855554805.0,"total_cost":1.2116674214,"gain":0.0101783686,"percent_gain":12.2129718053},{"amount":49869.74,"bought_price":0.0169255339,"cost":4.60301379,"filled":42411.82,"lastTradeTimestamp":1539723295492.8718261719,"price":0.1979976202,"remaining":7457.92,"timestamp":104676728360889.875,"total_cost":1.4515679914,"gain":0.0128919386,"percent_gain":18.3156873506}]',
+ 'pair_profit_data': '[{"total_cost":0.0,"cost":0.0605843,"amount":161.0,"gain":0.0},{"total_cost":0.0,"cost":0.0,"amount":4.92,"gain":0.0},{"total_cost":0.061163,"cost":0.12276,"amount":62.0,"gain":0.000434},{"total_cost":0.0,"cost":0.06033028,"amount":17.0,"gain":0.0},{"total_cost":0.0574737455,"cost":0.1202694,"amount":64.0,"gain":0.0023118545},{"total_cost":0.0,"cost":0.09076128,"amount":1201.0,"gain":0.0},{"total_cost":0.06088096,"cost":0.12192544,"amount":224.0,"gain":0.00016352},{"total_cost":0.0910631336,"cost":0.18297735,"amount":1052.0,"gain":0.0007764664},{"total_cost":0.06057742,"cost":0.120861,"amount":76.0,"gain":-0.00029384},{"total_cost":0.0,"cost":0.12610827,"amount":1190.0,"gain":0.0},{"total_cost":0.1961466334,"cost":0.19794762,"amount":3284.0,"gain":0.0018009866},{"total_cost":0.09886464,"cost":0.0997822,"amount":143.0,"gain":0.00091756},{"total_cost":0.0,"cost":0.061932,"amount":27.44,"gain":0.0},{"total_cost":0.06203784,"cost":0.14910537,"amount":70.0,"gain":0.00036216},{"total_cost":0.09147715,"cost":0.18356616,"amount":7787.0,"gain":0.00061186},{"total_cost":0.0582907,"cost":0.11698908,"amount":26.0,"gain":0.00040768},{"total_cost":0.0,"cost":0.06111768,"amount":156.0,"gain":0.0},{"total_cost":0.0609971,"cost":0.18483886,"amount":975.0,"gain":0.00047718},{"total_cost":0.0,"cost":0.06190799,"amount":369.0,"gain":0.0},{"total_cost":0.0,"cost":0.061173,"amount":15.44,"gain":0.0},{"total_cost":0.2429394168,"cost":0.41494427,"amount":11941.0,"gain":0.0014119432},{"total_cost":0.0,"cost":0.09182955,"amount":767.0,"gain":0.0},{"total_cost":0.0,"cost":0.8498131,"amount":18193.0,"gain":0.0},{"total_cost":0.0997255358,"cost":0.10080588,"amount":492.0,"gain":0.0010803442},{"total_cost":0.0607669,"cost":0.3121721,"amount":999.0,"gain":0.0010142},{"total_cost":0.0880705364,"cost":0.17789235,"amount":138.0,"gain":0.0009229036},{"total_cost":0.06109328,"cost":0.18366896,"amount":400.0,"gain":0.00049312},{"total_cost":0.0,"cost":0.0610593,"amount":30.0,"gain":0.0},{"total_cost":0.0,"cost":0.225891,"amount":4.94,"gain":0.0}]'}
+
+## Current Holdings [/holding]
+
+### Get Current Holdings [GET]
+
++ Response 200 (application/json)
+
+        [{"Last Purchase Time":0,"Symbol":"BLZ\/ETH","Price":0.00058228,"Bought Price":0.00057743,"% Change":-0.676932954,"Volume":346.00535971,"Bought Value":0.09956988,"Current Value":0.0988958587,"DCA Level":0,"Amount":171.269,"24h Change":-1.993},{"Last Purchase Time":0,"Symbol":"VET\/ETH","Price":0.000060234,"Bought Price":0.00005918,"% Change":-1.8333437073,"Volume":3207.60960565,"Bought Value":0.39049689,"Current Value":0.3833377398,"DCA Level":0,"Amount":6477.488,"24h Change":0.561},{"Last Purchase Time":0,"Symbol":"VIB\/ETH","Price":0.0002026942,"Bought Price":0.00019981,"% Change":-1.5214983093,"Volume":1016.52609404,"Bought Value":0.09992823,"Current Value":0.0984078237,"DCA Level":0,"Amount":492.507,"24h Change":-8.908}]
+
+## Market Data [/market]
+### Get Market Data [GET]
+
++ Response 200 (application/json)
+    [{"Symbol":"ADA\/ETH","Price":null,"Volume":3059.85724624,"Amount":0.0,"24h Change":-0.737},{"Symbol":"ADX\/ETH","Price":null,"Volume":1196.9520852,"Amount":0.0,"24h Change":10.761},{"Symbol":"AE\/ETH","Price":null,"Volume":4894.14299032,"Amount":0.0,"24h Change":23.258},{"Symbol":"AGI\/ETH","Price":null,"Volume":177.63042683,"Amount":0.0,"24h Change":-0.26},{"Symbol":"AION\/ETH","Price":null,"Volume":315.70941264,"Amount":0.0,"24h Change":0.101},{"Symbol":"AMB\/ETH","Price":null,"Volume":1123.3715468,"Amount":0.0,"24h Change":19.167},{"Symbol":"APPC\/ETH","Price":null,"Volume":240.1573464,"Amount":0.0,"24h Change":0.721},{"Symbol":"ARDR\/ETH","Price":null,"Volume":171.95720382,"Amount":0.0,"24h Change":-0.957},{"Symbol":"ARK\/ETH","Price":null,"Volume":236.26500288,"Amount":0.0,"24h Change":2.302},{"Symbol":"ARN\/ETH","Price":null,"Volume":17294.01449519,"Amount":0.0,"24h Change":71.234},{"Symbol":"AST\/ETH","Price":null,"Volume":248.7008215,"Amount":0.0,"24h Change":0.12},{"Symbol":"BAT\/ETH","Price":null,"Volume":1658.88198242,"Amount":0.0,"24h Change":1.378},{"Symbol":"BCD\/ETH","Price":null,"Volume":450.03846121,"Amount":0.0,"24h Change":-1.417},{"Symbol":"BCH\/ETH","Price":null,"Volume":733.36886977,"Amount":0.0,"24h Change":-0.032},{"Symbol":"BCN\/ETH","Price":null,"Volume":1348.03668453,"Amount":0.0,"24h Change":-1.044},{"Symbol":"BCPT\/ETH","Price":null,"Volume":437.53032782,"Amount":0.0,"24h Change":6.763},{"Symbol":"BLZ\/ETH","Price":null,"Volume":322.71812019,"Amount":0.0,"24h Change":4.087},{"Symbol":"BNB\/ETH","Price":0.045590964,"Volume":1540.02849598,"Amount":7.69412469,"24h Change":0.661},{"Symbol":"BNT\/ETH","Price":null,"Volume":323.80470913,"Amount":0.0,"24h Change":1.53},{"Symbol":"BQX\/ETH","Price":null,"Volume":205.7224197,"Amount":0.0,"24h Change":2.823},{"Symbol":"BRD\/ETH","Price":null,"Volume":67.4287181,"Amount":0.0,"24h Change":6.311},{"Symbol":"BTG\/ETH","Price":0.120117,"Volume":158.43272614,"Amount":0.82635,"24h Change":-0.955},{"Symbol":"BTS\/ETH","Price":null,"Volume":246.49325563,"Amount":0.0,"24h Change":0.605},{"Symbol":"CDT\/ETH","Price":null,"Volume":181.42628874,"Amount":0.0,"24h Change":4.774},{"Symbol":"CHAT\/ETH","Price":null,"Volume":286.41850258,"Amount":0.0,"24h Change":-1.923},{"Symbol":"CLOAK\/ETH","Price":null,"Volume":226.22140097,"Amount":0.0,"24h Change":3.259},{"Symbol":"CMT\/ETH","Price":null,"Volume":1218.04958496,"Amount":0.0,"24h Change":-3.434},{"Symbol":"CND\/ETH","Price":null,"Volume":113.70943501,"Amount":0.0,"24h Change":0.579},{"Symbol":"CVC\/ETH","Price":null,"Volume":354.83122594,"Amount":0.0,"24h Change":7.548},{"Symbol":"DASH\/ETH","Price":null,"Volume":485.73072785,"Amount":0.0,"24h Change":-0.026},{"Symbol":"DATA\/ETH","Price":null,"Volume":107.80748252,"Amount":0.0,"24h Change":3.146},{"Symbol":"DENT\/ETH","Price":null,"Volume":210.646295,"Amount":0.0,"24h Change":2.503},{"Symbol":"DGD\/ETH","Price":0.1835935912,"Volume":157.22591027,"Amount":0.542457,"24h Change":0.225},{"Symbol":"DLT\/ETH","Price":null,"Volume":3615.09727745,"Amount":0.0,"24h Change":40.573},{"Symbol":"DNT\/ETH","Price":null,"Volume":844.12841352,"Amount":0.0,"24h Change":10.533},{"Symbol":"DOCK\/ETH","Price":null,"Volume":256.42103163,"Amount":0.0,"24h Change":3.709},{"Symbol":"EDO\/ETH","Price":null,"Volume":47.84154763,"Amount":0.0,"24h Change":2.541},{"Symbol":"ELF\/ETH","Price":null,"Volume":1470.90249654,"Amount":0.0,"24h Change":2.986},{"Symbol":"ENG\/ETH","Price":null,"Volume":196.3557939,"Amount":0.0,"24h Change":4.325},{"Symbol":"ENJ\/ETH","Price":null,"Volume":847.30944043,"Amount":0.0,"24h Change":3.609},{"Symbol":"EOS\/ETH","Price":null,"Volume":5963.71449434,"Amount":0.0,"24h Change":0.887},{"Symbol":"ETC\/ETH","Price":null,"Volume":1158.73766503,"Amount":0.0,"24h Change":0.4},{"Symbol":"EVX\/ETH","Price":null,"Volume":1610.7881264,"Amount":0.0,"24h Change":27.215},{"Symbol":"FUEL\/ETH","Price":null,"Volume":587.61339287,"Amount":0.0,"24h Change":9.894},{"Symbol":"FUN\/ETH","Price":null,"Volume":258.3097746,"Amount":0.0,"24h Change":3.093},{"Symbol":"GNT\/ETH","Price":null,"Volume":144.93849845,"Amount":0.0,"24h Change":1.807},{"Symbol":"GRS\/ETH","Price":null,"Volume":534.9699158,"Amount":0.0,"24h Change":3.278},{"Symbol":"GTO\/ETH","Price":null,"Volume":1212.16204753,"Amount":0.0,"24h Change":-2.679},{"Symbol":"GVT\/ETH","Price":null,"Volume":1534.2747785,"Amount":0.0,"24h Change":8.299},{"Symbol":"GXS\/ETH","Price":null,"Volume":1137.04356017,"Amount":0.0,"24h Change":0.512},{"Symbol":"HC\/ETH","Price":null,"Volume":102.54883379,"Amount":0.0,"24h Change":1.26},{"Symbol":"HOT\/ETH","Price":null,"Volume":4500.66732804,"Amount":0.0,"24h Change":-0.191},{"Symbol":"ICN\/ETH","Price":null,"Volume":798.0514164,"Amount":0.0,"24h Change":5.989},{"Symbol":"ICX\/ETH","Price":null,"Volume":2546.39029737,"Amount":0.0,"24h Change":5.078},{"Symbol":"INS\/ETH","Price":null,"Volume":767.09936146,"Amount":0.0,"24h Change":9.503},{"Symbol":"IOST\/ETH","Price":null,"Volume":941.64432069,"Amount":0.0,"24h Change":3.265},{"Symbol":"IOTA\/ETH","Price":null,"Volume":1112.55633905,"Amount":0.0,"24h Change":-0.018},{"Symbol":"IOTX\/ETH","Price":null,"Volume":2517.30176305,"Amount":0.0,"24h Change":2.325},{"Symbol":"KEY\/ETH","Price":0.0000293667,"Volume":1927.59427027,"Amount":3115.192,"24h Change":-3.622},{"Symbol":"KMD\/ETH","Price":null,"Volume":471.53440512,"Amount":0.0,"24h Change":3.076},{"Symbol":"KNC\/ETH","Price":null,"Volume":1043.5008454,"Amount":0.0,"24h Change":4.688},{"Symbol":"LEND\/ETH","Price":null,"Volume":165.35586767,"Amount":0.0,"24h Change":0.732},{"Symbol":"LINK\/ETH","Price":null,"Volume":865.79197545,"Amount":0.0,"24h Change":4.614},{"Symbol":"LOOM\/ETH","Price":null,"Volume":7425.70114044,"Amount":0.0,"24h Change":16.348},{"Symbol":"LRC\/ETH","Price":null,"Volume":420.71299197,"Amount":0.0,"24h Change":1.512},{"Symbol":"LSK\/ETH","Price":null,"Volume":517.5613381,"Amount":0.0,"24h Change":4.362},{"Symbol":"LTC\/ETH","Price":null,"Volume":1050.88297033,"Amount":0.0,"24h Change":-0.228},{"Symbol":"LUN\/ETH","Price":null,"Volume":147.51635822,"Amount":0.0,"24h Change":8.103},{"Symbol":"MANA\/ETH","Price":null,"Volume":705.55833266,"Amount":0.0,"24h Change":2.932},{"Symbol":"MCO\/ETH","Price":null,"Volume":227.57011166,"Amount":0.0,"24h Change":2.013},{"Symbol":"MDA\/ETH","Price":null,"Volume":22583.0678389,"Amount":0.0,"24h Change":15.153},{"Symbol":"MFT\/ETH","Price":null,"Volume":665.8230807,"Amount":0.0,"24h Change":1.927},{"Symbol":"MOD\/ETH","Price":null,"Volume":144.28271547,"Amount":0.0,"24h Change":9.058},{"Symbol":"MTH\/ETH","Price":null,"Volume":567.12715097,"Amount":0.0,"24h Change":12.722},{"Symbol":"MTL\/ETH","Price":null,"Volume":146.40132874,"Amount":0.0,"24h Change":-0.875},{"Symbol":"NANO\/ETH","Price":null,"Volume":1132.78260751,"Amount":0.0,"24h Change":0.576},{"Symbol":"NAS\/ETH","Price":null,"Volume":3106.3880127,"Amount":0.0,"24h Change":-0.057},{"Symbol":"NAV\/ETH","Price":null,"Volume":107.21996895,"Amount":0.0,"24h Change":-2.492},{"Symbol":"NCASH\/ETH","Price":null,"Volume":539.29648159,"Amount":0.0,"24h Change":6.664},{"Symbol":"NEBL\/ETH","Price":null,"Volume":147.6590927,"Amount":0.0,"24h Change":3.193},{"Symbol":"NEO\/ETH","Price":null,"Volume":1329.27322355,"Amount":0.0,"24h Change":0.496},{"Symbol":"NPXS\/ETH","Price":null,"Volume":10939.24414723,"Amount":0.0,"24h Change":9.212},{"Symbol":"NULS\/ETH","Price":null,"Volume":333.26313737,"Amount":0.0,"24h Change":1.143},{"Symbol":"NXS\/ETH","Price":null,"Volume":151.21152714,"Amount":0.0,"24h Change":-2.896},{"Symbol":"OAX\/ETH","Price":null,"Volume":619.8475745,"Amount":0.0,"24h Change":13.056},{"Symbol":"OMG\/ETH","Price":null,"Volume":1995.35706937,"Amount":0.0,"24h Change":0.292},{"Symbol":"ONT\/ETH","Price":null,"Volume":2172.78883153,"Amount":0.0,"24h Change":0.507},{"Symbol":"OST\/ETH","Price":null,"Volume":1086.90694772,"Amount":0.0,"24h Change":7.588},{"Symbol":"PAX\/ETH","Price":0.0044839,"Volume":1005.1327663,"Amount":13.0,"24h Change":1.136},{"Symbol":"PHX\/ETH","Price":null,"Volume":286.04650468,"Amount":0.0,"24h Change":7.131},{"Symbol":"PIVX\/ETH","Price":null,"Volume":245.46236407,"Amount":0.0,"24h Change":7.979},{"Symbol":"POA\/ETH","Price":null,"Volume":1052.11379689,"Amount":0.0,"24h Change":7.758},{"Symbol":"POE\/ETH","Price":null,"Volume":331.11477748,"Amount":0.0,"24h Change":3.965},{"Symbol":"POWR\/ETH","Price":null,"Volume":292.04211381,"Amount":0.0,"24h Change":0.409},{"Symbol":"PPT\/ETH","Price":null,"Volume":326.82957173,"Amount":0.0,"24h Change":-0.57},{"Symbol":"QKC\/ETH","Price":null,"Volume":1149.5043201,"Amount":0.0,"24h Change":5.767},{"Symbol":"QLC\/ETH","Price":null,"Volume":549.77173531,"Amount":0.0,"24h Change":-7.958},{"Symbol":"QSP\/ETH","Price":null,"Volume":257.61881292,"Amount":0.0,"24h Change":2.364},{"Symbol":"QTUM\/ETH","Price":null,"Volume":1514.82590967,"Amount":0.0,"24h Change":4.766},{"Symbol":"RCN\/ETH","Price":null,"Volume":355.17310513,"Amount":0.0,"24h Change":2.795},{"Symbol":"RDN\/ETH","Price":null,"Volume":860.2617734,"Amount":0.0,"24h Change":-1.244},{"Symbol":"REP\/ETH","Price":null,"Volume":425.87739711,"Amount":0.0,"24h Change":2.242},{"Symbol":"REQ\/ETH","Price":null,"Volume":190.55316623,"Amount":0.0,"24h Change":1.586},{"Symbol":"RLC\/ETH","Price":null,"Volume":95.0453747,"Amount":0.0,"24h Change":1.755},{"Symbol":"SALT\/ETH","Price":null,"Volume":220.55690328,"Amount":0.0,"24h Change":-3.131},{"Symbol":"SC\/ETH","Price":null,"Volume":773.16817907,"Amount":0.0,"24h Change":-2.674},{"Symbol":"SKY\/ETH","Price":null,"Volume":78.70889332,"Amount":0.0,"24h Change":0.107},{"Symbol":"SNGLS\/ETH","Price":null,"Volume":143.5081907,"Amount":0.0,"24h Change":1.073},{"Symbol":"SNM\/ETH","Price":null,"Volume":222.88398091,"Amount":0.0,"24h Change":5.578},{"Symbol":"SNT\/ETH","Price":null,"Volume":228.28789944,"Amount":0.0,"24h Change":-0.408},{"Symbol":"STEEM\/ETH","Price":null,"Volume":268.70528498,"Amount":0.0,"24h Change":0.248},{"Symbol":"STORJ\/ETH","Price":null,"Volume":171.6593243,"Amount":0.0,"24h Change":4.667},{"Symbol":"STORM\/ETH","Price":0.0000388144,"Volume":395.36340407,"Amount":6259.956,"24h Change":1.55},{"Symbol":"STRAT\/ETH","Price":null,"Volume":87.97093364,"Amount":0.0,"24h Change":1.952},{"Symbol":"SUB\/ETH","Price":null,"Volume":817.5521695,"Amount":0.0,"24h Change":5.538},{"Symbol":"SYS\/ETH","Price":null,"Volume":88.30887876,"Amount":0.0,"24h Change":0.974},{"Symbol":"THETA\/ETH","Price":null,"Volume":302.21661608,"Amount":0.0,"24h Change":2.125},{"Symbol":"TNB\/ETH","Price":null,"Volume":523.79950883,"Amount":0.0,"24h Change":6.677},{"Symbol":"TNT\/ETH","Price":null,"Volume":297.41446139,"Amount":0.0,"24h Change":5.159},{"Symbol":"TRIG\/ETH","Price":null,"Volume":1194.84649474,"Amount":0.0,"24h Change":-9.387},{"Symbol":"TRX\/ETH","Price":null,"Volume":6407.53384665,"Amount":0.0,"24h Change":-1.401},{"Symbol":"TUSD\/ETH","Price":null,"Volume":5794.15220927,"Amount":0.0,"24h Change":1.417},{"Symbol":"VET\/ETH","Price":0.0000594724,"Volume":1695.16469684,"Amount":3739.971,"24h Change":-1.723},{"Symbol":"VIA\/ETH","Price":null,"Volume":183.40765816,"Amount":0.0,"24h Change":3.242},{"Symbol":"VIB\/ETH","Price":null,"Volume":1018.32866854,"Amount":0.0,"24h Change":8.416},{"Symbol":"VIBE\/ETH","Price":null,"Volume":1621.5478775,"Amount":0.0,"24h Change":6.892},{"Symbol":"WABI\/ETH","Price":null,"Volume":275.73398709,"Amount":0.0,"24h Change":4.576},{"Symbol":"WAN\/ETH","Price":null,"Volume":1307.14636405,"Amount":0.0,"24h Change":5.263},{"Symbol":"WAVES\/ETH","Price":null,"Volume":190.57108502,"Amount":0.0,"24h Change":0.662},{"Symbol":"WINGS\/ETH","Price":null,"Volume":41.6949182,"Amount":0.0,"24h Change":-0.567},{"Symbol":"WPR\/ETH","Price":null,"Volume":248.74712016,"Amount":0.0,"24h Change":-2.612},{"Symbol":"WTC\/ETH","Price":null,"Volume":922.4595467,"Amount":0.0,"24h Change":-4.101},{"Symbol":"XEM\/ETH","Price":null,"Volume":799.67653797,"Amount":0.0,"24h Change":-2.335},{"Symbol":"XLM\/ETH","Price":null,"Volume":1629.33721283,"Amount":0.0,"24h Change":-1.018},{"Symbol":"XMR\/ETH","Price":null,"Volume":882.70189833,"Amount":0.0,"24h Change":1.845},{"Symbol":"XRP\/ETH","Price":null,"Volume":8804.70426609,"Amount":0.0,"24h Change":-2.392},{"Symbol":"XVG\/ETH","Price":null,"Volume":1292.0730023,"Amount":0.0,"24h Change":3.898},{"Symbol":"XZC\/ETH","Price":null,"Volume":129.09735513,"Amount":0.0,"24h Change":5.916},{"Symbol":"YOYOW\/ETH","Price":null,"Volume":238.28865557,"Amount":0.0,"24h Change":1.882},{"Symbol":"ZEC\/ETH","Price":null,"Volume":415.34875944,"Amount":0.0,"24h Change":0.087},{"Symbol":"ZEN\/ETH","Price":null,"Volume":180.9696531,"Amount":0.0,"24h Change":-0.817},{"Symbol":"ZIL\/ETH","Price":null,"Volume":1580.3182876,"Amount":0.0,"24h Change":0.564},{"Symbol":"ZRX\/ETH","Price":null,"Volume":4241.56382679,"Amount":0.0,"24h Change":1.121}]
+    
+## Buy log [/buy_log]
+### Get log [GET]
+
++ Response 200 (application/json)
+    [{"datetime":"2018-10-09T12:36:08.498Z","symbol":"CHAT\/ETH","bought_price":null,"price":0.00007596,"amount":801.0,"side":"buy","status":"closed","remaining":0.0,"filled":801.0,"gain":null},{"datetime":"2018-10-09T13:00:40.524Z","symbol":"ENJ\/ETH","bought_price":null,"price":0.00023471,"amount":407.0,"side":"buy","status":"expired","remaining":162.0,"filled":245.0,"gain":null},{"datetime":"2018-10-09T13:15:10.135Z","symbol":"ENJ\/ETH","bought_price":null,"price":0.00023244,"amount":530.0,"side":"buy","status":"expired","remaining":501.0,"filled":29.0,"gain":null},{"datetime":"2018-10-09T13:35:26.374Z","symbol":"CHAT\/ETH","bought_price":null,"price":0.0000747933,"amount":400.0,"side":"buy","status":"closed","remaining":0.0,"filled":400.0,"gain":null},{"datetime":"2018-10-09T13:53:18.729Z","symbol":"STORM\/ETH","bought_price":null,"price":0.00003787,"amount":2086.0,"side":"buy","status":"closed","remaining":0.0,"filled":2086.0,"gain":null},{"datetime":"2018-10-09T14:28:04.078Z","symbol":"VIBE\/ETH","bought_price":null,"price":0.0003231,"amount":586.0,"side":"buy","status":"closed","remaining":0.0,"filled":586.0,"gain":null},{"datetime":"2018-10-10T19:37:36.760Z","symbol":"AION\/ETH","bought_price":null,"price":0.001973,"amount":31.0,"side":"buy","status":"closed","remaining":0.0,"filled":31.0,"gain":null},{"datetime":"2018-10-10T19:39:14.042Z","symbol":"XEM\/ETH","bought_price":null,"price":0.00045592,"amount":134.0,"side":"buy","status":"closed","remaining":0.0,"filled":134.0,"gain":null},{"datetime":"2018-10-10T20:11:14.183Z","symbol":"KEY\/ETH","bought_price":null,"price":0.0000294749,"amount":2077.0,"side":"buy","status":"closed","remaining":0.0,"filled":2077.0,"gain":null},{"datetime":"2018-10-10T20:56:02.970Z","symbol":"ADA\/ETH","bought_price":null,"price":0.0003763,"amount":161.0,"side":"buy","status":"closed","remaining":0.0,"filled":161.0,"gain":null},{"datetime":"2018-10-10T21:50:45.940Z","symbol":"KEY\/ETH","bought_price":null,"price":0.00002915,"amount":1038.0,"side":"buy","status":"closed","remaining":0.0,"filled":1038.0,"gain":null},{"datetime":"2018-10-10T21:56:50.616Z","symbol":"VET\/ETH","bought_price":null,"price":0.00005894,"amount":831.0,"side":"buy","status":"closed","remaining":0.0,"filled":831.0,"gain":null},{"datetime":"2018-10-10T22:33:14.292Z","symbol":"PAX\/ETH","bought_price":null,"price":0.0044839,"amount":13.0,"side":"buy","status":"closed","remaining":0.0,"filled":13.0,"gain":null},{"datetime":"2018-10-10T23:52:05.802Z","symbol":"KEY\/ETH","bought_price":null,"price":0.000029,"amount":1557.0,"side":"buy","status":"expired","remaining":1557.0,"filled":0.0,"gain":null},{"datetime":"2018-10-10T23:53:13.989Z","symbol":"VET\/ETH","bought_price":null,"price":0.00005905,"amount":1246.0,"side":"buy","status":"closed","remaining":0.0,"filled":1246.0,"gain":null},{"datetime":"2018-10-11T00:03:31.705Z","symbol":"XEM\/ETH","bought_price":null,"price":0.00046204,"amount":132.0,"side":"buy","status":"closed","remaining":0.0,"filled":132.0,"gain":null},{"datetime":"2018-10-11T02:09:30.720Z","symbol":"POA\/ETH","bought_price":null,"price":0.00039178,"amount":156.0,"side":"buy","status":"closed","remaining":0.0,"filled":156.0,"gain":null},{"datetime":"2018-10-11T02:09:48.140Z","symbol":"QLC\/ETH","bought_price":null,"price":0.00025303,"amount":242.0,"side":"buy","status":"expired","remaining":242.0,"filled":0.0,"gain":null},{"datetime":"2018-10-11T02:09:51.177Z","symbol":"QLC\/ETH","bought_price":null,"price":0.0002531,"amount":242.0,"side":"buy","status":"closed","remaining":0.0,"filled":242.0,"gain":null},{"datetime":"2018-10-11T02:10:59.608Z","symbol":"CMT\/ETH","bought_price":null,"price":0.00054358,"amount":112.0,"side":"buy","status":"closed","remaining":0.0,"filled":112.0,"gain":null},{"datetime":"2018-10-11T02:41:49.389Z","symbol":"XZC\/ETH","bought_price":null,"price":0.046923,"amount":1.04,"side":"buy","status":"closed","remaining":0.0,"filled":1.04,"gain":null}]
+    
+    
+## sell log [/sell_log]
+### Get log [GET]
+
++ Response 200 (application/json)
+    [{"datetime":"2018-10-09T12:40:43.793Z","symbol":"GNT\/ETH","bought_price":0.0006913611,"price":0.0006977776,"amount":143.0,"side":"sell","status":"closed","remaining":0.0,"filled":143.0,"gain":0.9280972449},{"datetime":"2018-10-09T18:32:29.492Z","symbol":"IOTA\/ETH","bought_price":0.00258491,"price":0.0026,"amount":24.0,"side":"sell","status":"closed","remaining":0.0,"filled":24.0,"gain":0.5837727426},{"datetime":"2018-10-10T19:58:13.929Z","symbol":"AION\/ETH","bought_price":0.001973,"price":0.001987,"amount":31.0,"side":"sell","status":"closed","remaining":0.0,"filled":31.0,"gain":0.7095793208},{"datetime":"2018-10-10T20:40:05.056Z","symbol":"FUN\/ETH","bought_price":0.0000700167,"price":0.00007071,"amount":2801.0,"side":"sell","status":"expired","remaining":483.0,"filled":2318.0,"gain":0.99013411},{"datetime":"2018-10-10T20:40:09.341Z","symbol":"FUN\/ETH","bought_price":0.0000700783,"price":0.00007048,"amount":483.0,"side":"sell","status":"closed","remaining":0.0,"filled":483.0,"gain":0.5731853611},{"datetime":"2018-10-10T21:49:03.633Z","symbol":"XEM\/ETH","bought_price":0.00045592,"price":0.0004596,"amount":134.0,"side":"sell","status":"closed","remaining":0.0,"filled":134.0,"gain":0.8071591507}]
+
+
+## config - buy_strategies [/config/buy_strategies]
+### get buy strategies [GET]
+
++ Response 200 (application/json)
+    [{'conditions': [{'left': {'value': 'MFI',
+      'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 40}},
+    {'left': {'value': 'MFI',
+      'change_over': 2,
+      'candle_period': 30,
+      'timeframe': '5m'},
+     'op': '>',
+     'right': {'value': 1}},
+    {'left': {'value': 'MFI', 'timeframe': '1h'},
+     'op': '<',
+     'right': {'value': 50}}],
+   'buy_value': '2%',
+   'trailing %': 0.3},
+  {'conditions': [{'left': {'value': 'RSI', 'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 10}},
+    {'left': {'value': 'MFI',
+      'change_over': 2,
+      'candle_period': 30,
+      'timeframe': '5m'},
+     'op': '>',
+     'right': {'value': 1}},
+    {'left': {'value': 'MFI', 'timeframe': '1h'},
+     'op': '<',
+     'right': {'value': 50}}],
+   'buy_value': '2%',
+   'trailing %': 0.3}]
+    
+## config - dca_buy_strategies [/config/dca_buy_strategies]
+### get dca_buy strategies [GET]
+
++ Response 200 (application/json)
+    [{'conditions': [{'left': {'value': 'MFI',
+      'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 40}},
+    {'left': {'value': 'MFI',
+      'change_over': 2,
+      'candle_period': 30,
+      'timeframe': '5m'},
+     'op': '>',
+     'right': {'value': 1}},
+    {'left': {'value': 'MFI', 'timeframe': '1h'},
+     'op': '<',
+     'right': {'value': 50}}]
+     
+## config - sell_strategies [/config/sell_strategies]
+### get sell strategies [GET]
+
++ Response 200 (application/json)
+    [{'conditions': [{'left': {'value': 'MFI',
+      'timeframe': '30m'},
+     'op': '>',
+     'right': {'value': 40}}],
+   'sell_value': 0.8,
+   'trailing %': 0.3},
+  {'conditions': [{'left': {'value': 'MFI', 'timeframe': '30m'},
+     'op': '<',
+     'right': {'value': 4}},
+    {'left': {'value': 'EMA', 'timeframe': '30m'},
+     'op': '>',
+     'right': {'value': 0}}],
+   'sell_value': 1,
+   'minimum_volume': 2,
+   'trailing %': 3}]
+   
+## config - general settings [/config/general]
+### get general settings [GET]
+
++ Response 200 (application/json)
+    {'exchange': 'binance',
+ 'paper_trading': False,
+ 'starting_balance': 3,
+ 'market': 'ETH',
+ 'gui_port': 5000,
+ 'start_delay': 0}
+    
+## config - global trade conditions [/config/global_trade_conditions]
+### get global trade conditions [GET]
+
++ Response 200 (application/json)
+    {'min_buy_balance': '50%',
+ 'dca_min_buy_balance': '30%',
+ 'max_pairs': 8,
+ 'blacklist': ['TRIG/ETH', 'BCN/ETH', 'CHAT/ETH', 'ICN/ETH'],
+ 'whitelist': ['ALL'],
+ 'max_change': 0,
+ 'min_change': 0,
+ 'market_change': {'max_1h_quote_change': 10,
+  'min_1h_quote_change': -10,
+  'max_24h_quote_change': 10,
+  'min_24h_quote_change': -10,
+  'min_24h_market_change': -2.5,
+  'max_24h_market_change': 5},
+ 'dca_timeout': 30,
+ 'max_spread': 0,
+ 'min_available_volume': 0,
+ 'bear_override': {},
+ 'bull_override': {}}
+ 
+## config exists [/config_exists]
+### get global trade conditions [GET]
+
++ Response 200 (application/json)
+    true

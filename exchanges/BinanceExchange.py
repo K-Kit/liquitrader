@@ -108,9 +108,6 @@ class BinanceExchange(GenericExchange):
         # else:
         #     return None
 
-
-
-
     # ----
     async def initialize(self):
         # this may want to be split up

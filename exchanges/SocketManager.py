@@ -17,9 +17,9 @@ async def doUnsubscribe(exchange, symbols, params):  # noqa: E302
         try:
             await exchange.websocket_unsubscribe('ob', symbol, params)
 
-        except Exception as ex:
+        except (Exception, asyncio.TimeoutError) as ex:
             acceptable_errors = [
-                '(WebSocket opening handshake timeout (peer did not finish the opening handshake in time))'
+                'WebSocket opening handshake timeout (peer did not finish the opening handshake in time'
             ]
 
             if any(err in str(ex) for err in acceptable_errors):

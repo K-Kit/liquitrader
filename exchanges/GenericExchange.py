@@ -11,7 +11,7 @@ import ccxt.async_support as ccxt_async
 
 from utils.CandleTools import candles_to_df, candle_tic_to_df, get_change_between_candles
 from utils.AverageCalcs import calc_average_price_from_hist, calculate_from_existing
-
+from schema import Pair
 # TODO async update balances every min
 
 
@@ -177,8 +177,8 @@ class GenericExchange:
                 amount = balances[key]['total']
 
                 # if we already have average data, calculate from existing
-                if symbol in self.pairs and self.pairs[symbol]['total_cost'] != 0:
-                    if amount != self.pairs[symbol]['total']:
+                if symbol in self.pairs and self.pairs[symbol].total_cost != 0:
+                    if amount != self.pairs[symbol].total:
                         trades = self._client.fetchMyTrades(symbol)
                         # update free, used, total
                         self.pairs[symbol].update(balances[key])
@@ -186,9 +186,9 @@ class GenericExchange:
                         new_average_data = calc_average_price_from_hist(trades, amount)
 
                         if new_average_data is None:
-                            self.pairs[symbol]['total_cost'] = None
-                            self.pairs[symbol]['avg_price'] = None
-                            self.pairs[symbol]['amount'] = None
+                            self.pairs[symbol].total_cost = None
+                            self.pairs[symbol].avg_price = None
+                            self.pairs[symbol].amount = None
 
                         else:
                             self.pairs[symbol].update(new_average_data)
@@ -196,7 +196,7 @@ class GenericExchange:
                 # if we don't have average data / trade history, add new
                 else:
                     # skip wicked small values
-                    if amount < self.pairs[symbol]['limits']['amount']['min']:
+                    if amount < self.pairs[symbol].limits['amount']['min']:
                         continue
 
                     # fetch trades for symbol from API
@@ -211,14 +211,14 @@ class GenericExchange:
                     self.pairs[symbol].update(average_data)
                     self.pairs[symbol].update(balances[key])
 
-                self.pairs[symbol]['total'] = amount
-                self.pairs[symbol]['amount'] = amount
+                self.pairs[symbol].total = amount
+                self.pairs[symbol].amount = amount
 
     # ----
     def _initialize_pairs(self):
         # TODO: Make async?
         pairs = {
-                    x['symbol']: x
+                    x['symbol']: Pair(id=x['symbol'], symbol=x['symbol'])
                     for x in self._client.fetchMarkets()
                     if x['active'] and x['quote'] == self.quote_currency.upper()
                 }
@@ -227,18 +227,18 @@ class GenericExchange:
             # assign default values for pairs
             candles[pair] = {}
             if pair not in self.pairs:
-                pairs[pair]['total'] = 0
-                pairs[pair]['amount'] = 0
-                pairs[pair]['total_cost'] = 0
-                pairs[pair]['avg_price'] = None
-                pairs[pair]['dca_level'] = 0
-                pairs[pair]['last_order_time'] = 0
-                pairs[pair]['trades'] = []
-                pairs[pair]['last_id'] = 0
-                pairs[pair]['last_depth_check'] = 0
-                pairs[pair]['percentage'] = 0
+                pairs[pair].total = 0
+                pairs[pair].amount = 0
+                pairs[pair].total_cost = 0
+                pairs[pair].avg_price = None
+                pairs[pair].dca_level = 0
+                pairs[pair].last_order_time = 0
+                pairs[pair].trades = []
+                pairs[pair].last_id = 0
+                pairs[pair].last_depth_check = 0
+                pairs[pair].percentage = 0
             else:
-                pairs[pair] = self.pairs[pair]
+                pairs[pair] = Pair(self.pairs[pair])
 
         self.pairs = pairs
         self.candles = candles
@@ -246,8 +246,8 @@ class GenericExchange:
 
     # ----
     def place_order(self, symbol, order_type, side, amount, price):
-        bought_price = self.pairs[symbol]['avg_price'] if side.lower() == 'sell' else None
-        print(symbol, amount, self.pairs[symbol]['total'])
+        bought_price = self.pairs[symbol].avg_price if side.lower() == 'sell' else None
+        print(symbol, amount, self.pairs[symbol].total)
         order = self._client.create_order(symbol, order_type, side, self._client.amount_to_precision(symbol, amount), self._client.price_to_precision(symbol, price))
         print(order)
 
@@ -259,38 +259,38 @@ class GenericExchange:
             order['bought_price'] = bought_price
 
         if 'total' not in self.pairs[symbol]:
-            self.pairs[symbol]['total'] = 0
+            self.pairs[symbol].total = 0
         filled = order['filled']
 
         # fee will only be currency
-        if self.pairs[symbol]['base'] == order['fee']['currency']:
+        if self.pairs[symbol].base == order['fee']['currency']:
             filled -= order['fee']['cost']
 
         # increment or decrement 'total' (quantity owned)
-        self.pairs[symbol]['total'] += filled if side == 'buy' else - filled
+        self.pairs[symbol].total += filled if side == 'buy' else - filled
 
         # if total cost is none set to 0 to avoid nonetype + float err
-        if self.pairs[symbol]['total_cost'] is None:
-            self.pairs[symbol]['total_cost'] = 0
+        if self.pairs[symbol].total_cost is None:
+            self.pairs[symbol].total_cost = 0
 
         # increment or decrement total cost
-        self.pairs[symbol]['total_cost'] += order['cost'] if side == 'buy' else - order['cost']
+        self.pairs[symbol].total_cost += order['cost'] if side == 'buy' else - order['cost']
 
         # if we sell at a profit reset total cost to 0
-        if self.pairs[symbol]['total_cost'] < 0:
-            self.pairs[symbol]['total_cost'] = 0
+        if self.pairs[symbol].total_cost < 0:
+            self.pairs[symbol].total_cost = 0
 
         # recalculate average price from total cost and amount
         try:
             if side.lower() == 'buy':
-                self.pairs[symbol]['avg_price'] = self.pairs[symbol]['total_cost'] / self.pairs[symbol]['total']
+                self.pairs[symbol].avg_price = self.pairs[symbol].total_cost / self.pairs[symbol].total
         except ZeroDivisionError:
-            self.pairs[symbol]['avg_price'] = None
+            self.pairs[symbol].avg_price = None
 
         # update quote balance
         self.balance -= order['cost'] if side == 'buy' else - order['cost']
         # update last order time
-        self.pairs[symbol]['last_order_time'] = int(time.time())
+        self.pairs[symbol].last_order_time = int(time.time())
         # temp - will manually calc avg instead of calling update
         # self.update_balances()
 
@@ -432,7 +432,7 @@ class GenericExchange:
             await asyncio.sleep(self._ticker_upkeep_call_schedule)
 
     def get_min_cost(self, symbol):
-        limits = self.pairs[symbol]['limits']
+        limits = self.pairs[symbol].limits
         if 'cost' in limits:
             return limits['cost']['min']
         else:

@@ -849,30 +849,31 @@ def main(ipython=False):
     if not gui.gui_server.users_exist():
         firsttime_init(shutdown_handler)
 
-    gui_server = gui.gui_server.GUIServer(shutdown_handler,
-                                          host=config.general_settings['host'],
-                                          port=config.general_settings['port'],
-                                          ssl=config.general_settings['use_ssl'],
-                                          )
-
-
-
-    try:
-        lt_engine.load_trade_history()
-    except FileNotFoundError:
-        print('No trade history found')
+    # gui_server = gui.gui_server.GUIServer(shutdown_handler,
+    #                                       host=config.general_settings['host'],
+    #                                       port=config.general_settings['port'],
+    #                                       ssl=config.general_settings['use_ssl'],
+    #                                       )
+    #
+    #
+    #
+    # try:
+    #     lt_engine.load_trade_history()
+    # except FileNotFoundError:
+    #     print('No trade history found')
 
     lt_engine.initialize_exchange()
     lt_engine.load_strategies()
 
     # ----
-    trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))
-    gui_thread = threading.Thread(target=gui_server.run)
+    # trader_thread = threading.Thread(target=lambda: trader_thread_loop(lt_engine, shutdown_handler))
+    # gui_thread = threading.Thread(target=gui_server.run)
     exchange_thread = threading.Thread(target=lt_engine.run_exchange)
 
-    trader_thread.start()
-    gui_thread.start()
+    # trader_thread.start()
+    # gui_thread.start()
     exchange_thread.start()
+    return lt_engine
 
     def shutdown():
         print('\nClosing LiquiTrader...\n')

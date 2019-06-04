@@ -66,11 +66,13 @@ class BinanceExchange(GenericExchange):
 
     # ----
     def handle_ticker_socket(self, symbol, data):
-        # renamed what used to be pair.price to pair['close'] to follow CCXT conventions
+        # renamed what used to be pair.price to pair.close'] to follow CCXT conventions
 
         if symbol in self.pairs:
             data['close'] = float(data['info']['c'])
-            self.pairs[symbol].update(data)
+            self.pairs[symbol].close = data['close']
+            self.pairs[symbol].volume = float(data['quoteVolume'])
+            self.pairs[symbol].percentage = float(data['precentage'])
 
         elif 'USDT' in symbol:
             self.quote_change = float(data['percentage'])
@@ -81,9 +83,9 @@ class BinanceExchange(GenericExchange):
 
         if symbol in self.pairs:
             pair = self.pairs[symbol]
-            pair['last_depth_socket_tick'] = time.time()
-            pair['asks'] = data['asks']
-            pair['bids'] = data['bids']
+            pair.last_depth_socket_tick = time.time()
+            pair.asks = data['asks']
+            pair.bids = data['bids']
 
     # ----
     def get_depth(self, symbol, side):
@@ -96,13 +98,13 @@ class BinanceExchange(GenericExchange):
         :return:
         """
         pair = self.pairs[symbol]
-        # if pair['last_depth_check'] < pair['last_depth_socket_tick']:
-        #     pair['last_depth_check'] = time.time()
-        return pair['asks'] if side.upper() == 'BUY' else pair['bids']
+        # if pair.last_depth_check'] < pair.last_depth_socket_tick']:
+        #     pair.last_depth_check'] = time.time()
+        return pair.asks if side.upper() == 'BUY' else pair.bids
 
-        # elif time.time() - pair['last_depth_check'] > 0.5:
+        # elif time.time() - pair.last_depth_check'] > 0.5:
         #     depth = self._client.fetch_order_book(symbol)
-        #     pair['last_depth_check'] = time.time()
+        #     pair.last_depth_check'] = time.time()
         #     return depth['asks'] if side.upper() == 'BUY' else depth['bids']
 
         # else:
@@ -188,7 +190,7 @@ class BinanceExchange(GenericExchange):
         # raise('kyles dumbass broke this with websocket changes, will fix eventually')
         # print('detected closed sockets, re-opening connection')
         # self.socket_manager.close()
-        # self.init_socket_manager(self._access_keys['public'], self._access_keys['secret'])
+        # self.init_socket_manager(self._access_keys['public'], self._access_keys['secret)
         # self.last_candle_update_time = time.time()+10
         # self.last_depth_update_time = time.time()+10
         # self.last_ticker_update_time = time.time()+10

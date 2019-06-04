@@ -20,7 +20,7 @@ from flask import jsonify, Response, render_template, redirect
 import database_models
 
 import flask_compress
-from flask_talisman import Talisman
+# from flask_talisman import Talisman
 from flask_otp import OTP
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_jwt_extended import (
@@ -223,11 +223,11 @@ class GUIServer:
             ],
         }
 
-        if FROZEN:
-            Talisman(_app, force_https=ssl, content_security_policy=csp)
-        else:
-            from flask_cors import CORS
-            CORS(_app)
+        # if FROZEN:
+        #     Talisman(_app, force_https=ssl, content_security_policy=csp)
+        # else:
+        #     from flask_cors import CORS
+        #     CORS(_app)
         #
         # otp = OTP()
         # otp.init_app(_app)

@@ -18,9 +18,10 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
 
     @exchange.on('err')
     def websocket_error(err, conxid):  # pylint: disable=W0612
-        error_stack = traceback.extract_stack()
-        # TODO: log and handle errors https://github.com/firepol/ccxt-websockets-db-updater/issues/4
-        print(f'{exchange.id}, {datetime.datetime.now()}, {error_stack}')
+        # error_stack = traceback.extract_stack()
+        # # TODO: log and handle errors https://github.com/firepol/ccxt-websockets-db-updater/issues/4
+        # print(f'{exchange.id}, {datetime.datetime.now()}, {error_stack}')
+        print(err)
 
     @exchange.on(event)
     def websocket_ob(symbol, data):

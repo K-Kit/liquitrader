@@ -37,7 +37,7 @@ async def doSubscribe(exchange, symbols, params):  # noqa: E302
         try:
             await exchange.websocket_subscribe('ob', symbol, params)
 
-        except Exception as ex:
+        except (Exception, asyncio.TimeoutError) as ex:
             acceptable_errors = [
                 '(peer did not finish the opening handshake in time)',
                 '(peer dropped the TCP connection without previous WebSocket closing handshake)'
@@ -47,6 +47,9 @@ async def doSubscribe(exchange, symbols, params):  # noqa: E302
                 pass
             else:
                 raise ex
+
+        except TimeoutError:
+            pass
 
 
 async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=False, order_books=None, callback=None, interval=None):

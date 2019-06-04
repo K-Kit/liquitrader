@@ -96,6 +96,9 @@ class BinanceExchange(GenericExchange):
         :return:
         """
         pair = self.pairs[symbol]
+        if not 'ask' in pair:
+            print('depth not yet available, if this persists please contact support')
+            time.sleep(5)
         # if pair['last_depth_check'] < pair['last_depth_socket_tick']:
         #     pair['last_depth_check'] = time.time()
         return pair['asks'] if side.upper() == 'BUY' else pair['bids']

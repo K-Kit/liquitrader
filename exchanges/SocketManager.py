@@ -1,5 +1,54 @@
+# Fix from https://github.com/lfern/ccxt/blob/feature/websockets-multiple/examples/py/websocket-recover-connection.py
+
+import asyncio
+import sys
 import traceback
-import datetime
+
+import ccxt.async_support as ccxt  # noqa: E402
+
+
+loop = asyncio.get_event_loop()
+notRecoverableError = False
+nextRecoverableErrorTimeout = None
+
+
+async def doUnsubscribe(exchange,eventSymbols):  # noqa: E302
+    try:
+        await exchange.websocket_unsubscribe_all(eventSymbols)
+
+    except (Exception, asyncio.TimeoutError) as ex:
+        acceptable_errors = [
+            'WebSocket opening handshake timeout (peer did not finish the opening handshake in time'
+        ]
+
+        if any(err in str(ex) for err in acceptable_errors):
+            pass
+        else:
+            raise ex
+
+
+async def doSubscribe(exchange, eventSymbols):  # noqa: E302
+    global nextRecoverableErrorTimeout
+    if notRecoverableError:
+        return
+
+    try:
+        await exchange.websocket_subscribe_all(eventSymbols)
+
+    except (Exception, asyncio.TimeoutError) as ex:
+        acceptable_errors = [
+            '(peer did not finish the opening handshake in time)',
+            '(peer dropped the TCP connection without previous WebSocket closing handshake)'
+        ]
+
+        if any(err in str(ex) for err in acceptable_errors):
+            pass
+        else:
+            raise ex
+
+    except TimeoutError:
+        pass
+
 
 async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=False, order_books=None, callback=None, interval=None):
     """
@@ -15,20 +64,6 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
     :param interval: applies to  OHLCV socket to set candle interval
     :return:
     """
-
-    @exchange.on('err')
-    def websocket_error(err, conxid):  # pylint: disable=W0612
-        error_stack = traceback.extract_stack()
-        # TODO: log and handle errors https://github.com/firepol/ccxt-websockets-db-updater/issues/4
-        print(f'{exchange.id}, {datetime.datetime.now()}, {error_stack}')
-
-    @exchange.on(event)
-    def websocket_ob(symbol, data):
-        if interval:
-            callback(symbol, data, interval)
-        else:
-            callback(symbol, data)
-
     eventSymbols = []
     for symbol in symbols:
         eventSymbols.append({
@@ -40,5 +75,46 @@ async def subscribe_ws(event, exchange, symbols, limit=20, debug=False, verbose=
             }
         })
 
-    await exchange.websocket_subscribe_all(eventSymbols)
+    @exchange.on('err')
+    async def websocket_error(err, conxid=None):  # pylint: disable=W0612
+        global notRecoverableError
+        global loop
+        global nextRecoverableErrorTimeout
+
+        print(type(err).__name__ + ":" + str(err))
+        traceback.print_tb(err.__traceback__)
+        sys.stdout.flush()
+
+        if conxid is not None:
+            exchange.websocketClose(conxid)
+
+        if isinstance(err, ccxt.NetworkError):
+            await asyncio.sleep(5)
+            try:
+                if notRecoverableError:
+                    return
+                await doSubscribe(exchange, eventSymbols)
+
+            except Exception as ex:
+                print(f'Network error: {ex}')
+                sys.stdout.flush()
+
+        else:
+            notRecoverableError = True
+            if nextRecoverableErrorTimeout is not None:
+                nextRecoverableErrorTimeout.cancel()
+            await doUnsubscribe(exchange,eventSymbols)
+
+            loop.stop()
+
+    @exchange.on(event)
+    def websocket_ob(symbol, data):
+        if interval:
+            callback(symbol, data, interval)
+        else:
+            callback(symbol, data)
+
+    await exchange.loadMarkets()
+
+    await doSubscribe(exchange, eventSymbols)
 

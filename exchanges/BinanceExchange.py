@@ -50,7 +50,7 @@ class BinanceExchange(GenericExchange):
 
         # so we dont have to mess with foat/str precision per pair
         self._client.options['parseOrderToPrecision'] = True
-        self._client.options['recvWindow'] = 100000
+        self._client.options['recvWindow'] = 10000
 
     # ----
     def handle_candle_socket(self, symbol, candle_data, candle_period):

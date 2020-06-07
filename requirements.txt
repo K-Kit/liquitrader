@@ -12,7 +12,7 @@ cython
 
 distro
 
-flask
+flask==1.1.1
 flask_bootstrap
 flask_compress
 flask_talisman
